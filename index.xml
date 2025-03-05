@@ -2,79 +2,79 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Ranking Języków Programowania</title>
-    <link>https://kamilapinski.github.io/</link>
+    <link>http://localhost:1313/</link>
     <description>Recent content on Ranking Języków Programowania</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>pl</language>
-    <atom:link href="https://kamilapinski.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title></title>
-      <link>https://kamilapinski.github.io/c</link>
+      <link>http://localhost:1313/c&#43;&#43;/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://kamilapinski.github.io/c</guid>
-      <description>C# Miejsce: 5&#xA;Wskaźnik: 4.12%&#xA;Miejsce w poprzednim roku: 5&#xA;Zmiana: -3.41%&#xA;Oficjalna strona: C# | Modern, open-source programming language for .NET C# is the modern, open-source, cross-platform object-oriented programming language for the .NET developer platform with free tools for Linux, macOS, and Windows. &amp;hellip; C# is one of the top 5 languages used by projects on GitHub and is consistently one of the most loved languages on Stack &amp;hellip; Data sourced from official tests available at &amp;hellip; Wikipedia: C Sharp (programming language) - Wikipedia C# (/ ˌ s iː ˈ ʃ ɑːr p / see SHARP) [b] is a general-purpose high-level programming language supporting multiple paradigms.</description>
+      <guid>http://localhost:1313/c&#43;&#43;/</guid>
+      <description>C++ Miejsce: 2&#xA;Wskaźnik: 11.37%&#xA;Miejsce w poprzednim roku: 3&#xA;Zmiana: +0.84%&#xA;Oficjalna strona: Standard C++ News, Status &amp;amp; Discussion about Standard C++ Follow All Posts All Posts RSS. The home of Standard C++ on the web — news, status and discussion about the C++ standard on all compilers and platforms. Recent Highlights News RSS. Inside STL: Waiting for a std::atomic to change, part 1 &amp;ndash; Raymond Chen By Blog Staff | Mar 3, 2025 12:48 PM; Wikipedia: C++ - Wikipedia C++ (/ ˈ s iː p l ʌ s p l ʌ s /, pronounced &amp;ldquo;C plus plus&amp;rdquo; and sometimes abbreviated as CPP) is a high-level, general-purpose programming language created by Danish computer scientist Bjarne Stroustrup.</description>
     </item>
     <item>
       <title></title>
-      <link>https://kamilapinski.github.io/c&#43;&#43;/</link>
+      <link>http://localhost:1313/c/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://kamilapinski.github.io/c&#43;&#43;/</guid>
-      <description>C++ Miejsce: 2&#xA;Wskaźnik: 11.37%&#xA;Miejsce w poprzednim roku: 3&#xA;Zmiana: +0.84%&#xA;Oficjalna strona: Standard C++ News, Status &amp;amp; Discussion about Standard C++ Follow All Posts All Posts RSS. The home of Standard C++ on the web — news, status and discussion about the C++ standard on all compilers and platforms. Wikipedia: C++ - Wikipedia C++ (/ ˈ s iː p l ʌ s p l ʌ s /, pronounced &amp;ldquo;C plus plus&amp;rdquo; and sometimes abbreviated as CPP) is a high-level, general-purpose programming language created by Danish computer scientist Bjarne Stroustrup.</description>
-    </item>
-    <item>
-      <title></title>
-      <link>https://kamilapinski.github.io/c/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://kamilapinski.github.io/c/</guid>
+      <guid>http://localhost:1313/c/</guid>
       <description>C Miejsce: 4&#xA;Wskaźnik: 9.84%&#xA;Miejsce w poprzednim roku: 2&#xA;Zmiana: -1.14%&#xA;Oficjalna strona: The GNU C Reference Manual This is a reference manual for the C programming language as implemented by the GNU Compiler Collection (GCC). Specifically, this manual aims to document: The 1989 ANSI C standard, commonly known as &amp;ldquo;C89&amp;rdquo; The 1999 ISO C standard, commonly known as &amp;ldquo;C99&amp;rdquo;, to the extent that C99 is implemented by GCC Wikipedia: C (programming language) - Wikipedia C (pronounced / ˈ s iː / - like the letter c) [6] is a general-purpose programming language.</description>
     </item>
     <item>
       <title></title>
-      <link>https://kamilapinski.github.io/delphi_object_pascal/</link>
+      <link>http://localhost:1313/csharp/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://kamilapinski.github.io/delphi_object_pascal/</guid>
+      <guid>http://localhost:1313/csharp/</guid>
+      <description>C# Miejsce: 5&#xA;Wskaźnik: 4.12%&#xA;Miejsce w poprzednim roku: 5&#xA;Zmiana: -3.41%&#xA;Oficjalna strona: C# | Modern, open-source programming language for .NET C# is the modern, open-source, cross-platform object-oriented programming language for the .NET developer platform with free tools for Linux, macOS, and Windows. &amp;hellip; C# is one of the top 5 languages used by projects on GitHub and is consistently one of the most loved languages on Stack &amp;hellip; Data sourced from official tests available at &amp;hellip; Wikipedia: C Sharp (programming language) - Wikipedia C# (/ ˌ s iː ˈ ʃ ɑːr p / see SHARP) [b] is a general-purpose high-level programming language supporting multiple paradigms.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>http://localhost:1313/delphi_object_pascal/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/delphi_object_pascal/</guid>
       <description>Delphi/Object Pascal Miejsce: 9&#xA;Wskaźnik: 2.18%&#xA;Miejsce w poprzednim roku: 12&#xA;Zmiana: +0.78%&#xA;Oficjalna strona: Delphi: Modern Object Pascal Technology - Embarcadero Delphi: Modern Object Pascal. Delphi offers modern Object Pascal with native compilers and component libraries for Windows, macOS, iOS, Android and Linux. Delphi was originally written by Anders Hejlsberg before he moved to Microsoft to father C# Sharing a common ancestry, C# developers find themselves immediately at home in using Delphi.</description>
     </item>
     <item>
       <title></title>
-      <link>https://kamilapinski.github.io/go/</link>
+      <link>http://localhost:1313/go/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://kamilapinski.github.io/go/</guid>
+      <guid>http://localhost:1313/go/</guid>
       <description>Go Miejsce: 8&#xA;Wskaźnik: 2.26%&#xA;Miejsce w poprzednim roku: 8&#xA;Zmiana: +0.53%&#xA;Oficjalna strona: The Go Programming Language The Go project&amp;rsquo;s official blog. Go project Get help and stay informed from Go. Get connected Why Go navigate &amp;hellip; Build simple, secure, scalable systems with Go. An open-source programming language supported by Google Easy to learn and great for teams Built-in concurrency and a robust standard library Large ecosystem of partners, communities &amp;hellip; Wikipedia: Go (programming language) - Wikipedia Go was designed at Google in 2007 to improve programming productivity in an era of multicore, networked machines and large codebases.</description>
     </item>
     <item>
       <title></title>
-      <link>https://kamilapinski.github.io/java/</link>
+      <link>http://localhost:1313/java/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://kamilapinski.github.io/java/</guid>
+      <guid>http://localhost:1313/java/</guid>
       <description>Java Miejsce: 3&#xA;Wskaźnik: 10.66%&#xA;Miejsce w poprzednim roku: 4&#xA;Zmiana: +1.79%&#xA;Oficjalna strona: Java | Oracle Oracle Java is the #1 programming language and development platform. It reduces costs, shortens development timeframes, drives innovation, and improves application services. Java continues to be the development platform of choice for enterprises and developers. Wikipedia: Java (programming language) - Wikipedia Java is a high-level, general-purpose, memory-safe, object-oriented programming language.It is intended to let programmers write once, run anywhere (), [16] meaning that compiled Java code can run on all platforms that support Java without the need to recompile.</description>
     </item>
     <item>
       <title></title>
-      <link>https://kamilapinski.github.io/javascript/</link>
+      <link>http://localhost:1313/javascript/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://kamilapinski.github.io/javascript/</guid>
+      <guid>http://localhost:1313/javascript/</guid>
       <description>JavaScript Miejsce: 6&#xA;Wskaźnik: 3.78%&#xA;Miejsce w poprzednim roku: 6&#xA;Zmiana: +0.61%&#xA;Oficjalna strona: JavaScript | MDN - MDN Web Docs JavaScript (JS) is a lightweight interpreted (or just-in-time compiled) programming language with first-class functions. While it is most well-known as the scripting language for Web pages, many non-browser environments also use it, such as Node.js, Apache CouchDB and Adobe Acrobat. JavaScript is a prototype-based, multi-paradigm, single-threaded, dynamic language, supporting object-oriented &amp;hellip; Wikipedia: JavaScript - Wikipedia This is an accepted version of this page This is the latest accepted revision, reviewed on 23 February 2025.</description>
     </item>
     <item>
       <title></title>
-      <link>https://kamilapinski.github.io/python/</link>
+      <link>http://localhost:1313/python/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://kamilapinski.github.io/python/</guid>
+      <guid>http://localhost:1313/python/</guid>
       <description>Python Miejsce: 1&#xA;Wskaźnik: 23.88%&#xA;Miejsce w poprzednim roku: 1&#xA;Zmiana: +8.72%&#xA;Oficjalna strona: Welcome to Python.org The official home of the Python Programming Language. Notice: &amp;hellip; Experienced programmers in any other language can pick up Python very quickly, and beginners find the clean syntax and indentation structure easy to learn. &amp;hellip; The mission of the Python Software Foundation is to promote, protect, and advance the Python programming language, and &amp;hellip; Wikipedia: Python (programming language) - Wikipedia Learn about Python, a high-level, general-purpose programming language with a comprehensive standard library and multiple paradigms.</description>
     </item>
     <item>
       <title></title>
-      <link>https://kamilapinski.github.io/sql/</link>
+      <link>http://localhost:1313/sql/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://kamilapinski.github.io/sql/</guid>
+      <guid>http://localhost:1313/sql/</guid>
       <description>SQL Miejsce: 7&#xA;Wskaźnik: 2.87%&#xA;Miejsce w poprzednim roku: 7&#xA;Zmiana: +1.04%&#xA;Oficjalna strona: SQL Server Downloads | Microsoft SQL Server 2022 Express is a free edition of SQL Server, ideal for development and production for desktop, web, and small server applications. Download now Install SQL Server 2022 on Windows, Linux, and Docker containers Wikipedia: SQL - Wikipedia SQL was initially developed at IBM by Donald D. Chamberlin and Raymond F.</description>
     </item>
     <item>
       <title></title>
-      <link>https://kamilapinski.github.io/visual_basic/</link>
+      <link>http://localhost:1313/visual_basic/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://kamilapinski.github.io/visual_basic/</guid>
+      <guid>http://localhost:1313/visual_basic/</guid>
       <description>Visual Basic Miejsce: 10&#xA;Wskaźnik: 2.04%&#xA;Miejsce w poprzednim roku: 9&#xA;Zmiana: +0.52%&#xA;Oficjalna strona: Visual Basic docs - get started, tutorials, reference. Learn Visual Basic programming in .NET - for beginning developers, developers new to Visual Basic, and experienced Visual Basic developers &amp;hellip; Visual Basic is an object-oriented programming language developed by Microsoft. Using Visual Basic makes it fast and easy to create type-safe .NET apps. Get started Download Download the .</description>
     </item>
   </channel>
