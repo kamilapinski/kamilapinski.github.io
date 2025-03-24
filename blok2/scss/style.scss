@@ -1,0 +1,117 @@
+$bg0-color: #fff;
+$bg1-color: #ecf2f9; 
+$first-color:  #19334d;
+$second-color: #ecf9ec;
+$link-color: #006666;
+
+body {
+    @mixin theme() {
+        box-shadow: 0 0 1px rgba(black, .25);
+    }
+
+    background-color: $bg0-color;
+    font-family: "Montserrat", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+
+    * {
+        color: $first-color;
+    }
+
+    a {
+        color: $link-color;
+        text-decoration: none;
+    }
+
+    header {
+        transition: all 0.2s ease-in-out;
+        cursor: default;
+
+        h1 {
+            text-align: center;
+        }
+
+        &:hover {
+            transform: scale(1.3);
+        }
+    }
+
+    main {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+
+        section {
+            @include theme;
+            width: 45vw;
+            margin: 1rem 2rem;
+            box-sizing: border-box;
+            border-radius: 1rem;
+            padding: 1rem 3rem;
+            text-align: right;
+            transition: all 0.2s ease-in-out;
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                text-align: center;
+
+                border: 1px solid $first-color;
+                border-radius: 1rem;
+                
+                th, td {
+                    border-bottom: 1px solid $first-color;
+                    padding: 0.5rem;
+                }
+
+                th {
+                    background-color: $link-color;
+                    color: white;
+                }
+
+                tr:nth-child(even) {
+                    background-color: #f2f2f2;      // Tło dla parzystych wierszy
+                }
+
+                tr:hover {
+                    background-color: #e0e0e0;      // Tło po najechaniu myszką
+                }
+            }
+        }
+
+        section:nth-child(2n) {
+            text-align: left;
+        }
+    }
+
+    footer {
+        text-align: center;
+    }
+
+    @media (min-width: 800px) {
+        main > section:hover {
+            background-color: $bg1-color;
+        }
+    }
+
+    @media (max-width: 800px) {
+        main {
+            flex-direction: column;
+            align-items: center;
+
+            section {
+                width: 90vw;
+            }
+        }
+
+        .hide {
+            display: none;
+        }
+    }
+}
+
+
+body:hover {
+    background-color: linear-gradient(to bottom right, $first-color, $bg1-color);
+}
