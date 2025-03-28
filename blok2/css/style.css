@@ -1,5 +1,49 @@
 @import "tailwindcss";
 
+
+@theme {
+  --animate-wiggle: wiggle 1s ease-in-out infinite;
+  --animate-fade-in: fadein 1s ease-in-out infinite;
+  --animate-scale-down: scaledown 3s ease-in-out;
+
+  @keyframes scaledown {
+    0% {
+      margin-top: 40vh;
+      margin-bottom: 50vh;
+      transform: scale(8);
+    }
+    25% {
+      margin-top: 40vh;
+      margin-bottom: 50vh;
+      transform: scale(8);
+    }
+    100% {
+      margin-top: 0;
+      margin-bottom: 0;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(-1deg);
+    }
+    50% {
+      transform: rotate(1deg);
+    }
+  }
+
+  @keyframes fadein {
+    0% { 
+      opacity: 0;
+    }
+    100% { 
+      opacity: 1;
+    }
+  }
+}
+
 body {
   background-color: #fff;
   font-family: "Montserrat", sans-serif;
