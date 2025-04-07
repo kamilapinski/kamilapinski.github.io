@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Matematyczny na Czas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .test-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #e74c3c;
+        }
+        .questions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .question {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        input {
+            width: 80px;
+            padding: 5px;
+            margin-left: 5px;
+            text-align: center;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .results {
+            display: none;
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .correct {
+            color: #27ae60;
+        }
+        .incorrect {
+            color: #e74c3c;
+        }
+        .complexity-1 { background-color: #f9f9f9; }
+        .complexity-2 { background-color: #e8f4f8; }
+        .complexity-3 { background-color: #e0e8f8; }
+        .complexity-4 { background-color: #f8e8e0; }
+    </style>
+</head>
+<body>
+    <h1>Test Matematyczny na Czas</h1>
+    <div class="test-container">
+        <p>Rozwiąż 30 przykładów matematycznych w jak najkrótszym czasie!</p>
+        <div class="timer">Czas: 0:00</div>
+        
+        <div class="questions" id="questions-container">
+            <!-- Pytania będą generowane przez JavaScript -->
+        </div>
+        
+        <button id="start-btn">Rozpocznij test</button>
+        <button id="check-btn" disabled>Sprawdź odpowiedzi</button>
+    </div>
+    
+    <div class="results" id="results-container">
+        <h2>Wyniki</h2>
+        <p id="time-result"></p>
+        <p id="score-result"></p>
+        <p id="accuracy-result"></p>
+        <button id="restart-btn">Rozpocznij nowy test</button>
+    </div>
+
+    <script>
+        // Zmienne globalne
+        let startTime;
+        let timerInterval;
+        let questions = [];
+        
+        // Elementy DOM
+        const questionsContainer = document.getElementById('questions-container');
+        const startBtn = document.getElementById('start-btn');
+        const checkBtn = document.getElementById('check-btn');
+        const resultsContainer = document.getElementById('results-container');
+        const timeResult = document.getElementById('time-result');
+        const scoreResult = document.getElementById('score-result');
+        const accuracyResult = document.getElementById('accuracy-result');
+        const restartBtn = document.getElementById('restart-btn');
+        const timerDisplay = document.querySelector('.timer');
+        
+        // Operatory i ich funkcje
+        const operators = [
+            { symbol: '+', func: (a, b) => a + b, priority: 1 },
+            { symbol: '-', func: (a, b) => a - b, priority: 1 },
+            { symbol: '×', func: (a, b) => a * b, priority: 2 },
+            { symbol: '÷', func: (a, b) => a / b, priority: 2 },
+            { symbol: '^', func: (a, b) => Math.pow(a, b), priority: 3 }
+        ];
+        
+        // Funkcja obliczająca wartość wyrażenia z uwzględnieniem kolejności działań
+        function calculateExpression(expression) {
+            const tokens = expression.split(' ');
+            const output = [];
+            const operatorsStack = [];
+            
+            // Funkcja pomocnicza do stosowania operatorów
+            function applyOperator(operator, a, b) {
+                const op = operators.find(o => o.symbol === operator);
+                return op.func(a, b);
+            }
+            
+            // Konwersja na odwrotną notację polską (RPN)
+            tokens.forEach(token => {
+                if (!isNaN(token)) {
+                    output.push(parseFloat(token));
+                } else {
+                    const op = operators.find(o => o.symbol === token);
+                    while (operatorsStack.length > 0) {
+                        const topOp = operators.find(o => o.symbol === operatorsStack[operatorsStack.length - 1]);
+                        if (topOp.priority >= op.priority) {
+                            output.push(operatorsStack.pop());
+                        } else {
+                            break;
+                        }
+                    }
+                    operatorsStack.push(token);
+                }
+            });
+            
+            while (operatorsStack.length > 0) {
+                output.push(operatorsStack.pop());
+            }
+            
+            // Obliczanie wartości z RPN
+            const stack = [];
+            output.forEach(token => {
+                if (!isNaN(token)) {
+                    stack.push(token);
+                } else {
+                    const b = stack.pop();
+                    const a = stack.pop();
+                    stack.push(applyOperator(token, a, b));
+                }
+            });
+            
+            return stack[0];
+        }
+        
+        // Generowanie losowego pytania
+        function generateQuestion() {
+            const complexity = Math.floor(Math.random() * 4) + 1; // 1-4
+            let expressionParts = [];
+            let answer;
+            
+            // Generowanie pierwszych dwóch liczb i operatora
+            const firstNum = Math.floor(Math.random() * 20) + 1;
+            const secondNum = Math.floor(Math.random() * 10) + 1;
+            let firstOp = operators[Math.floor(Math.random() * operators.length)];
+            
+            // Dla potęg ograniczamy wykładnik
+            if (firstOp.symbol === '^') {
+                firstOp = operators[Math.floor(Math.random() * (operators.length - 1))]; // Wykluczamy potęgę na początku
+            }
+            
+            expressionParts.push(firstNum, firstOp.symbol, secondNum);
+            
+            // Dodawanie kolejnych części wyrażenia w zależności od złożoności
+            for (let i = 1; i < complexity; i++) {
+                let nextOp = operators[Math.floor(Math.random() * operators.length)];
+                let nextNum;
+                
+                // Ograniczenia dla niektórych operatorów
+                if (nextOp.symbol === '÷') {
+                    // Dla dzielenia upewniamy się, że wynik będzie całkowity
+                    const possibleNumbers = [1, 2, 3, 4, 5, 10];
+                    nextNum = possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)];
+                } else if (nextOp.symbol === '^') {
+                    // Dla potęg ograniczamy wykładnik do 2 lub 3
+                    nextNum = Math.floor(Math.random() * 2) + 2;
+                } else {
+                    nextNum = Math.floor(Math.random() * 10) + 1;
+                }
+                
+                expressionParts.push(nextOp.symbol, nextNum);
+            }
+            
+            // Obliczanie prawidłowej odpowiedzi
+            const expressionStr = expressionParts.join(' ');
+            answer = calculateExpression(expressionStr);
+            
+            // Zaokrąglenie w przypadku dzielenia
+            if (expressionStr.includes('÷') && !Number.isInteger(answer)) {
+                answer = Math.round(answer * 100) / 100;
+            }
+            
+            return {
+                question: expressionParts.join(' ') + ' =',
+                answer: answer,
+                userAnswer: null,
+                isCorrect: false,
+                complexity: complexity
+            };
+        }
+        
+        // Generowanie wszystkich pytań
+        function generateAllQuestions() {
+            questions = [];
+            for (let i = 0; i < 30; i++) {
+                questions.push(generateQuestion());
+            }
+            renderQuestions();
+        }
+        
+        // Renderowanie pytań w HTML
+        function renderQuestions() {
+            questionsContainer.innerHTML = '';
+            questions.forEach((q, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = `question complexity-${q.complexity}`;
+                questionElement.innerHTML = `
+                    <span>${index + 1}. ${q.question}</span>
+                    <input type="number" id="answer-${index}" data-index="${index}" step="any">
+                `;
+                questionsContainer.appendChild(questionElement);
+            });
+            
+            // Dodanie nasłuchiwania zdarzeń dla inputów
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('change', function() {
+                    const index = parseInt(this.dataset.index);
+                    const value = parseFloat(this.value);
+                    questions[index].userAnswer = isNaN(value) ? null : value;
+                });
+            });
+        }
+        
+        // Rozpoczęcie testu
+        function startTest() {
+            generateAllQuestions();
+            startBtn.disabled = true;
+            checkBtn.disabled = false;
+            resultsContainer.style.display = 'none';
+            
+            // Rozpoczęcie licznika czasu
+            startTime = new Date();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+        
+        // Aktualizacja licznika czasu
+        function updateTimer() {
+            const currentTime = new Date();
+            const elapsedTime = Math.floor((currentTime - startTime) / 1000);
+            const minutes = Math.floor(elapsedTime / 60);
+            const seconds = elapsedTime % 60;
+            timerDisplay.textContent = `Czas: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+        
+        // Sprawdzenie odpowiedzi
+        function checkAnswers() {
+            clearInterval(timerInterval);
+            
+            // Obliczenie czasu
+            const endTime = new Date();
+            const elapsedTime = Math.floor((endTime - startTime) / 1000);
+            const minutes = Math.floor(elapsedTime / 60);
+            const seconds = elapsedTime % 60;
+            const timeString = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            
+            // Sprawdzenie poprawności odpowiedzi (z tolerancją dla liczb zmiennoprzecinkowych)
+            let correctCount = 0;
+            questions.forEach(q => {
+                if (q.userAnswer !== null) {
+                    q.isCorrect = Math.abs(q.userAnswer - q.answer) < 0.001;
+                    if (q.isCorrect) correctCount++;
+                } else {
+                    q.isCorrect = false;
+                }
+            });
+            
+            // Wyświetlenie wyników
+            timeResult.textContent = `Czas: ${timeString}`;
+            scoreResult.textContent = `Wynik: ${correctCount} / ${questions.length}`;
+            accuracyResult.textContent = `Dokładność: ${Math.round((correctCount / questions.length) * 100)}%`;
+            
+            // Podświetlenie odpowiedzi
+            document.querySelectorAll('input').forEach(input => {
+                const index = parseInt(input.dataset.index);
+                if (questions[index].isCorrect) {
+                    input.classList.add('correct');
+                    input.classList.remove('incorrect');
+                } else {
+                    input.classList.add('incorrect');
+                    input.classList.remove('correct');
+                }
+            });
+            
+            resultsContainer.style.display = 'block';
+            checkBtn.disabled = true;
+            startBtn.disabled = false;
+        }
+        
+        // Resetowanie testu
+        function restartTest() {
+            questionsContainer.innerHTML = '';
+            resultsContainer.style.display = 'none';
+            timerDisplay.textContent = 'Czas: 0:00';
+            document.querySelectorAll('input').forEach(input => {
+                input.classList.remove('correct', 'incorrect');
+            });
+            startBtn.disabled = false;
+            checkBtn.disabled = true;
+            clearInterval(timerInterval);
+        }
+        
+        // Nasłuchiwanie zdarzeń
+        startBtn.addEventListener('click', startTest);
+        checkBtn.addEventListener('click', checkAnswers);
+        restartBtn.addEventListener('click', restartTest);
+    </script>
+</body>
+</html>
