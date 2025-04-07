@@ -41,6 +41,7 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             background-color: #f9f9f9;
+            position: relative;
         }
         input {
             width: 80px;
@@ -78,6 +79,15 @@
         .complexity-2 { background-color: #e8f4f8; }
         .complexity-3 { background-color: #e0e8f8; }
         .complexity-4 { background-color: #f8e8e0; }
+        .correct-answer {
+            font-size: 0.9em;
+            color: #27ae60;
+            margin-top: 5px;
+            display: none;
+        }
+        .show-answer .correct-answer {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -229,7 +239,8 @@
                 answer: answer,
                 userAnswer: null,
                 isCorrect: false,
-                complexity: complexity
+                complexity: complexity,
+                expression: expressionStr
             };
         }
         
@@ -251,6 +262,7 @@
                 questionElement.innerHTML = `
                     <span>${index + 1}. ${q.question}</span>
                     <input type="number" id="answer-${index}" data-index="${index}" step="any">
+                    <div class="correct-answer">Poprawna odpowiedź: ${q.answer}</div>
                 `;
                 questionsContainer.appendChild(questionElement);
             });
@@ -313,9 +325,9 @@
             scoreResult.textContent = `Wynik: ${correctCount} / ${questions.length}`;
             accuracyResult.textContent = `Dokładność: ${Math.round((correctCount / questions.length) * 100)}%`;
             
-            // Podświetlenie odpowiedzi
-            document.querySelectorAll('input').forEach(input => {
-                const index = parseInt(input.dataset.index);
+            // Podświetlenie odpowiedzi i pokazanie poprawnych odpowiedzi
+            document.querySelectorAll('.question').forEach((questionElement, index) => {
+                const input = questionElement.querySelector('input');
                 if (questions[index].isCorrect) {
                     input.classList.add('correct');
                     input.classList.remove('incorrect');
@@ -323,6 +335,7 @@
                     input.classList.add('incorrect');
                     input.classList.remove('correct');
                 }
+                questionElement.classList.add('show-answer');
             });
             
             resultsContainer.style.display = 'block';
