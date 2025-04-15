@@ -85,13 +85,17 @@
 </head>
 <body>
     <div id="start-screen" class="start-screen">
-        <h1>Test otwarty</h1>
-        <p>Test zawiera pytania dotyczące systemów liczbowych i obliczania NWD.</p>
-        <button id="start-btn">Rozpocznij test</button>
+        <h1>Test I</h1>
+        <p>Test zawiera pytania dotyczące systemów liczbowych, obliczania NWD i algorytmów w Scratch'u</p>
+        <p>Test powinien zająć maksymalnie 90 minut, czyli tyle ile jest na konkursie. Różnica jest taka, że na konkursie jest około 40 zadań zamkniętych, a tutaj 30 otwartych.</p>
+        <p>Pamiętaj, że ważne jest, abyś zadania rozwiązywał <span style="color: red">samodzielnie</span> i <span style="color: red">jednym ciągiem</span> (nie wychodź z testu zanim nie zrobisz do końca). Nie liczy się to, żebyś wszystko rozwiązał idealnie, ale to, żebymy zobaczyli, co Ci jeszcze sprawia problemy.</p>
+        <p>Nie odświeżaj strony, bo odpowiedzi się nie zapiszą. Możesz wracać do poprzednich pytań.</p>
+        <p><span style="color: green">Powodzenia!</span></p>
+        <button id="start-btn" style="margin: auto">Rozpocznij test</button>
     </div>
 
     <div id="test-container" class="hidden">
-        <h1>Test otwarty</h1>
+        <h1>Test I</h1>
         <div class="timer">Czas: <span id="time">00:00</span></div>
         <div class="progress">Pytanie <span id="current-question">1</span> z <span id="total-questions">5</span></div>
         
@@ -252,6 +256,8 @@
             },
         ];
 
+        let times = [];
+
         // Zmienne stanu
         let currentQuestion = 0;
         let userAnswers = new Array(questions.length).fill("");
@@ -326,6 +332,11 @@
 
         function saveAnswer() {
             userAnswers[currentQuestion] = answerInput.value.trim();
+            if (times.length == 0) {
+                times.push(seconds);
+            } else {
+                times.push(seconds - times[times.length - 1]);
+            }
         }
 
         function calculateScore() {
@@ -338,14 +349,42 @@
             return score;
         }
 
+        function generateFile() {
+            let content = "";
+            times.forEach((time, index) => {
+                const seconds = time;
+                content += `${userAnswers[index]}; ${seconds}\n`;
+            });
+            const filename = "results.txt";
+
+            const blob = new Blob([content], { type: "text/plain" });
+
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+
+            // Klikamy link programowo
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Zwolnienie zasobu
+            URL.revokeObjectURL(link.href);
+        }
+
         function showResult() {
             saveAnswer();
             stopTimer();
+
+            generateFile();
+
             const totalScore = calculateScore();
             resultDiv.style.display = 'block';
             resultDiv.innerHTML = `
+                <p style="color: red">Ważne! Pobrał Ci się plik results.txt - nie usuwaj go. Wyślij go do mnie na discordzie.</p>
                 <p>Twój wynik: ${totalScore} / ${questions.length}</p>
                 <p>Czas wykonania: ${timeDisplay.textContent}</p>
+                <p>Średni czas na pytanie: ${Math.round(times.reduce((a, b) => a + b, 0) / times.length)} sekund</p>
             `;
             
             // Pokaż poprawne odpowiedzi
