@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test z systemów liczbowych, nwd i scratch'a</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .question-container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .options {
+            margin: 15px 0;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            display: none;
+        }
+        .progress {
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .timer {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #d9534f;
+            margin-bottom: 20px;
+        }
+        .correct-answer {
+            color: #5cb85c;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .start-screen {
+            text-align: center;
+            padding: 40px;
+        }
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="start-screen" class="start-screen">
+        <h1>Test otwarty</h1>
+        <p>Test zawiera pytania dotyczące systemów liczbowych i obliczania NWD.</p>
+        <button id="start-btn">Rozpocznij test</button>
+    </div>
+
+    <div id="test-container" class="hidden">
+        <h1>Test otwarty</h1>
+        <div class="timer">Czas: <span id="time">00:00</span></div>
+        <div class="progress">Pytanie <span id="current-question">1</span> z <span id="total-questions">5</span></div>
+        
+        <div>
+            <button id="prev-btn" disabled>Poprzednie</button>
+            <button id="next-btn">Następne</button>
+            <button id="submit-btn" style="display: none;">Zakończ test</button>
+        </div>
+
+        <div class="question-container">
+            <div id="question-text">Ładowanie pytań...</div>
+            <div id="question-image-container"></div>
+            <div class="options">
+                <textarea id="answer-input" placeholder="Wpisz swoją odpowiedź..."></textarea>
+            </div>
+            <div id="correct-answer-container" class="correct-answer" style="display: none;"></div>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Pytania do testu z poprawnymi odpowiedziami
+        const questions = [
+            {
+                question: "Zamień liczbę dziesiętną 255 na system binarny.",
+                correctAnswer: "11111111"
+            },
+            {
+                question: "Zamień liczbę szesnastkową A1F na system dziesiętny.",
+                correctAnswer: "2591"
+            },
+            {
+                question: "Zamień liczbę binarną 110110101 na system ósemkowy.",
+                correctAnswer: "665"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 1024 na system szesnastkowy",
+                correctAnswer: "400"
+            },
+            {
+                question: "Zamień liczbę ósemkową 777 na system binarny.",
+                correctAnswer: "111111111"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 4096 na system ósemkowy",
+                correctAnswer: "10000"
+            },
+            {
+                question: "Zamień liczbę binarną 101010101010 na system szesnastkowy",
+                correctAnswer: "AAA"
+            },
+            {
+                question: "Zamień liczbę ósemkową 123456 na system dziesiętny",
+                correctAnswer: "42798"
+            },
+            {
+                question: "Zamień liczbę szesnastkową CAFE na system binarny",
+                correctAnswer: "1100101011111110"
+            },
+            {
+                question: "Oblicz NWD(126, 84)",
+                correctAnswer: "42"
+            },
+            {
+                question: "Oblicz NWD(315, 189)",
+                correctAnswer: "63"
+            },
+            {
+                question: "NWD(1024, 576)",
+                correctAnswer: "64"
+            },
+            {
+                question: "NWD(1232, 792)",
+                correctAnswer: "88"
+            },
+            {
+                question: "NWD(945, 525)",
+                correctAnswer: "105"
+            },
+            {
+                question: "NWD(1512, 1008)",
+                correctAnswer: "504"
+            },
+            {
+                question: "NWD(84, 49)",
+                correctAnswer: "7"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy kolejno 12, 0, 3?",
+                correctAnswer: "36",
+                image: "media/alg0.png"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy kolejno 5, 3, 5?",
+                correctAnswer: "28",
+                image: "media/alg0.png"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy kolejno 0, 3, 5?",
+                correctAnswer: "3",
+                image: "media/alg0.png"
+            },
+            {
+                question: "Co zostanie wypisane dla a = 4, b = 4, c = 5?",
+                correctAnswer: "1",
+                image: "media/alg6.png"
+            },
+            {
+                question: "Co zostanie wypisane dla a = 2, b = 3, c = 5?",
+                correctAnswer: "1",
+                image: "media/alg6.png"
+            },
+            {
+                question: "Co zostanie wypisane dla a = 4, b = 4, c = 2?",
+                correctAnswer: "0",
+                image: "media/alg6.png"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 12? (Kolejne liczby wpisuj po spacji, bez spacji na końcu)",
+                correctAnswer: "2 2 3",
+                image: "media/rozklad.png"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 25? (Kolejne liczby wpisuj po spacji, bez spacji na końcu)",
+                correctAnswer: "5 5",
+                image: "media/rozklad.png"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 84? (Kolejne liczby wpisuj po spacji, bez spacji na końcu)",
+                correctAnswer: "2 2 3 7",
+                image: "media/rozklad.png"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 3?",
+                correctAnswer: "6",
+                image: "media/silnia.png"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 5?",
+                correctAnswer: "120",
+                image: "media/silnia.png"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 0?",
+                correctAnswer: "1",
+                image: "media/silnia.png"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli wylosowane liczy to kolejno: 10 9 8 7 6 5 4 3 2 1?",
+                correctAnswer: "1",
+                image: "media/alg6.png"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli wylosowane liczy to kolejno: 10 9 5 3 5 5 3 -3 0 9?",
+                correctAnswer: "-3",
+                image: "media/alg6.png"
+            },
+        ];
+
+        // Zmienne stanu
+        let currentQuestion = 0;
+        let userAnswers = new Array(questions.length).fill("");
+        let score = 0;
+        let seconds = 0;
+        let timerInterval;
+        let testStarted = false;
+
+        // Elementy DOM
+        const startScreen = document.getElementById('start-screen');
+        const testContainer = document.getElementById('test-container');
+        const questionText = document.getElementById('question-text');
+        const questionImageContainer = document.getElementById('question-image-container');
+        const answerInput = document.getElementById('answer-input');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const resultDiv = document.getElementById('result');
+        const currentQuestionSpan = document.getElementById('current-question');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const timeDisplay = document.getElementById('time');
+        const correctAnswerContainer = document.getElementById('correct-answer-container');
+        const startBtn = document.getElementById('start-btn');
+
+        // Funkcje
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function showQuestion(index) {
+            currentQuestionSpan.textContent = index + 1;
+            const question = questions[index];
+            questionText.textContent = question.question;
+            answerInput.value = userAnswers[index];
+            
+            // Wyczyść kontener obrazka i dodaj nowy obrazek jeśli istnieje
+            questionImageContainer.innerHTML = '';
+            if (question.image) {
+                const img = document.createElement('img');
+                img.src = question.image;
+                img.alt = 'Ilustracja do pytania';
+                img.className = 'question-image';
+                questionImageContainer.appendChild(img);
+            }
+            
+            // Ukryj poprawną odpowiedź, chyba że test jest zakończony
+            if (resultDiv.style.display === 'block') {
+                correctAnswerContainer.textContent = `Poprawna odpowiedź: ${question.correctAnswer}`;
+                correctAnswerContainer.style.display = 'block';
+            } else {
+                correctAnswerContainer.style.display = 'none';
+            }
+
+            // Aktualizacja przycisków
+            prevBtn.disabled = index === 0;
+            nextBtn.style.display = index === questions.length - 1 ? 'none' : 'inline-block';
+            submitBtn.style.display = index === questions.length - 1 ? 'inline-block' : 'none';
+        }
+
+        function saveAnswer() {
+            userAnswers[currentQuestion] = answerInput.value.trim();
+        }
+
+        function calculateScore() {
+            score = 0;
+            userAnswers.forEach((answer, index) => {
+                if (answer.toLowerCase() === questions[index].correctAnswer.toLowerCase()) {
+                    score++;
+                }
+            });
+            return score;
+        }
+
+        function showResult() {
+            saveAnswer();
+            stopTimer();
+            const totalScore = calculateScore();
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <p>Twój wynik: ${totalScore} / ${questions.length}</p>
+                <p>Czas wykonania: ${timeDisplay.textContent}</p>
+            `;
+            
+            // Pokaż poprawne odpowiedzi
+            correctAnswerContainer.textContent = `Poprawna odpowiedź: ${questions[currentQuestion].correctAnswer}`;
+            correctAnswerContainer.style.display = 'block';
+        }
+
+        function startTest() {
+            testStarted = true;
+            startScreen.classList.add('hidden');
+            testContainer.classList.remove('hidden');
+            totalQuestionsSpan.textContent = questions.length;
+            showQuestion(currentQuestion);
+            startTimer();
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startTest);
+
+        prevBtn.addEventListener('click', () => {
+            saveAnswer();
+            currentQuestion--;
+            showQuestion(currentQuestion);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            saveAnswer();
+            currentQuestion++;
+            showQuestion(currentQuestion);
+        });
+
+        submitBtn.addEventListener('click', showResult);
+    </script>
+</body>
+</html>
