@@ -265,6 +265,7 @@
         let seconds = 0;
         let timerInterval;
         let testStarted = false;
+        let finished = false;
 
         // Elementy DOM
         const startScreen = document.getElementById('start-screen');
@@ -327,16 +328,12 @@
             // Aktualizacja przycisków
             prevBtn.disabled = index === 0;
             nextBtn.style.display = index === questions.length - 1 ? 'none' : 'inline-block';
-            submitBtn.style.display = index === questions.length - 1 ? 'inline-block' : 'none';
+            submitBtn.style.display = index === questions.length - 1 && !finished ? 'inline-block' : 'none';
         }
 
         function saveAnswer() {
             userAnswers[currentQuestion] = answerInput.value.trim();
-            if (times.length == 0) {
-                times.push(seconds);
-            } else {
-                times.push(seconds - times[times.length - 1]);
-            }
+            times.push(seconds);
         }
 
         function calculateScore() {
@@ -384,12 +381,13 @@
                 <p style="color: red">Ważne! Pobrał Ci się plik results.txt - nie usuwaj go. Wyślij go do mnie na discordzie.</p>
                 <p>Twój wynik: ${totalScore} / ${questions.length}</p>
                 <p>Czas wykonania: ${timeDisplay.textContent}</p>
-                <p>Średni czas na pytanie: ${Math.round(times.reduce((a, b) => a + b, 0) / times.length)} sekund</p>
             `;
             
             // Pokaż poprawne odpowiedzi
             correctAnswerContainer.textContent = `Poprawna odpowiedź: ${questions[currentQuestion].correctAnswer}`;
             correctAnswerContainer.style.display = 'block';
+            //submitBtn.style.display = 'none';
+            finished = false;
         }
 
         function startTest() {
