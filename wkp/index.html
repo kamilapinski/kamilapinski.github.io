@@ -353,12 +353,13 @@
             return score;
         }
 
-        function generateFile() {
+        function generateFile(score) {
             let content = "";
             times.forEach((time, index) => {
                 const seconds = time;
                 content += `${userAnswers[index]}; ${seconds}\n`;
             });
+            content += 'total: ' + score + '; ' + seconds + '\n';
             const filename = "results.txt";
 
             const blob = new Blob([content], { type: "text/plain" });
@@ -425,7 +426,6 @@
             saveAnswer();
             stopTimer();
 
-            generateFile();
 
             const totalScore = calculateScore();
             resultDiv.style.display = 'block';
@@ -434,6 +434,8 @@
                 <p>Twój wynik: ${totalScore} / ${questions.length}</p>
                 <p>Czas wykonania: ${timeDisplay.textContent}</p>
             `;
+
+            generateFile(totalScore);
             
             // Pokaż poprawne odpowiedzi
             correctAnswerContainer.textContent = `Poprawna odpowiedź: ${questions[currentQuestion].correctAnswer}`;
