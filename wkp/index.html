@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             line-height: 1.6;
@@ -82,6 +82,7 @@
             display: none;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div id="start-screen" class="start-screen">
@@ -117,6 +118,9 @@
         <div id="result"></div>
     </div>
 
+    <canvas id="myChart" width="800" height="450"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Pytania do testu z poprawnymi odpowiedziami
         const questions = [
@@ -256,13 +260,14 @@
             },
         ];
 
-        let times = [];
+        let times = new Array(questions.length).fill(0);
 
         // Zmienne stanu
         let currentQuestion = 0;
         let userAnswers = new Array(questions.length).fill("");
         let score = 0;
         let seconds = 0;
+        let currentSeconds = 0;
         let timerInterval;
         let testStarted = false;
         let finished = false;
@@ -287,6 +292,7 @@
         function startTimer() {
             timerInterval = setInterval(() => {
                 seconds++;
+                currentSeconds++;
                 updateTimerDisplay();
             }, 1000);
         }
@@ -333,7 +339,8 @@
 
         function saveAnswer() {
             userAnswers[currentQuestion] = answerInput.value.trim();
-            times.push(seconds);
+            times[currentQuestion] += currentSeconds;
+            currentSeconds = 0;
         }
 
         function calculateScore() {
@@ -369,6 +376,51 @@
             URL.revokeObjectURL(link.href);
         }
 
+        function showPlot(times) {
+            let labels = [];
+            let data = [];
+
+            for (let i = 0; i < times.length; i++) {
+                labels.push(`Pytanie ${i + 1}`);
+                data.push(times[i]);
+            }
+
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                label: 'Czas odpowiedzi (s)',
+                data: data,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderWidth: 2,
+                fill: true
+                }]
+            },
+            options: {
+                responsive: false,
+                animation: false,
+                scales: {
+                y: {
+                    beginAtZero: true
+                }
+                }
+            }
+            });
+
+            return myChart;
+        }
+
+        function downloadPlot(times) {
+            const myChart = showPlot(times);
+            //const link = document.createElement('a');
+            //link.download = 'wykres.png';
+            //link.href = myChart.toBase64Image();
+            //link.click();
+        }
+
         function showResult() {
             saveAnswer();
             stopTimer();
@@ -388,6 +440,7 @@
             correctAnswerContainer.style.display = 'block';
             //submitBtn.style.display = 'none';
             finished = false;
+            downloadPlot(times);
         }
 
         function startTest() {
