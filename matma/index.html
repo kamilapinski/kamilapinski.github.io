@@ -3,362 +3,336 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Matematyczny na Czas</title>
+    <title>Test z matematyki</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            text-align: center;
-            background-color: #f5f5f5;
+            line-height: 1.6;
         }
-        h1 {
-            color: #2c3e50;
-        }
-        .test-container {
-            background-color: white;
-            border-radius: 10px;
+        .question-container {
+            background-color: #f9f9f9;
             padding: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
             margin-bottom: 20px;
         }
-        .timer {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 20px 0;
-            color: #e74c3c;
+        .options {
+            margin: 15px 0;
         }
-        .questions {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            text-align: left;
-            margin-bottom: 20px;
-        }
-        .question {
+        textarea {
+            width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-            position: relative;
-        }
-        input {
-            width: 80px;
-            padding: 5px;
-            margin-left: 5px;
-            text-align: center;
+            border-radius: 4px;
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
         }
         button {
-            background-color: #3498db;
+            background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 5px;
+            padding: 10px 15px;
+            border-radius: 4px;
             cursor: pointer;
-            margin: 10px;
+            margin-right: 10px;
         }
         button:hover {
-            background-color: #2980b9;
+            background-color: #45a049;
         }
-        .results {
-            display: none;
-            background-color: #ecf0f1;
-            padding: 20px;
-            border-radius: 10px;
+        #result {
+            font-size: 1.2em;
+            font-weight: bold;
             margin-top: 20px;
-        }
-        .correct {
-            color: #27ae60;
-        }
-        .incorrect {
-            color: #e74c3c;
-        }
-        .complexity-1 { background-color: #f9f9f9; }
-        .complexity-2 { background-color: #e8f4f8; }
-        .complexity-3 { background-color: #e0e8f8; }
-        .complexity-4 { background-color: #f8e8e0; }
-        .correct-answer {
-            font-size: 0.9em;
-            color: #27ae60;
-            margin-top: 5px;
+            padding: 10px;
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
             display: none;
         }
-        .show-answer .correct-answer {
-            display: block;
+        .progress {
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .timer {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #d9534f;
+            margin-bottom: 20px;
+        }
+        .correct-answer {
+            color: #5cb85c;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .start-screen {
+            text-align: center;
+            padding: 40px;
+        }
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .hidden {
+            display: none;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <h1>Test Matematyczny na Czas</h1>
-    <div class="test-container">
-        <p>Rozwiąż 30 przykładów matematycznych w jak najkrótszym czasie!</p>
-        <div class="timer">Czas: 0:00</div>
-        
-        <div class="questions" id="questions-container">
-            <!-- Pytania będą generowane przez JavaScript -->
-        </div>
-        
-        <button id="start-btn">Rozpocznij test</button>
-        <button id="check-btn" disabled>Sprawdź odpowiedzi</button>
-    </div>
-    
-    <div class="results" id="results-container">
-        <h2>Wyniki</h2>
-        <p id="time-result"></p>
-        <p id="score-result"></p>
-        <p id="accuracy-result"></p>
-        <button id="restart-btn">Rozpocznij nowy test</button>
+    <div id="start-screen" class="start-screen">
+        <h1>Test z matematyki</h1>
+        <p>Test zawiera 30 wyrażeń matematycznych do obliczenia.</p>
+        <p><span style="color: green">Powodzenia!</span></p>
+        <button id="start-btn" style="margin: auto">Rozpocznij test</button>
     </div>
 
+    <div id="test-container" class="hidden">
+        <h1>Test z matematyki</h1>
+        <div class="timer">Czas: <span id="time">00:00</span></div>
+        <div class="progress">Pytanie <span id="current-question">1</span> z <span id="total-questions">5</span></div>
+        
+        <div>
+            <button id="prev-btn" disabled>Poprzednie</button>
+            <button id="next-btn">Następne</button>
+            <button id="submit-btn" style="display: none;">Zakończ test</button>
+        </div>
+
+        <div class="question-container">
+            <div id="question-text">Ładowanie pytań...</div>
+            <div id="question-image-container"></div>
+            <div class="options">
+                <textarea id="answer-input" placeholder="Wpisz swoją odpowiedź..."></textarea>
+            </div>
+            <div id="correct-answer-container" class="correct-answer" style="display: none;"></div>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <canvas id="myChart" width="800" height="450"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
     <script>
-        // Zmienne globalne
-        let startTime;
+        // Pytania do testu z poprawnymi odpowiedziami
+        const questions = generateAllQuestions();
+
+        let times = new Array(questions.length).fill(0);
+
+        // Zmienne stanu
+        let currentQuestion = 0;
+        let userAnswers = new Array(questions.length).fill("");
+        let score = 0;
+        let seconds = 0;
+        let currentSeconds = 0;
         let timerInterval;
-        let questions = [];
-        
+        let testStarted = false;
+        let finished = false;
+
         // Elementy DOM
-        const questionsContainer = document.getElementById('questions-container');
+        const startScreen = document.getElementById('start-screen');
+        const testContainer = document.getElementById('test-container');
+        const questionText = document.getElementById('question-text');
+        const questionImageContainer = document.getElementById('question-image-container');
+        const answerInput = document.getElementById('answer-input');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const resultDiv = document.getElementById('result');
+        const currentQuestionSpan = document.getElementById('current-question');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const timeDisplay = document.getElementById('time');
+        const correctAnswerContainer = document.getElementById('correct-answer-container');
         const startBtn = document.getElementById('start-btn');
-        const checkBtn = document.getElementById('check-btn');
-        const resultsContainer = document.getElementById('results-container');
-        const timeResult = document.getElementById('time-result');
-        const scoreResult = document.getElementById('score-result');
-        const accuracyResult = document.getElementById('accuracy-result');
-        const restartBtn = document.getElementById('restart-btn');
-        const timerDisplay = document.querySelector('.timer');
-        
-        // Operatory i ich funkcje
-        const operators = [
-            { symbol: '+', func: (a, b) => a + b, priority: 1 },
-            { symbol: '-', func: (a, b) => a - b, priority: 1 },
-            { symbol: '×', func: (a, b) => a * b, priority: 2 },
-            { symbol: '^', func: (a, b) => Math.pow(a, b), priority: 3 }
-        ];
-        
-        // Funkcja obliczająca wartość wyrażenia z uwzględnieniem kolejności działań
-        function calculateExpression(expression) {
-            const tokens = expression.split(' ');
-            const output = [];
-            const operatorsStack = [];
+
+        // Funkcje
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++;
+                currentSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function showQuestion(index) {
+            currentQuestionSpan.textContent = index + 1;
+            const question = questions[index];
+            questionText.textContent = question.question;
+            answerInput.value = userAnswers[index];
             
-            // Funkcja pomocnicza do stosowania operatorów
-            function applyOperator(operator, a, b) {
-                const op = operators.find(o => o.symbol === operator);
-                return op.func(a, b);
+            // Wyczyść kontener obrazka i dodaj nowy obrazek jeśli istnieje
+            questionImageContainer.innerHTML = '';
+            if (question.image) {
+                const img = document.createElement('img');
+                img.src = question.image;
+                img.alt = 'Ilustracja do pytania';
+                img.className = 'question-image';
+                questionImageContainer.appendChild(img);
             }
             
-            // Konwersja na odwrotną notację polską (RPN)
-            tokens.forEach(token => {
-                if (!isNaN(token)) {
-                    output.push(parseFloat(token));
-                } else {
-                    const op = operators.find(o => o.symbol === token);
-                    while (operatorsStack.length > 0) {
-                        const topOp = operators.find(o => o.symbol === operatorsStack[operatorsStack.length - 1]);
-                        if (topOp.priority >= op.priority) {
-                            output.push(operatorsStack.pop());
-                        } else {
-                            break;
-                        }
-                    }
-                    operatorsStack.push(token);
+            // Ukryj poprawną odpowiedź, chyba że test jest zakończony
+            if (resultDiv.style.display === 'block') {
+                correctAnswerContainer.textContent = `Poprawna odpowiedź: ${question.correctAnswer}`;
+                correctAnswerContainer.style.display = 'block';
+            } else {
+                correctAnswerContainer.style.display = 'none';
+            }
+
+            // Aktualizacja przycisków
+            prevBtn.disabled = index === 0;
+            nextBtn.style.display = index === questions.length - 1 ? 'none' : 'inline-block';
+            submitBtn.style.display = index === questions.length - 1 && !finished ? 'inline-block' : 'none';
+        }
+
+        function saveAnswer() {
+            userAnswers[currentQuestion] = answerInput.value.trim();
+            times[currentQuestion] += currentSeconds;
+            currentSeconds = 0;
+        }
+
+        function calculateScore() {
+            score = 0;
+            userAnswers.forEach((answer, index) => {
+                if (answer.toLowerCase() === questions[index].correctAnswer.toLowerCase()) {
+                    score++;
                 }
             });
-            
-            while (operatorsStack.length > 0) {
-                output.push(operatorsStack.pop());
+            return score;
+        }
+
+        function generateFile(score) {
+            let content = "";
+            times.forEach((time, index) => {
+                const seconds = time;
+                content += `${questions[index].question}; ${questions[index].correctAnswer}; ${userAnswers[index]}; ${seconds}\n`;
+            });
+            content += 'total: ' + score + '; ' + seconds + '\n';
+            const filename = "results.txt";
+
+            const blob = new Blob([content], { type: "text/plain" });
+
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+
+            // Klikamy link programowo
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Zwolnienie zasobu
+            URL.revokeObjectURL(link.href);
+        }
+
+        function showPlot(times) {
+            let labels = [];
+            let data = [];
+
+            for (let i = 0; i < times.length; i++) {
+                labels.push(`Pytanie ${i + 1}`);
+                data.push(times[i]);
             }
-            
-            // Obliczanie wartości z RPN
-            const stack = [];
-            output.forEach(token => {
-                if (!isNaN(token)) {
-                    stack.push(token);
-                } else {
-                    const b = stack.pop();
-                    const a = stack.pop();
-                    stack.push(applyOperator(token, a, b));
+
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                label: 'Czas odpowiedzi (s)',
+                data: data,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderWidth: 2,
+                fill: true
+                }]
+            },
+            options: {
+                responsive: false,
+                animation: false,
+                scales: {
+                y: {
+                    beginAtZero: true
                 }
-            });
-            
-            return stack[0];
-        }
-        
-        // Generowanie losowego pytania
-        function generateQuestion() {
-            const complexity = Math.floor(Math.random() * 4) + 1; // 1-4
-            let expressionParts = [];
-            let answer;
-            
-            // Generowanie pierwszych dwóch liczb i operatora
-            const firstNum = Math.floor(Math.random() * 20) + 1;
-            const secondNum = Math.floor(Math.random() * 10) + 1;
-            let firstOp = operators[Math.floor(Math.random() * operators.length)];
-            
-            // Dla potęg ograniczamy wykładnik
-            if (firstOp.symbol === '^') {
-                firstOp = operators[Math.floor(Math.random() * (operators.length - 1))]; // Wykluczamy potęgę na początku
-            }
-            
-            expressionParts.push(firstNum, firstOp.symbol, secondNum);
-            
-            // Dodawanie kolejnych części wyrażenia w zależności od złożoności
-            for (let i = 1; i < complexity; i++) {
-                let nextOp = operators[Math.floor(Math.random() * operators.length)];
-                let nextNum;
-                
-                // Ograniczenia dla niektórych operatorów
-                if (nextOp.symbol === '÷') {
-                    // Dla dzielenia upewniamy się, że wynik będzie całkowity
-                    const possibleNumbers = [1, 2, 3, 4, 5, 10];
-                    nextNum = possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)];
-                } else if (nextOp.symbol === '^') {
-                    // Dla potęg ograniczamy wykładnik do 2 lub 3
-                    nextNum = Math.floor(Math.random() * 2) + 2;
-                } else {
-                    nextNum = Math.floor(Math.random() * 10) + 1;
                 }
-                
-                expressionParts.push(nextOp.symbol, nextNum);
             }
-            
-            // Obliczanie prawidłowej odpowiedzi
-            const expressionStr = expressionParts.join(' ');
-            answer = calculateExpression(expressionStr);
-            
-            // Zaokrąglenie w przypadku dzielenia
-            if (expressionStr.includes('÷') && !Number.isInteger(answer)) {
-                answer = Math.round(answer * 100) / 100;
-            }
-            
-            return {
-                question: expressionParts.join(' ') + ' =',
-                answer: answer,
-                userAnswer: null,
-                isCorrect: false,
-                complexity: complexity,
-                expression: expressionStr
-            };
-        }
-        
-        // Generowanie wszystkich pytań
-        function generateAllQuestions() {
-            questions = [];
-            for (let i = 0; i < 30; i++) {
-                questions.push(generateQuestion());
-            }
-            renderQuestions();
-        }
-        
-        // Renderowanie pytań w HTML
-        function renderQuestions() {
-            questionsContainer.innerHTML = '';
-            questions.forEach((q, index) => {
-                const questionElement = document.createElement('div');
-                questionElement.className = `question complexity-${q.complexity}`;
-                questionElement.innerHTML = `
-                    <span>${index + 1}. ${q.question}</span>
-                    <input type="number" id="answer-${index}" data-index="${index}" step="any">
-                    <div class="correct-answer">Poprawna odpowiedź: ${q.answer}</div>
-                `;
-                questionsContainer.appendChild(questionElement);
             });
-            
-            // Dodanie nasłuchiwania zdarzeń dla inputów
-            document.querySelectorAll('input').forEach(input => {
-                input.addEventListener('change', function() {
-                    const index = parseInt(this.dataset.index);
-                    const value = parseFloat(this.value);
-                    questions[index].userAnswer = isNaN(value) ? null : value;
-                });
-            });
+
+            return myChart;
         }
-        
-        // Rozpoczęcie testu
+
+        function downloadPlot(times) {
+            const myChart = showPlot(times);
+            //const link = document.createElement('a');
+            //link.download = 'wykres.png';
+            //link.href = myChart.toBase64Image();
+            //link.click();
+        }
+
+        function showResult() {
+            saveAnswer();
+            stopTimer();
+
+
+            const totalScore = calculateScore();
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <p style="color: red">Ważne! Pobrał Ci się plik results.txt - nie usuwaj go. Wyślij go do mnie na discordzie.</p>
+                <p>Twój wynik: ${totalScore} / ${questions.length}</p>
+                <p>Czas wykonania: ${timeDisplay.textContent}</p>
+            `;
+
+            generateFile(totalScore);
+            
+            // Pokaż poprawne odpowiedzi
+            correctAnswerContainer.textContent = `Poprawna odpowiedź: ${questions[currentQuestion].correctAnswer}`;
+            correctAnswerContainer.style.display = 'block';
+            //submitBtn.style.display = 'none';
+            finished = false;
+            downloadPlot(times);
+        }
+
         function startTest() {
-            generateAllQuestions();
-            startBtn.disabled = true;
-            checkBtn.disabled = false;
-            resultsContainer.style.display = 'none';
-            
-            // Rozpoczęcie licznika czasu
-            startTime = new Date();
-            timerInterval = setInterval(updateTimer, 1000);
+            testStarted = true;
+            startScreen.classList.add('hidden');
+            testContainer.classList.remove('hidden');
+            totalQuestionsSpan.textContent = questions.length;
+            showQuestion(currentQuestion);
+            startTimer();
         }
-        
-        // Aktualizacja licznika czasu
-        function updateTimer() {
-            const currentTime = new Date();
-            const elapsedTime = Math.floor((currentTime - startTime) / 1000);
-            const minutes = Math.floor(elapsedTime / 60);
-            const seconds = elapsedTime % 60;
-            timerDisplay.textContent = `Czas: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-        }
-        
-        // Sprawdzenie odpowiedzi
-        function checkAnswers() {
-            clearInterval(timerInterval);
-            
-            // Obliczenie czasu
-            const endTime = new Date();
-            const elapsedTime = Math.floor((endTime - startTime) / 1000);
-            const minutes = Math.floor(elapsedTime / 60);
-            const seconds = elapsedTime % 60;
-            const timeString = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-            
-            // Sprawdzenie poprawności odpowiedzi (z tolerancją dla liczb zmiennoprzecinkowych)
-            let correctCount = 0;
-            questions.forEach(q => {
-                if (q.userAnswer !== null) {
-                    q.isCorrect = Math.abs(q.userAnswer - q.answer) < 0.001;
-                    if (q.isCorrect) correctCount++;
-                } else {
-                    q.isCorrect = false;
-                }
-            });
-            
-            // Wyświetlenie wyników
-            timeResult.textContent = `Czas: ${timeString}`;
-            scoreResult.textContent = `Wynik: ${correctCount} / ${questions.length}`;
-            accuracyResult.textContent = `Dokładność: ${Math.round((correctCount / questions.length) * 100)}%`;
-            
-            // Podświetlenie odpowiedzi i pokazanie poprawnych odpowiedzi
-            document.querySelectorAll('.question').forEach((questionElement, index) => {
-                const input = questionElement.querySelector('input');
-                if (questions[index].isCorrect) {
-                    input.classList.add('correct');
-                    input.classList.remove('incorrect');
-                } else {
-                    input.classList.add('incorrect');
-                    input.classList.remove('correct');
-                }
-                questionElement.classList.add('show-answer');
-            });
-            
-            resultsContainer.style.display = 'block';
-            checkBtn.disabled = true;
-            startBtn.disabled = false;
-        }
-        
-        // Resetowanie testu
-        function restartTest() {
-            questionsContainer.innerHTML = '';
-            resultsContainer.style.display = 'none';
-            timerDisplay.textContent = 'Czas: 0:00';
-            document.querySelectorAll('input').forEach(input => {
-                input.classList.remove('correct', 'incorrect');
-            });
-            startBtn.disabled = false;
-            checkBtn.disabled = true;
-            clearInterval(timerInterval);
-        }
-        
-        // Nasłuchiwanie zdarzeń
+
+        // Event listeners
         startBtn.addEventListener('click', startTest);
-        checkBtn.addEventListener('click', checkAnswers);
-        restartBtn.addEventListener('click', restartTest);
+
+        prevBtn.addEventListener('click', () => {
+            saveAnswer();
+            currentQuestion--;
+            showQuestion(currentQuestion);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            saveAnswer();
+            currentQuestion++;
+            showQuestion(currentQuestion);
+        });
+
+        submitBtn.addEventListener('click', showResult);
     </script>
 </body>
 </html>
