@@ -81,10 +81,28 @@
         .hidden {
             display: none;
         }
+
+        
+        #messenger-warning {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            color: white;
+            text-align: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.9);
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <div id="messenger-warning">
+        <h1>Otwórz w oddzielnej przeglądarce.</h1>
+    </div>
+
     <div id="start-screen" class="start-screen">
         <h1>Test I</h1>
         <p>Test zawiera pytania dotyczące systemów liczbowych, obliczania NWD i algorytmów w Scratch'u</p>
@@ -470,6 +488,23 @@
         });
 
         submitBtn.addEventListener('click', showResult);
+
+        
+        // Detect browser
+
+        function detectMessengerBrowser() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            return (
+                ua.includes("FBAN") || // Facebook App
+                ua.includes("FBAV") || // Facebook App
+                ua.includes("FB_IAB") || // Facebook In-App Browser
+                ua.includes("Instagram") // Instagram App
+            );
+        }
+
+        if (detectMessengerBrowser()) {
+            document.getElementById('messenger-warning').style.display = 'flex';
+        }
     </script>
 </body>
 </html>
