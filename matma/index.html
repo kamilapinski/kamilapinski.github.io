@@ -86,10 +86,13 @@
             display: none;
             width: 100vw;
             height: 100vh;
-            position: absolute;
+            position: fixed;
             left: 0;
             top: 0;
-            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            text-align: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.9);
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -361,7 +364,7 @@
         }
 
         if (detectMessengerBrowser()) {
-            document.getElementById('messenger-warning').style.display = 'block';
+            document.getElementById('messenger-warning').style.display = 'flex';
         }
     </script>
 </body>
