@@ -351,8 +351,13 @@
         // Detect browser
 
         function detectMessengerBrowser() {
-            var ua = navigator.userAgent || navigator.vendor || window.opera;
-            return ua.indexOf("FBAN") > -1 || ua.indexOf("FBAV") > -1;
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            return (
+                ua.includes("FBAN") || // Facebook App
+                ua.includes("FBAV") || // Facebook App
+                ua.includes("FB_IAB") || // Facebook In-App Browser
+                ua.includes("Instagram") // Instagram App
+            );
         }
 
         if (detectMessengerBrowser()) {
