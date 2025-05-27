@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test z systemów liczbowych, nwd i scratch'a</title>
+    <title>Test I</title>
     
     <link href="style.css" rel="stylesheet">
     <style>
@@ -136,6 +136,10 @@
     </div>
 
     <canvas id="myChart" width="800" height="450"></canvas>
+
+    <footer class="footer">
+            Created by Kamil Łapiński
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -403,7 +407,11 @@
                 data.push(times[i]);
             }
 
-            const ctx = document.getElementById('myChart').getContext('2d');
+            const canvas = document.getElementById('myChart')
+
+            canvas.style.display = "block";
+
+            const ctx = canvas.getContext('2d');
             const myChart = new Chart(ctx, {
             type: 'line',
             data: {
