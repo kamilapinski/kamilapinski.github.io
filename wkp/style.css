@@ -1,0 +1,94 @@
+* {
+    transition: all 0.2s ease-in-out;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+header > h1 > a {
+    text-decoration: none;
+    color: #4CAF50;
+}
+
+header > h1 > a:hover {
+    color: #45a049;
+}
+
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+h1 {
+    color: #333;
+    text-align: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+.test-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+.test-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+.test-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.test-card h3 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+.test-card p {
+    color: #7f8c8d;
+    font-size: 0.9em;
+}
+
+.test-card ul {
+    color: #7f8c8d;
+    font-size: 0.9em;
+}
+
+.start-btn {
+    display: block;
+    background: #4CAF50;
+    color: white;
+    text-align: center;
+    padding: 8px;
+    border-radius: 4px;
+    text-decoration: none;
+    margin-top: 10px;
+}
+.start-btn:hover {
+    background: #45a049;
+}
+.search-bar {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.start-btn.not-clickable {
+    background: #bbb;
+    cursor: not-allowed;
+}
