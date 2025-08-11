@@ -3,15 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test z matematyki</title>
+    <title>Test II</title>
+    
+    <link href="style.css" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            line-height: 1.6;
-        }
         .question-container {
             background-color: #f9f9f9;
             padding: 20px;
@@ -82,6 +77,7 @@
             display: none;
         }
 
+        
         #messenger-warning {
             display: none;
             width: 100vw;
@@ -102,15 +98,22 @@
         <h1>Otwórz w oddzielnej przeglądarce.</h1>
     </div>
 
+    <header>
+        <h1><a href="index.html">WKP</a></h1>
+    </header>
+
     <div id="start-screen" class="start-screen">
-        <h1>Test z matematyki</h1>
-        <p>Test zawiera 20 wyrażeń matematycznych do obliczenia.</p>
+        <h1>Test II</h1>
+        <p>Test zawiera pytania dotyczące systemów liczbowych, algorytmów w Scratch'u i Excel'a</p>
+        <p>Test powinien zająć maksymalnie 90 minut, czyli tyle ile jest na konkursie. Różnica jest taka, że na konkursie jest około 40 zadań zamkniętych, a tutaj 30 otwartych.</p>
+        <p>Pamiętaj, że ważne jest, abyś zadania rozwiązywał <span style="color: red">samodzielnie</span> i <span style="color: red">jednym ciągiem</span> (nie wychodź z testu zanim nie zrobisz do końca).</p>
+        <p>Nie odświeżaj strony, bo odpowiedzi się nie zapiszą. Możesz wracać do poprzednich pytań.</p>
         <p><span style="color: green">Powodzenia!</span></p>
         <button id="start-btn" style="margin: auto">Rozpocznij test</button>
     </div>
 
     <div id="test-container" class="hidden">
-        <h1>Test z matematyki</h1>
+        <h1>Test I</h1>
         <div class="timer">Czas: <span id="time">00:00</span></div>
         <div class="progress">Pytanie <span id="current-question">1</span> z <span id="total-questions">5</span></div>
         
@@ -134,11 +137,187 @@
 
     <canvas id="myChart" width="800" height="450"></canvas>
 
+    <footer class="footer">
+            Created by Kamil Łapiński
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="script.js"></script>
     <script>
         // Pytania do testu z poprawnymi odpowiedziami
-        const questions = generateAllQuestions();
+        const questions = [
+            {
+                question: "Zamień liczbę dziesiętną 4096 na system ósemkowy",
+                correctAnswer: "10000",
+                group: "Zamiana 10->8"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 2025 na system ósemkowy",
+                correctAnswer: "3751",
+                group: "Zamiana 10->8"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 1045 na system ósemkowy",
+                correctAnswer: "2025",
+                group: "Zamiana 10->8"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 542 na system ósemkowy",
+                correctAnswer: "1036",
+                group: "Zamiana 10->8"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 456 na system szesnastkowy (Pisz wielkimi literami)",
+                correctAnswer: "1C8",
+                group: "Zamiana 10->16"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 123 na system szesnastkowy (Pisz wielkimi literami)",
+                correctAnswer: "7B",
+                group: "Zamiana 10->16"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 729 na system szesnastkowy (Pisz wielkimi literami)",
+                correctAnswer: "2D9",
+                group: "Zamiana 10->16"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 2748 na system szesnastkowy (Pisz wielkimi literami)",
+                correctAnswer: "ABC",
+                group: "Zamiana 10->16"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 32? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "2 2 2 2 2",
+                image: "media/rozklad.png",
+                group: "Scratch 1"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 210? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "2 3 5 7",
+                image: "media/rozklad.png",
+                group: "Scratch 1"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 336? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "2 2 2 2 3 7",
+                image: "media/rozklad.png",
+                group: "Scratch 1"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 111? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "3 37",
+                image: "media/rozklad.png",
+                group: "Scratch 1"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli wylosowano kolejno liczby -3, 7, 8, -5, -8, 6, -4, 3, 1, -3?",
+                correctAnswer: "-8",
+                image: "media/random_minimum.png",
+                group: "Scratch 2"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli wylosowano kolejno liczby -1, 9, 3, 9, 10, 6, 2, 0, 10, 7?",
+                correctAnswer: "-1",
+                image: "media/random_minimum.png",
+                group: "Scratch 2"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli wylosowano kolejno liczby 0, -8, -7, 6, -9, 8, -9, 4, -7, 0?",
+                correctAnswer: "-9",
+                image: "media/random_minimum.png",
+                group: "Scratch 2"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli a = 10? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "90 72 56 -42 -30 -20 -12 -6 -2 0",
+                image: "media/alg5.png",
+                group: "Scratch 3"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli a = 12? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "132 110 90 72 56 -42 -30 -20 -12 -6 -2 0",
+                image: "media/alg5.png",
+                group: "Scratch 3"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli a = 15? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "210 182 156 132 110 90 72 56 -42 -30 -20 -12 -6 -2 0",
+                image: "media/alg5.png",
+                group: "Scratch 3"
+            },
+            {
+                question: "Co zostanie narysowane, jeśli podamy 5?",
+                correctAnswer: "pięciokąt",
+                image: "media/wielokat.png",
+                group: "Scratch 4"
+            },
+            {
+                question: "Co zostanie narysowane, jeśli podamy 6?",
+                correctAnswer: "sześciokąt",
+                image: "media/wielokat.png",
+                group: "Scratch 4"
+            },
+            {
+                question: "Co zostanie narysowane, jeśli podamy 2?",
+                correctAnswer: "linia",
+                image: "media/wielokat.png",
+                group: "Scratch 4"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 2025?",
+                correctAnswer: "9",
+                image: "media/suma_cyfr.png",
+                group: "Scratch 5"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 2705?",
+                correctAnswer: "14",
+                image: "media/suma_cyfr.png",
+                group: "Scratch 5"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 1801?",
+                correctAnswer: "10",
+                image: "media/suma_cyfr.png",
+                group: "Scratch 5"
+            },
+            {
+                question: "Którą formułę należy wpisać do komórki C3, aby wypisać PRAWDA jeżeli któraś z liczb w komórkach A3 lub B3 jest dodatnia?",
+                correctAnswer: "A",
+                image: "media/excel_lub.png",
+                group: "Excel 1"
+            },
+            {
+                question: "Odpowiedz na pytanie.",
+                correctAnswer: "C",
+                image: "media/excel0.png",
+                group: "Excel 2"
+            },
+            {
+                question: 'Jaką formułę należy wpisać w komórce B6, aby policzyć ile jest liczb równych 100? A) =SUMA.JEŻELI(A2:A6; 100) B) =LICZ.JEŻELI(A2:A6; 100) C) =ZLICZ.JEŻELI(A2:A6; 100)',
+                correctAnswer: "B",
+                image: "media/excel1.png",
+                group: "Excel 2"
+            },
+            {
+                question: 'Pracownikom, których wynagrodzenie nie przekracza 7500 zł i mają troje lub więcej dzieci, przysługuje 10% premia do wynagrodzenia. Jaką formułę należy wpisać w komórce E2, aby po przeciągnięciu formuły wyznaczyć dla każdej osoby należny dodatek?',
+                correctAnswer: "=JEŻELI(ORAZ(C2<=7500;D2>=3);10%*C2;0)",
+                image: "media/excel2.png",
+                group: "Excel 3"
+            },
+            {
+                question: 'Pracownikom, którzy są dyrektorami i mają dwoje lub więcej dzieci, przysługuje premia w wysokości 200zł. Jaką formułę należy wpisać w komórce E2, aby po przeciągnięciu formuły wyznaczyć dla każdej osoby należny dodatek?',
+                correctAnswer: '=JEŻELI(ORAZ(B2="dyrektor";D2>=2);200;0)',
+                image: "media/excel2.png",
+                group: "Excel 3"
+            },
+            {
+                question: 'Wszystkim pracownikom przysługuje premia wynosząca 10% wynagordzenia razy liczba dzieci. Jaką formułę należy wpisać w komórce E2, aby po przeciągnięciu formuły wyznaczyć dla każdej osoby należny dodatek?',
+                correctAnswer: '=10% * C2 * D2',
+                image: "media/excel2.png",
+                group: "Excel 3"
+            },
+        ];
 
         let times = new Array(questions.length).fill(0);
 
@@ -237,7 +416,7 @@
             let content = "";
             times.forEach((time, index) => {
                 const seconds = time;
-                content += `${questions[index].question}; ${questions[index].correctAnswer}; ${userAnswers[index]}; ${seconds}\n`;
+                content += `${userAnswers[index]}; ${questions[index].correctAnswer}; ${seconds}; ${questions[index].group}\n`;
             });
             content += 'total: ' + score + '; ' + seconds + '\n';
             const filename = "results.txt";
@@ -266,7 +445,11 @@
                 data.push(times[i]);
             }
 
-            const ctx = document.getElementById('myChart').getContext('2d');
+            const canvas = document.getElementById('myChart')
+
+            canvas.style.display = "block";
+
+            const ctx = canvas.getContext('2d');
             const myChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -313,6 +496,7 @@
                 <p style="color: red">Ważne! Pobrał Ci się plik results.txt - nie usuwaj go. Wyślij go do mnie na discordzie.</p>
                 <p>Twój wynik: ${totalScore} / ${questions.length}</p>
                 <p>Czas wykonania: ${timeDisplay.textContent}</p>
+                <p>Pamiętaj, że to Twój minimalny wynik. Może się okazać, że niektóre zadania masz dobrze, tylko rozwiązałeś je innym sposobem (ale też dobrym).</p>
             `;
 
             generateFile(totalScore);
@@ -351,6 +535,7 @@
 
         submitBtn.addEventListener('click', showResult);
 
+        
         // Detect browser
 
         function detectMessengerBrowser() {

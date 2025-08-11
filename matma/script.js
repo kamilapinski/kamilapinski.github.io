@@ -111,7 +111,7 @@ function generateQuestion() {
 // Generowanie wszystkich pytań
 function generateAllQuestions() {
     let questions = [];
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 20; i++) {
         questions.push(generateQuestion());
     }
     return questions;
