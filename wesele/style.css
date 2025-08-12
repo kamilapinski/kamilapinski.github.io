@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+* {
+    --primary-color: #5d2a12;
+    --secondary-color: #fff5e1;
+    --text-color: #5d2a12;
+    --background-color: #fff5e1;
+    font-family: "Montserrat", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    color: var(--text-color);
+}
+
+body {
+    background-color: var(--background-color);
+    width: 100%;
+    min-height: 100%;
+}
+
+h1 {
+    font-family: "Great Vibes", cursive;
+    font-weight: 400;
+    font-style: normal;
+}
+
+nav {
+    font-size: 1.5rem;
+    background-color: var(--primary-color);
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+nav > ul {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+    text-align: center;
+}
+
+nav > ul > li {
+    margin: 0.5rem 0;
+}
+
+nav > ul > li > a {
+    text-align: center;
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+nav > ul > li > a > svg {
+    background: var(--secondary-color);
+    fill: var(--secondary-color);
+    width: 30px;
+    height: 30px;
+    fill: var(--text-color);
+    margin: auto;
+}
