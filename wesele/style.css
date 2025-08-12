@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 * {
-    --primary-color: #5d2a12;
+    --primary-color: #3d3b3a;
     --secondary-color: #fff5e1;
-    --text-color: #5d2a12;
-    --background-color: #fff5e1;
-    font-family: "Montserrat", sans-serif;
-    font-optical-sizing: auto;
+    --text-color: #3d3b3a;
+    --background-color: white;
+    font-family: "Libre Baskerville", serif;
     font-weight: 400;
+    font-style: normal;
     font-style: normal;
     color: var(--text-color);
 }
@@ -16,12 +16,17 @@ body {
     background-color: var(--background-color);
     width: 100%;
     min-height: 100%;
+    overflow: hidden;
 }
 
 h1 {
     font-family: "Great Vibes", cursive;
     font-weight: 400;
     font-style: normal;
+}
+
+p {
+    font-size: 1rem;
 }
 
 nav {
@@ -65,4 +70,36 @@ nav > ul > li > a > svg {
     height: 30px;
     fill: var(--text-color);
     margin: auto;
+}
+
+.font-serif {
+    font-family: "DM Serif Display", serif;
+    font-weight: 400;
+    font-style: normal;
+    line-height: 0.75;
+}
+
+button {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.button {
+    background: var(--primary-color);
+    color: var(--secondary-color);
+    border: 1px solid var(--primary-color);
+    border-radius: 0.5rem;
+    font-size: 1.2rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.button:hover {
+    background: var(--secondary-color);
+    color: var(--primary-color);
+    border: 1px solid var(--secondary-color);
 }
