@@ -1,0 +1,1 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,44328,o=>{o.v(JSON.parse('{"welcome":"Witamy","description":"To jest polski opis."}'))}]);
