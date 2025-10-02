@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test III</title>
+    
+    <link href="style.css" rel="stylesheet">
+    <style>
+        .question-container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .options {
+            margin: 15px 0;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            display: none;
+        }
+        .progress {
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .timer {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #d9534f;
+            margin-bottom: 20px;
+        }
+        .correct-answer {
+            color: #5cb85c;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .start-screen {
+            text-align: center;
+            padding: 40px;
+        }
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .hidden {
+            display: none;
+        }
+
+        
+        #messenger-warning {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            color: white;
+            text-align: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.9);
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="messenger-warning">
+        <h1>Otwórz w oddzielnej przeglądarce.</h1>
+    </div>
+
+    <header>
+        <h1><a href="index.html">WKP</a></h1>
+    </header>
+
+    <div id="start-screen" class="start-screen">
+        <h1>Test III</h1>
+        <p>Test zawiera pytania dotyczące systemów liczbowych, algorytmów w Scratch'u, Excel'a i obliczaniu największego wspólnego dzielnika.</p>
+        <p>Test powinien zająć maksymalnie 90 minut, czyli tyle ile jest na konkursie. Różnica jest taka, że na konkursie jest około 40 zadań zamkniętych, a tutaj 40 otwartych.</p>
+        <p>Pamiętaj, że ważne jest, abyś zadania rozwiązywał <span style="color: red">samodzielnie</span> i <span style="color: red">jednym ciągiem</span> (nie wychodź z testu zanim nie zrobisz do końca).</p>
+        <p>Nie odświeżaj strony, bo odpowiedzi się nie zapiszą. Możesz wracać do poprzednich pytań.</p>
+        <p><span style="color: green">Powodzenia!</span></p>
+        <button id="start-btn" style="margin: auto">Rozpocznij test</button>
+    </div>
+
+    <div id="test-container" class="hidden">
+        <h1>Test I</h1>
+        <div class="timer">Czas: <span id="time">00:00</span></div>
+        <div class="progress">Pytanie <span id="current-question">1</span> z <span id="total-questions">5</span></div>
+        
+        <div>
+            <button id="prev-btn" disabled>Poprzednie</button>
+            <button id="next-btn">Następne</button>
+            <button id="submit-btn" style="display: none;">Zakończ test</button>
+        </div>
+
+        <div class="question-container">
+            <div id="question-text">Ładowanie pytań...</div>
+            <div id="question-image-container"></div>
+            <div class="options">
+                <textarea id="answer-input" placeholder="Wpisz swoją odpowiedź..."></textarea>
+            </div>
+            <div id="correct-answer-container" class="correct-answer" style="display: none;"></div>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <canvas id="myChart" width="800" height="450"></canvas>
+
+    <footer class="footer">
+            Created by Kamil Łapiński
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Pytania do testu z poprawnymi odpowiedziami
+        const questions = [
+            {
+                question: "Zamień liczbę dziesiętną 777 na system ósemkowy",
+                correctAnswer: "1411",
+                group: "Zamiana 10->8"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 2500 na system ósemkowy",
+                correctAnswer: "4704",
+                group: "Zamiana 10->8"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 63 na system ósemkowy",
+                correctAnswer: "77",
+                group: "Zamiana 10->8"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 8192 na system ósemkowy",
+                correctAnswer: "20000",
+                group: "Zamiana 10->8"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 512 na system szesnastkowy (Pisz wielkimi literami)",
+                correctAnswer: "200",
+                group: "Zamiana 10->16"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 1023 na system szesnastkowy (Pisz wielkimi literami)",
+                correctAnswer: "3FF",
+                group: "Zamiana 10->16"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 2047 na system szesnastkowy (Pisz wielkimi literami)",
+                correctAnswer: "7FF",
+                group: "Zamiana 10->16"
+            },
+            {
+                question: "Zamień liczbę dziesiętną 4095 na system szesnastkowy (Pisz wielkimi literami)",
+                correctAnswer: "FFF",
+                group: "Zamiana 10->16"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 60? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "2 2 3 5",
+                image: "media/rozklad.png",
+                group: "Scratch - rozklad"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 210? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "2 3 5 7",
+                image: "media/rozklad.png",
+                group: "Scratch - rozklad"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 84? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "2 2 3 7",
+                image: "media/rozklad.png",
+                group: "Scratch - rozklad"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 2310? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "2 3 5 7 11",
+                image: "media/rozklad.png",
+                group: "Scratch - rozklad"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 5040? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "2 2 2 2 3 3 5 7",
+                image: "media/rozklad.png",
+                group: "Scratch - rozklad"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 65536? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2",
+                image: "media/rozklad.png",
+                group: "Scratch - rozklad"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 1001? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "7 11 13",
+                image: "media/rozklad.png",
+                group: "Scratch - rozklad"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli wylosowano kolejno liczby 3, -7, 0, 10, -4, 8, -1, 6, -9, 2?",
+                correctAnswer: "-8",
+                image: "media/random_minimum.png",
+                group: "Scratch - min"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli wylosowano kolejno liczby -5, 7, -2, 4, -10, 9, 1, -8, 0, 6?",
+                correctAnswer: "-1",
+                image: "media/random_minimum.png",
+                group: "Scratch - min"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli wylosowano kolejno liczby 10, -3, 5, -6, 2, -1, 9, -7, 4, 0?",
+                correctAnswer: "-9",
+                image: "media/random_minimum.png",
+                group: "Scratch - min"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 84 i 126?",
+                correctAnswer: "42",
+                image: "media/nwd.png",
+                group: "Scratch - nwd"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 210 i 462?",
+                correctAnswer: "42",
+                image: "media/nwd.png",
+                group: "Scratch - nwd"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 252 i 198?",
+                correctAnswer: "18",
+                image: "media/nwd.png",
+                group: "Scratch - nwd"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 1001 i 143?",
+                correctAnswer: "143",
+                image: "media/nwd.png",
+                group: "Scratch - nwd"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli podamy 987 i 610?",
+                correctAnswer: "1",
+                image: "media/nwd.png",
+                group: "Scratch - nwd"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli a = 10? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "90 72 56 -42 -30 -20 -12 -6 -2 0",
+                image: "media/alg5.png",
+                group: "Scratch 3"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli a = 12? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "132 110 90 72 56 -42 -30 -20 -12 -6 -2 0",
+                image: "media/alg5.png",
+                group: "Scratch 3"
+            },
+            {
+                question: "Co zostanie wypisane, jeśli a = 15? (Pomiędzy poszczególnymi liczbami wstaw pojedyncze spacje)",
+                correctAnswer: "210 182 156 132 110 90 72 56 -42 -30 -20 -12 -6 -2 0",
+                image: "media/alg5.png",
+                group: "Scratch 3"
+            },
+            {
+                question: "Co zostanie narysowane, jeśli podamy 6 i 8?",
+                correctAnswer: "24",
+                image: "media/nww.png",
+                group: "Scratch 4"
+            },
+            {
+                question: "Co zostanie narysowane, jeśli podamy 12 i 18?",
+                correctAnswer: "36",
+                image: "media/nww.png",
+                group: "Scratch 4"
+            },
+            {
+                question: "Co zostanie narysowane, jeśli podamy 15 i 28?",
+                correctAnswer: "420",
+                image: "media/nww.png",
+                group: "Scratch 4"
+            },
+            {
+                question: "Co zostanie narysowane, jeśli podamy 21 i 6?",
+                correctAnswer: "42",
+                image: "media/nww.png",
+                group: "Scratch 4"
+            },
+            {
+                question: "Co zostanie narysowane, jeśli podamy 9 i 10?",
+                correctAnswer: "90",
+                image: "media/nww.png",
+                group: "Scratch 4"
+            },
+            {
+                question: "Co zostanie wypisane =SUMA(124:24:12)",
+                correctAnswer: "błąd",
+                group: "Excel 0"
+            },
+            {
+                question: "Co zostanie wypisane =JEŻELI(ŚREDNIA(0:2:2:4)=2; 1; 0)",
+                correctAnswer: "błąd",
+                group: "Excel 0"
+            },
+            {
+                question: "Co zostanie wypisane =JEŻELI(ŚREDNIA(0;2;2;4)=2; 1; 0)",
+                correctAnswer: "1",
+                group: "Excel 0"
+            },
+            {
+                question: "Co zostanie wypisane =JEŻELI(NWD(48;180)=12; 1; 0)",
+                correctAnswer: "1",
+                group: "Excel 0"
+            },
+            {
+                question: "Którą formułę należy wpisać do komórki C3, aby wypisać PRAWDA jeżeli któraś z liczb w komórkach A3 lub B3 jest dodatnia?",
+                correctAnswer: "A",
+                image: "media/excel_lub.png",
+                group: "Excel 1"
+            },
+            {
+                question: "Odpowiedz na pytanie.",
+                correctAnswer: "C",
+                image: "media/excel0.png",
+                group: "Excel 2"
+            },
+            {
+                question: 'Jaką formułę należy wpisać w komórce B6, aby policzyć ile jest liczb równych 100? A) =SUMA.JEŻELI(A2:A6; 100) B) =LICZ.JEŻELI(A2:A6; 100) C) =ZLICZ.JEŻELI(A2:A6; 100)',
+                correctAnswer: "B",
+                image: "media/excel1.png",
+                group: "Excel 2"
+            },
+            {
+                question: 'Pracownikom, którzy są dyrektorami i mają dwoje lub więcej dzieci, przysługuje premia w wysokości 200zł. Jaką formułę należy wpisać w komórce E2, aby po przeciągnięciu formuły wyznaczyć dla każdej osoby należny dodatek?',
+                correctAnswer: '=JEŻELI(ORAZ(B2="dyrektor";D2>=2);200;0)',
+                image: "media/excel2.png",
+                group: "Excel 3"
+            },
+            {
+                question: 'Wszystkim pracownikom przysługuje premia wynosząca 10% wynagordzenia razy liczba dzieci. Jaką formułę należy wpisać w komórce E2, aby po przeciągnięciu formuły wyznaczyć dla każdej osoby należny dodatek?',
+                correctAnswer: '=10% * C2 * D2',
+                image: "media/excel2.png",
+                group: "Excel 3"
+            },
+        ];
+
+        let times = new Array(questions.length).fill(0);
+
+        // Zmienne stanu
+        let currentQuestion = 0;
+        let userAnswers = new Array(questions.length).fill("");
+        let score = 0;
+        let seconds = 0;
+        let currentSeconds = 0;
+        let timerInterval;
+        let testStarted = false;
+        let finished = false;
+
+        // Elementy DOM
+        const startScreen = document.getElementById('start-screen');
+        const testContainer = document.getElementById('test-container');
+        const questionText = document.getElementById('question-text');
+        const questionImageContainer = document.getElementById('question-image-container');
+        const answerInput = document.getElementById('answer-input');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const resultDiv = document.getElementById('result');
+        const currentQuestionSpan = document.getElementById('current-question');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const timeDisplay = document.getElementById('time');
+        const correctAnswerContainer = document.getElementById('correct-answer-container');
+        const startBtn = document.getElementById('start-btn');
+
+        // Funkcje
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++;
+                currentSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function showQuestion(index) {
+            currentQuestionSpan.textContent = index + 1;
+            const question = questions[index];
+            questionText.textContent = question.question;
+            answerInput.value = userAnswers[index];
+            
+            // Wyczyść kontener obrazka i dodaj nowy obrazek jeśli istnieje
+            questionImageContainer.innerHTML = '';
+            if (question.image) {
+                const img = document.createElement('img');
+                img.src = question.image;
+                img.alt = 'Ilustracja do pytania';
+                img.className = 'question-image';
+                questionImageContainer.appendChild(img);
+            }
+            
+            // Ukryj poprawną odpowiedź, chyba że test jest zakończony
+            if (resultDiv.style.display === 'block') {
+                correctAnswerContainer.textContent = `Poprawna odpowiedź: ${question.correctAnswer}`;
+                correctAnswerContainer.style.display = 'block';
+            } else {
+                correctAnswerContainer.style.display = 'none';
+            }
+
+            // Aktualizacja przycisków
+            prevBtn.disabled = index === 0;
+            nextBtn.style.display = index === questions.length - 1 ? 'none' : 'inline-block';
+            submitBtn.style.display = index === questions.length - 1 && !finished ? 'inline-block' : 'none';
+        }
+
+        function saveAnswer() {
+            userAnswers[currentQuestion] = answerInput.value.trim();
+            times[currentQuestion] += currentSeconds;
+            currentSeconds = 0;
+        }
+
+        function calculateScore() {
+            score = 0;
+            userAnswers.forEach((answer, index) => {
+                if (answer.toLowerCase() === questions[index].correctAnswer.toLowerCase()) {
+                    score++;
+                }
+            });
+            return score;
+        }
+
+        function generateFile(score) {
+            let content = "";
+            times.forEach((time, index) => {
+                const seconds = time;
+                content += `${userAnswers[index]}; ${questions[index].correctAnswer}; ${seconds}; ${questions[index].group}\n`;
+            });
+            content += 'total: ' + score + '; ' + seconds + '\n';
+            const filename = "results.txt";
+
+            const blob = new Blob([content], { type: "text/plain" });
+
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+
+            // Klikamy link programowo
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Zwolnienie zasobu
+            URL.revokeObjectURL(link.href);
+        }
+
+        function showPlot(times) {
+            let labels = [];
+            let data = [];
+
+            for (let i = 0; i < times.length; i++) {
+                labels.push(`Pytanie ${i + 1}`);
+                data.push(times[i]);
+            }
+
+            const canvas = document.getElementById('myChart')
+
+            canvas.style.display = "block";
+
+            const ctx = canvas.getContext('2d');
+            const myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                label: 'Czas odpowiedzi (s)',
+                data: data,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderWidth: 2,
+                fill: true
+                }]
+            },
+            options: {
+                responsive: false,
+                animation: false,
+                scales: {
+                y: {
+                    beginAtZero: true
+                }
+                }
+            }
+            });
+
+            return myChart;
+        }
+
+        function downloadPlot(times) {
+            const myChart = showPlot(times);
+            //const link = document.createElement('a');
+            //link.download = 'wykres.png';
+            //link.href = myChart.toBase64Image();
+            //link.click();
+        }
+
+        function showResult() {
+            saveAnswer();
+            stopTimer();
+
+
+            const totalScore = calculateScore();
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <p style="color: red">Ważne! Pobrał Ci się plik results.txt - nie usuwaj go. Wyślij go do mnie na discordzie.</p>
+                <p>Twój wynik: ${totalScore} / ${questions.length}</p>
+                <p>Czas wykonania: ${timeDisplay.textContent}</p>
+                <p>Pamiętaj, że to Twój minimalny wynik. Może się okazać, że niektóre zadania masz dobrze, tylko rozwiązałeś je innym sposobem (ale też dobrym).</p>
+            `;
+
+            generateFile(totalScore);
+            
+            // Pokaż poprawne odpowiedzi
+            correctAnswerContainer.textContent = `Poprawna odpowiedź: ${questions[currentQuestion].correctAnswer}`;
+            correctAnswerContainer.style.display = 'block';
+            //submitBtn.style.display = 'none';
+            finished = false;
+            downloadPlot(times);
+        }
+
+        function startTest() {
+            testStarted = true;
+            startScreen.classList.add('hidden');
+            testContainer.classList.remove('hidden');
+            totalQuestionsSpan.textContent = questions.length;
+            showQuestion(currentQuestion);
+            startTimer();
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startTest);
+
+        prevBtn.addEventListener('click', () => {
+            saveAnswer();
+            currentQuestion--;
+            showQuestion(currentQuestion);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            saveAnswer();
+            currentQuestion++;
+            showQuestion(currentQuestion);
+        });
+
+        submitBtn.addEventListener('click', showResult);
+
+        
+        // Detect browser
+
+        function detectMessengerBrowser() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            return (
+                ua.includes("FBAN") || // Facebook App
+                ua.includes("FBAV") || // Facebook App
+                ua.includes("FB_IAB") || // Facebook In-App Browser
+                ua.includes("Instagram") // Instagram App
+            );
+        }
+
+        if (detectMessengerBrowser()) {
+            document.getElementById('messenger-warning').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

@@ -46,7 +46,7 @@ h1 {
     border-radius: 5px;
     padding: 15px;
     transition: transform 0.2s;
-    cursor: pointer;
+    cursor: default;
 }
 .test-card:hover {
     transform: translateY(-5px);
