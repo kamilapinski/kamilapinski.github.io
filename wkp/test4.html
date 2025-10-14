@@ -112,7 +112,7 @@
     </div>
 
     <div id="test-container" class="hidden">
-        <h1>Test I</h1>
+        <h1>Test IV</h1>
         <div class="timer">Czas: <span id="time">00:00</span></div>
         <div class="progress">Pytanie <span id="current-question">1</span> z <span id="total-questions">5</span></div>
         
@@ -125,6 +125,7 @@
         <div class="question-container">
             <div id="question-text">Ładowanie pytań...</div>
             <div id="question-image-container"></div>
+            <div id="question-answers-container"></div>
             <div class="options">
                 <textarea id="answer-input" placeholder="Wpisz swoją odpowiedź..."></textarea>
             </div>
@@ -146,13 +147,13 @@
         const questions = [
             {
                 question: "Jak nazywa się urządzenie, które łączy różne sieci i przekazuje dane między nimi?",
-                correctAnswer: 2,
+                correctAnswer: "2",
                 answers: ['Modem', 'Router', 'Switch', 'Karta sieciowa'],
                 group: "Sieci"
             },
             {
                 question: "Do czego służy adres IP?",
-                correctAnswer: 1,
+                correctAnswer: "1",
                 answers: [
                     'Do identyfikacji komputera w sieci', 
                     'Do przechowywania plików', 
@@ -163,7 +164,7 @@
             },
             {
                 question: "Jak nazywa się sieć obejmująca tylko jedno mieszkanie lub dom?",
-                correctAnswer: 1,
+                correctAnswer: "1",
                 answers: [
                     'LAN', 
                     'WAN', 
@@ -174,7 +175,7 @@
             },
             {
                 question: "Co robi router w domu?",
-                correctAnswer: 4,
+                correctAnswer: "4",
                 answers: [
                     'Łączy lodówkę z pralką', 
                     'Służy tylko do udostępniania wi-fi', 
@@ -185,7 +186,7 @@
             },
             {
                 question: "Co robi router w domu?",
-                correctAnswer: 2,
+                correctAnswer: "2",
                 answers: [
                     'Pobiera przeglądarkę internetową', 
                     'Łączy urządzenia w jedną sieć',
@@ -196,7 +197,7 @@
             },
             {
                 question: "Co oznacza skrót IP w adresie IP?",
-                correctAnswer: 2,
+                correctAnswer: "2",
                 answers: [
                     'Internal Password', 
                     'Internet Protocol',
@@ -209,13 +210,280 @@
                 question: "Co zostanie wypisane dla tablicy [5, 2, 0, 5, 4, -1, 9]",
                 correctAnswer: "-1",
                 image: 'media/kroki/min.png',
-                group: "Listy kroków"
+                group: "Listy kroków - min"
             },
             {
-                question: "Co zostanie wypisane dla tablicy [5, 2, 0, 5, 4, -1, 9]",
-                correctAnswer: "-1",
+                question: "Co robi ten algorytm?",
+                correctAnswer: "3",
                 image: 'media/kroki/min.png',
-                group: "Listy kroków"
+                answers: [
+                    'Zwraca sumę wszystkich elementów tablicy',
+                    'Zwraca największy element z tablicy',
+                    'Zwraca najmniejszy element z tablicy',
+                    'Zwraca średnią arytmetyczną elementów tablicy'
+                ],
+                group: "Listy kroków - min"
+            },
+            {
+                question: "Co zostanie wypisane dla liczb 36 i 48?",
+                correctAnswer: "12",
+                image: 'media/kroki/euklides_odejmowanie.png',
+                group: "Listy kroków - euklides"
+            },
+            {
+                question: "Co zostanie wypisane dla liczb 32 i 56?",
+                correctAnswer: "8",
+                image: 'media/kroki/euklides_odejmowanie.png',
+                group: "Listy kroków - euklides"
+            },
+            {
+                question: "Co zostanie wypisane dla liczb 81 i 54?",
+                correctAnswer: "27",
+                image: 'media/kroki/euklides_odejmowanie.png',
+                group: "Listy kroków - euklides"
+            },
+            {
+                question: "Co zostanie wypisane dla liczb 84 i 65?",
+                correctAnswer: "1",
+                image: 'media/kroki/euklides_odejmowanie.png',
+                group: "Listy kroków - euklides"
+            },
+            {
+                question: "Co zostanie wypisane dla liczb 315 i 210?",
+                correctAnswer: "105",
+                image: 'media/kroki/euklides_odejmowanie.png',
+                group: "Listy kroków - euklides"
+            },
+            {
+                question: "Co robi ten algorytm?",
+                correctAnswer: "4",
+                answers: [
+                    'Zwraca sumę wszystkich liczb od 1 do n',
+                    'Zwraca różnicę liczb x i y',
+                    'Zwraca n-tą liczbę pierwszą',
+                    'Zwraca największy wspólny dzielnik dwóch liczb'
+                ],
+                image: 'media/kroki/euklides_odejmowanie.png',
+                group: "Listy kroków - euklides"
+            },
+            {
+                question: "Co zostanie wypisane dla liczby 60? (Kolejne wypisywane liczby oddzielaj spacjami)",
+                correctAnswer: "2 2 3 5",
+                image: 'media/kroki/rozklad.png',
+                group: "Listy kroków - rozkład"
+            },
+            {
+                question: "Co zostanie wypisane dla liczby 84? (Kolejne wypisywane liczby oddzielaj spacjami)",
+                correctAnswer: "2 2 3 7",
+                image: 'media/kroki/rozklad.png',
+                group: "Listy kroków - rozkład"
+            },
+            {
+                question: "Co zostanie wypisane dla liczby 360? (Kolejne wypisywane liczby oddzielaj spacjami)",
+                correctAnswer: "2 2 2 3 3 5",
+                image: 'media/kroki/rozklad.png',
+                group: "Listy kroków - rozkład"
+            },
+            {
+                question: "Co zostanie wypisane dla liczby 126? (Kolejne wypisywane liczby oddzielaj spacjami)",
+                correctAnswer: "2 3 3 7",
+                image: 'media/kroki/rozklad.png',
+                group: "Listy kroków - rozkład"
+            },
+            {
+                question: "Co robi ten algorytm?",
+                correctAnswer: "3",
+                answers: [
+                    'Dzieli liczbę n przez 2 aż dojdzie do 1',
+                    'Zwraca ilość cyfr liczby n',
+                    'Zwraca rozkład liczby n na czynniki pierwsze',
+                    'Żadne z powyższych'
+                ],
+                image: 'media/kroki/rozklad.png',
+                group: "Listy kroków - rozkład"
+            },
+            {
+                question: "Co zostanie wypisane dla liczb 4 i 6?",
+                correctAnswer: "12",
+                image: 'media/nww.png',
+                group: "Scratch - nww"
+            },
+            {
+                question: "Co zostanie wypisane dla liczb 10 i 15?",
+                correctAnswer: "30",
+                image: 'media/nww.png',
+                group: "Scratch - nww"
+            },
+            {
+                question: "Co zostanie wypisane dla liczb 18 i 24?",
+                correctAnswer: "72",
+                image: 'media/nww.png',
+                group: "Scratch - nww"
+            },
+            {
+                question: "Co zostanie wypisane dla liczb 21 i 28?",
+                correctAnswer: "84",
+                image: 'media/nww.png',
+                group: "Scratch - nww"
+            },
+            {
+                question: "Co zostanie wypisane dla liczb 25 i 40?",
+                correctAnswer: "200",
+                image: 'media/nww.png',
+                group: "Scratch - nww"
+            },
+            {
+                question: "Co robi ten algorytm?",
+                correctAnswer: "2",
+                answers: [
+                    'Zwraca największy wspólny dzielnik dwóch liczb',
+                    'Zwraca najmniejszą wspólną wielokrotność dwóch liczb',
+                    'Zwraca sumę dwóch liczb',
+                    'Zwraca różnicę dwóch liczb'
+                ],
+                image: 'media/nww.png',
+                group: "Scratch - nww"
+            },
+            {
+                question: "Co zostanie wypisane dla liczby 3?",
+                correctAnswer: "6",
+                image: 'media/silnia.png',
+                group: "Scratch - silnia"
+            },
+            {
+                question: "Co zostanie wypisane dla liczby 7?",
+                correctAnswer: "5040",
+                image: 'media/silnia.png',
+                group: "Scratch - silnia"
+            },
+            {
+                question: "Co zostanie wypisane dla liczby 4?",
+                correctAnswer: "24",
+                image: 'media/silnia.png',
+                group: "Scratch - silnia"
+            },
+            {
+                question: "Co zostanie wypisane dla liczby 5?",
+                correctAnswer: "120",
+                image: 'media/silnia.png',
+                group: "Scratch - silnia"
+            },
+            {
+                question: "Co zostanie wypisane dla liczby 0?",
+                correctAnswer: "1",
+                image: 'media/silnia.png',
+                group: "Scratch - silnia"
+            },
+            {
+                question: "Co robi ten algorytm?",
+                correctAnswer: "3",
+                answers: [
+                    'Zwraca iloczyn liczby podanej na początku',
+                    'Zwraca iloraz liczby podanej na początku',
+                    'Zwraca iloczyn liczb od 1 do podanej na początku, a dla 0 zwraca 1',
+                    'Zwraca iloraz liczb od 1 do podanej na początku, a dla 0 zwraca 1'
+                ],
+                image: 'media/silnia.png',
+                group: "Scratch - silnia"
+            },
+            {
+                question: "Czym jest rozszerzenie pliku?",
+                correctAnswer: "3",
+                answers: [
+                    'To część nazwy pliku, która określa jego rozmiar',
+                    'To część nazwy pliku, która określa jego lokalizację na dysku',
+                    'To część nazwy pliku, która określa jego format',
+                    'To część nazwy pliku, która określa datę jego utworzenia'
+                ],
+                group: "Teoria"
+            },
+            {
+                question: "Jakich znaków można użyć tworząc nazwę pliku?",
+                correctAnswer: "2",
+                answers: [
+                    'Tylko liter i cyfr',
+                    'Liter, cyfr, spacji oraz znaków podkreślenia i myślnika',
+                    'Tylko liter, cyfr i podkreślników',
+                    'Dowolnych znaków'
+                ],
+                group: "Teoria"
+            },
+            {
+                question: "Czym jest kompresja pliku?",
+                correctAnswer: "4",
+                answers: [
+                    'Procesem szyfrowania pliku',
+                    'Procesem tworzenia kopii zapasowej pliku',
+                    'Procesem zmiany formatu pliku',
+                    'Procesem zmniejszania rozmiaru pliku'
+                ],
+                group: "Teoria"
+            },
+            {
+                question: "Czym jest schowek?",
+                correctAnswer: "4",
+                answers: [
+                    'To miejsce na dysku, gdzie przechowywane są pliki tymczasowe',
+                    'To program do zarządzania plikami',
+                    'To narzędzie do tworzenia kopii zapasowych',
+                    'To tymczasowa pamięć, gdzie przechowywane są skopiowane lub wycięte dane'
+                ],
+                group: "Teoria"
+            },
+            {
+                question: "Czym jest BIOS?",
+                correctAnswer: "4",
+                answers: [
+                    'To system operacyjny',
+                    'To program antywirusowy',
+                    'To aplikacja do zarządzania plikami',
+                    'To podstawowe oprogramowanie układowe komputera, które uruchamia się przy starcie'
+                ],
+                group: "Teoria"
+            },
+            {
+                question: "Jakie jest rozwinięcie skrótu BIOS?",
+                correctAnswer: "4",
+                answers: [
+                    'Basic Inptut Output System',
+                    'Binary Input Output System',
+                    'Basic Internal Operating System',
+                    'Basic Input/Output System'
+                ],
+                group: "Teoria"
+            },
+            {
+                question: "Czym jest defragmentacja dysku?",
+                correctAnswer: "1",
+                answers: [
+                    'Operacja układająca pliki na dysku komputerowym tak, aby system miał do nich szybszy dostęp',
+                    'Proces tworzenia kopii zapasowej danych',
+                    'Proces szyfrowania plików na dysku',
+                    'Operacja usuwania niepotrzebnych plików z dysku'
+                ],
+                group: "Teoria"
+            },
+            {
+                question: "Czym jest akapit?",
+                correctAnswer: "2",
+                answers: [
+                    'Akapit w edytorze tekstu to pojedyncza linia tekstu oddzielona naciśnięciem klawisza ENTER.',
+                    'Akapit w edytorze tekstu to fragment tekstu oddzielony naciśnięciem klawisza ENTER.',
+                    'Akapit w edytorze tekstu to wcięcie we fragmencie tekstu.',
+                    'Żadne z powyższych'
+                ],
+                group: "Teoria"
+            },
+            {
+                question: "Plikami graficznymi są?",
+                correctAnswer: "2",
+                answers: [
+                    'TAFF, GIF, PNG, BHP',
+                    'TIFF, GIF, PNG, BMP',
+                    'TIFF, GIG, PNG, BMP',
+                    'TAFF, GIG, PNG, BHP'
+                ],
+                group: "Teoria"
             }
         ];
 
@@ -236,6 +504,7 @@
         const testContainer = document.getElementById('test-container');
         const questionText = document.getElementById('question-text');
         const questionImageContainer = document.getElementById('question-image-container');
+        const questionAnswersContainer = document.getElementById('question-answers-container');
         const answerInput = document.getElementById('answer-input');
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
@@ -283,9 +552,8 @@
                 questionImageContainer.appendChild(img);
             }
 
+            questionAnswersContainer.innerHTML = '';
             if (question.answers) {
-                const answersBlock = document.createElement('div');
-
                 let character = 1;
 
                 for (let i = 0; i < question.answers.length; i++) {
@@ -293,10 +561,8 @@
                     answer.innerHTML = character + ') ' + question.answers[i];
                     character += 1
 
-                    answersBlock.appendChild(answer);
+                    questionAnswersContainer.appendChild(answer);
                 }
-
-                questionText.appendChild(answersBlock);
             }
 
             
@@ -323,10 +589,10 @@
         function calculateScore() {
             score = 0;
             userAnswers.forEach((answer, index) => {
-                if (Number.isInteger(answer) && answer === questions[index].correctAnswer) {
-                    score++;
+                if (Number.isInteger(answer)) {
+                    answer = parseInt(answer, 10);
                 }
-                else if (!Number.isInteger(questions[index].correctAnswer) && answer.toLowerCase() === questions[index].correctAnswer.toLowerCase()) {
+                if (answer.toLowerCase() === questions[index].correctAnswer.toLowerCase()) {
                     score++;
                 }
             });
