@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WKP I</title>
+    
+    <link href="style.css" rel="stylesheet">
+    <style>
+        .question-container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .options {
+            margin: 15px 0;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            display: none;
+        }
+        .progress {
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .timer {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #d9534f;
+            margin-bottom: 20px;
+        }
+        .correct-answer {
+            color: #5cb85c;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .start-screen {
+            text-align: center;
+            padding: 40px;
+        }
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .hidden {
+            display: none;
+        }
+
+        
+        #messenger-warning {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            color: white;
+            text-align: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.9);
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="messenger-warning">
+        <h1>Otwórz w oddzielnej przeglądarce.</h1>
+    </div>
+
+    <header>
+        <h1><a href="index.html">WKP</a></h1>
+    </header>
+
+    <div id="start-screen" class="start-screen">
+        <h1>WKP I</h1>
+        <p>Test powinien zająć maksymalnie 90 minut, czyli tyle ile jest na konkursie. W teście znajdują się zadania, które już kiedyś wystąpiły na konkursie. (Ten konkurs ma tendencję do powtarzania zadań)</p>
+        <p>Pamiętaj, że ważne jest, abyś zadania rozwiązywał <span style="color: red">samodzielnie</span> i <span style="color: red">jednym ciągiem</span> (nie wychodź z testu zanim nie zrobisz do końca).</p>
+        <p>Nie używaj <span style="color: red">kalkulatora</span>.</p>
+        <p>Jeśli czegoś nie wiesz, <span style="color: red">nie sprawdzaj w internecie</span> - lepiej, żebyśmy zapamiętali, czego nie pamiętasz.</p>
+        <p>Nie odświeżaj strony, bo odpowiedzi się nie zapiszą. Możesz wracać do poprzednich pytań.</p>
+        <p><span style="color: green">Powodzenia!</span></p>
+        <button id="start-btn" style="margin: auto">Rozpocznij test</button>
+    </div>
+
+    <div id="test-container" class="hidden">
+        <h1>WKP I</h1>
+        <div class="timer">Czas: <span id="time">00:00</span></div>
+        <div class="progress">Pytanie <span id="current-question">1</span> z <span id="total-questions">5</span></div>
+        
+        <div>
+            <button id="prev-btn" disabled>Poprzednie</button>
+            <button id="next-btn">Następne</button>
+            <button id="submit-btn" style="display: none;">Zakończ test</button>
+        </div>
+
+        <div class="question-container">
+            <div id="question-text">Ładowanie pytań...</div>
+            <div id="question-image-container"></div>
+            <div id="question-answers-container"></div>
+            <div class="options">
+                <textarea id="answer-input" placeholder="Wpisz swoją odpowiedź..."></textarea>
+            </div>
+            <div id="correct-answer-container" class="correct-answer" style="display: none;"></div>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <canvas id="myChart" width="800" height="450"></canvas>
+
+    <footer class="footer">
+            Created by Kamil Łapiński
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+
+        
+        let questions = [];
+
+        function getQuest(odp, code) {
+            return {
+                    question: "",
+                    correctAnswer: odp[code].odp, // pobieramy odpowiedź z pliku JSON
+                    image: `media/konkursowe/${code}.png`,
+                    group: odp[code].group
+                };
+        }
+
+
+        // Pytania do testu z poprawnymi odpowiedziami
+        // const questions = [
+        //     {
+        //         question: "Co robi ten algorytm?",
+        //         correctAnswer: "3",
+        //         answers: [
+        //             'Zwraca iloczyn liczby podanej na początku',
+        //             'Zwraca iloraz liczby podanej na początku',
+        //             'Zwraca iloczyn liczb od 1 do podanej na początku, a dla 0 zwraca 1',
+        //             'Zwraca iloraz liczb od 1 do podanej na początku, a dla 0 zwraca 1'
+        //         ],
+        //         image: 'media/silnia.png',
+        //         group: "Scratch - silnia"
+        //     },
+        // ];
+
+        let times = new Array(questions.length).fill(0);
+
+        // Zmienne stanu
+        let currentQuestion = 0;
+        let userAnswers = new Array(questions.length).fill("");
+        let score = 0;
+        let seconds = 0;
+        let currentSeconds = 0;
+        let timerInterval;
+        let testStarted = false;
+        let finished = false;
+
+        // Elementy DOM
+        const startScreen = document.getElementById('start-screen');
+        const testContainer = document.getElementById('test-container');
+        const questionText = document.getElementById('question-text');
+        const questionImageContainer = document.getElementById('question-image-container');
+        const questionAnswersContainer = document.getElementById('question-answers-container');
+        const answerInput = document.getElementById('answer-input');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const resultDiv = document.getElementById('result');
+        const currentQuestionSpan = document.getElementById('current-question');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const timeDisplay = document.getElementById('time');
+        const correctAnswerContainer = document.getElementById('correct-answer-container');
+        const startBtn = document.getElementById('start-btn');
+
+        // Funkcje
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++;
+                currentSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+        
+
+        function showQuestion(index) {
+            currentQuestionSpan.textContent = index + 1;
+            const question = questions[index];
+            questionText.textContent = question.question;
+            answerInput.value = userAnswers[index];
+            
+            // Wyczyść kontener obrazka i dodaj nowy obrazek jeśli istnieje
+            questionImageContainer.innerHTML = '';
+            if (question.image) {
+                const img = document.createElement('img');
+                img.src = question.image;
+                img.alt = 'Ilustracja do pytania';
+                img.className = 'question-image';
+                questionImageContainer.appendChild(img);
+            }
+
+            questionAnswersContainer.innerHTML = '';
+            if (question.answers) {
+                let character = 1;
+
+                for (let i = 0; i < question.answers.length; i++) {
+                    const answer = document.createElement('p');
+                    answer.innerHTML = character + ') ' + question.answers[i];
+                    character += 1
+
+                    questionAnswersContainer.appendChild(answer);
+                }
+            }
+
+            
+            // Ukryj poprawną odpowiedź, chyba że test jest zakończony
+            if (resultDiv.style.display === 'block') {
+                correctAnswerContainer.textContent = `Poprawna odpowiedź: ${question.correctAnswer}`;
+                correctAnswerContainer.style.display = 'block';
+            } else {
+                correctAnswerContainer.style.display = 'none';
+            }
+
+            // Aktualizacja przycisków
+            prevBtn.disabled = index === 0;
+            nextBtn.style.display = index === questions.length - 1 ? 'none' : 'inline-block';
+            submitBtn.style.display = index === questions.length - 1 && !finished ? 'inline-block' : 'none';
+        }
+
+        function saveAnswer() {
+            userAnswers[currentQuestion] = answerInput.value.trim();
+            times[currentQuestion] += currentSeconds;
+            currentSeconds = 0;
+        }
+
+        function calculateScore() {
+            score = 0;
+            userAnswers.forEach((answer, index) => {
+                if (Number.isInteger(answer)) {
+                    answer = parseInt(answer, 10);
+                }
+                if (answer.toLowerCase() === questions[index].correctAnswer.toLowerCase()) {
+                    score++;
+                }
+            });
+            return score;
+        }
+
+        function generateFile(score) {
+            let content = "";
+            times.forEach((time, index) => {
+                const seconds = time;
+                content += `${userAnswers[index]}; ${questions[index].correctAnswer}; ${seconds}; ${questions[index].group}\n`;
+            });
+            content += 'total: ' + score + '; ' + seconds + '\n';
+            const filename = "results.txt";
+
+            const blob = new Blob([content], { type: "text/plain" });
+
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+
+            // Klikamy link programowo
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Zwolnienie zasobu
+            URL.revokeObjectURL(link.href);
+        }
+
+        function showPlot(times) {
+            let labels = [];
+            let data = [];
+
+            for (let i = 0; i < times.length; i++) {
+                labels.push(`Pytanie ${i + 1}`);
+                data.push(times[i]);
+            }
+
+            const canvas = document.getElementById('myChart')
+
+            canvas.style.display = "block";
+
+            const ctx = canvas.getContext('2d');
+            const myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                label: 'Czas odpowiedzi (s)',
+                data: data,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderWidth: 2,
+                fill: true
+                }]
+            },
+            options: {
+                responsive: false,
+                animation: false,
+                scales: {
+                y: {
+                    beginAtZero: true
+                }
+                }
+            }
+            });
+
+            return myChart;
+        }
+
+        function downloadPlot(times) {
+            const myChart = showPlot(times);
+            //const link = document.createElement('a');
+            //link.download = 'wykres.png';
+            //link.href = myChart.toBase64Image();
+            //link.click();
+        }
+
+        function showResult() {
+            saveAnswer();
+            stopTimer();
+
+
+            const totalScore = calculateScore();
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <p style="color: red">Ważne! Pobrał Ci się plik results.txt - nie usuwaj go. Wyślij go do mnie na discordzie.</p>
+                <p>Twój wynik: ${totalScore} / ${questions.length}</p>
+                <p>Czas wykonania: ${timeDisplay.textContent}</p>
+                <p>Pamiętaj, że to Twój minimalny wynik. Może się okazać, że niektóre zadania masz dobrze, tylko rozwiązałeś je innym sposobem (ale też dobrym).</p>
+            `;
+
+            generateFile(totalScore);
+            
+            // Pokaż poprawne odpowiedzi
+            correctAnswerContainer.textContent = `Poprawna odpowiedź: ${questions[currentQuestion].correctAnswer}`;
+            correctAnswerContainer.style.display = 'block';
+            //submitBtn.style.display = 'none';
+            finished = false;
+            downloadPlot(times);
+        }
+
+        async function startTest() {
+            
+            await fetch('media/konkursowe/odp.json')
+                .then(response => response.json())
+                .then(odp => {
+                    questions = [
+                        getQuest(odp, "SZ242511"),
+                        getQuest(odp, "SZ222328"),
+                        getQuest(odp, "SZ232417"),
+                        getQuest(odp, "SZ232407"),
+                        getQuest(odp, "SZ242523"),
+                        getQuest(odp, "SZ222333"),
+                        getQuest(odp, "SZ232440"),
+                        getQuest(odp, "SZ242518"),
+                        getQuest(odp, "SZ222325"),
+                        getQuest(odp, "SZ222302"),
+                        getQuest(odp, "SZ242507"),
+                        getQuest(odp, "SZ232430"),
+                        getQuest(odp, "SZ222312"),
+                        getQuest(odp, "SZ242520"),
+                        getQuest(odp, "SZ232426"),
+                        getQuest(odp, "SZ222319"),
+                        getQuest(odp, "SZ232412"),
+                        getQuest(odp, "SZ242534"),
+                        getQuest(odp, "SZ242528"),
+                        getQuest(odp, "SZ232408"),
+                        getQuest(odp, "SZ222340"),
+                        getQuest(odp, "SZ222316"),
+                        getQuest(odp, "SZ242531"),
+                        getQuest(odp, "SZ222310"),
+                        getQuest(odp, "SZ242539"),
+                        getQuest(odp, "SZ232437"),
+                        getQuest(odp, "SZ232419"),
+                        getQuest(odp, "SZ242527"),
+                        getQuest(odp, "SZ222301"),
+                        getQuest(odp, "SZ232421"),
+                        getQuest(odp, "SZ232431"),
+                        getQuest(odp, "SZ222307"),
+                        getQuest(odp, "SZ242516"),
+                        getQuest(odp, "SZ222322"),
+                        getQuest(odp, "SZ232414"),
+                        getQuest(odp, "SZ242519"),
+                        getQuest(odp, "SZ232432"),
+                        getQuest(odp, "SZ222330"),
+                        getQuest(odp, "SZ242504"),
+                        getQuest(odp, "SZ222324")
+                    ];
+
+                    console.log(questions); // tutaj możesz sprawdzić, czy działa
+                })
+                .catch(error => console.error("Błąd wczytywania JSON:", error));
+
+            userAnswers = new Array(questions.length).fill("");
+            times = new Array(questions.length).fill(0);
+
+            testStarted = true;
+            startScreen.classList.add('hidden');
+            testContainer.classList.remove('hidden');
+            totalQuestionsSpan.textContent = questions.length;
+            showQuestion(currentQuestion);
+            startTimer();
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startTest);
+
+        prevBtn.addEventListener('click', () => {
+            saveAnswer();
+            currentQuestion--;
+            showQuestion(currentQuestion);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            saveAnswer();
+            currentQuestion++;
+            showQuestion(currentQuestion);
+        });
+
+        submitBtn.addEventListener('click', showResult);
+
+        
+        // Detect browser
+
+        function detectMessengerBrowser() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            return (
+                ua.includes("FBAN") || // Facebook App
+                ua.includes("FBAV") || // Facebook App
+                ua.includes("FB_IAB") || // Facebook In-App Browser
+                ua.includes("Instagram") // Instagram App
+            );
+        }
+
+        if (detectMessengerBrowser()) {
+            document.getElementById('messenger-warning').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
