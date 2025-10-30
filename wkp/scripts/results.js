@@ -65,16 +65,16 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', () => {
             buttons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-            console.log('Showing question ', parseInt(button.value) - 1);
-            showQuestion(parseInt(button.value) - 1);
 
+            try {
             let questionNumber = parseInt(button.value) - 1;
-
             const questionContainers = document.querySelectorAll('.question-container');
             questionContainers.forEach((container, index) => {
-                console.log('Index:', index, 'Question number:', questionNumber);
                 container.style.display = index === questionNumber ? 'block' : 'none';
             });
+            } catch (error) {
+                console.error('Error displaying question:', error);
+            }
         });
     });
 });
