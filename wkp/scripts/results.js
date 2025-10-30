@@ -2,6 +2,7 @@ const questionContainers = document.querySelectorAll('.question-container');
 
 function showQuestion(questionNumber) {
     questionContainers.forEach((container, index) => {
+        console.log('Index:', index, 'Question number:', questionNumber);
         container.style.display = index === questionNumber ? 'block' : 'none';
     });
 }
