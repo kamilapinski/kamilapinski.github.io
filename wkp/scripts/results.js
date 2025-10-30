@@ -14,31 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let correctAnswer = '';
         let yourAnswer = '';
 
-        if (question['type'] === 'choose') {
-            for (const [key, value] of Object.entries(question['your-odp'])) {
-                if (value) {
-                    yourAnswer = key;
-                    break;
-                }
-            }
-            for (const [key, value] of Object.entries(question['correct-odp'])) {
-                if (value) {
-                    correctAnswer = key;
-                    break;
-                }
-            }
-        }
-        else if (question['type'] === 'input') {
-            for (const [key, value] of Object.entries(question['your-odp'])) {
-                yourAnswer = key + ": " + value + ", ";
-            }
-            for (const [key, value] of Object.entries(question['correct-odp'])) {
-                correctAnswer = key + ": " + value + ", ";
-            }
-        }
-        else {
-            console.log('Unknown question type: ', question['type']);
-        }
+        correctAnswer = question['correct-odp'];
+        yourAnswer = question['your-odp'];
 
         let textContent = `
             <h3>${index + 1}. pytanie</h3>

@@ -34,6 +34,8 @@ function parseResults(questions) {
             correct: q['your-odp'] === q['correct-odp']
         });
     }
+
+    console.log("plots: ", questionsData);
     
     // Oblicz statystyki grup
     calculateGroupStats();

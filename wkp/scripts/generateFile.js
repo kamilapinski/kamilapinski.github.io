@@ -1,3 +1,12 @@
+function letterToIndex(letter) {
+    return letter.charCodeAt(0) - 'A'.charCodeAt(0);
+}
+
+function indexToLetter(index) {
+    return String.fromCharCode(index + 'A'.charCodeAt(0));
+}
+
+
 function yourOdpToString(type, yourOdp, correctOdp) {
     let result = '"';
     if (type === 'choose') {
@@ -43,6 +52,8 @@ function correctOdpToString(type, correctOdp) {
 function resultsAsHtml(questions, userAnswers, times) {
 
     let questionsText = '';
+
+    console.log(questions);
 
     for (let i = 0; i < questions.length; i++) {
         id = questions[i].id;
