@@ -15,6 +15,11 @@ function yourOdpToString(type, yourOdp, correctOdp) {
             i++;
         }
     }
+
+    if (result === '') {
+        return 'Brak odpowiedzi';
+    }
+
     return result;
 }
 
@@ -31,6 +36,11 @@ function correctOdpToString(type, correctOdp) {
             result += `${key} = ${value} | `;
         }
     }
+
+    if (result === '') {
+        return 'Brak odpowiedzi';
+    }
+
     return result;
 }
 
