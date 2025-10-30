@@ -1,3 +1,39 @@
+function yourOdpToString(type, yourOdp, correctOdp) {
+    let result = '';
+    if (type === 'choose') {
+        let i = 0;
+        for (const [key, value] of Object.entries(correctOdp)) {
+            if (yourOdp[i]) {
+                result += `${key} `;
+            }
+            i++;
+        }
+    } else if (type === 'input') {
+        let i = 0;
+        for (const [key, value] of Object.entries(correctOdp)) {
+            result += `${key} = ${yourOdp[i]} | `;
+            i++;
+        }
+    }
+    return result;
+}
+
+function correctOdpToString(type, correctOdp) {
+    let result = '';
+    if (type === 'choose') {
+        for (const [key, value] of Object.entries(correctOdp)) {
+            if (value) {
+                result += `${key} `;
+            }
+        }
+    } else if (type === 'input') {
+        for (const [key, value] of Object.entries(correctOdp)) {
+            result += `${key} = ${value} | `;
+        }
+    }
+    return result;
+}
+
 function resultsAsHtml(questions, userAnswers, times) {
 
     let questionsText = '';
@@ -5,16 +41,16 @@ function resultsAsHtml(questions, userAnswers, times) {
     for (let i = 0; i < questions.length; i++) {
         id = questions[i].id;
         type = questions[i].type;
-        yourOdp = userAnswers[i];
-        correctOdp = questions[i].correctAnswer;
+        yourOdp = yourOdpToString(type, userAnswers[i], questions[i].correctAnswer);
+        correctOdp = correctOdpToString(type, questions[i].correctAnswer);
         time = times[i];
 
         questionsText += `
         {
             "id": "${id}",
             "type": "${type}",
-            "your-odp": ${JSON.stringify(yourOdp)},
-            "correct-odp": ${JSON.stringify(correctOdp)},
+            "your-odp": ${yourOdp},
+            "correct-odp": ${correctOdp},
             "time": ${time}
         },
         `;
@@ -52,6 +88,31 @@ function resultsAsHtml(questions, userAnswers, times) {
                     <h1>Wyniki testu</h1>
                 </header>
                 <main>
+                    <div id="results-container">
+                        <div class="summary">
+                            <h2>Podsumowanie</h2>
+                            <p>Liczba pytań: <span id="total-questions">0</span></p>
+                            <p>Poprawne odpowiedzi: <span id="correct-answers">0</span> (<span id="correct-percentage">0</span>%)</p>
+                            <p>Całkowity czas: <span id="total-time">0</span> sekund</p>
+                            <p>Średni czas na pytanie: <span id="avg-time">0</span> sekund</p>
+                        </div>
+                        
+                        <h2>Wykres czasów odpowiedzi</h2>
+                        <div class="chart-container">
+                            <canvas id="time-chart"></canvas>
+                        </div>
+                        
+                        <h2>Statystyki grup zadań</h2>
+                        <div class="group-stats" id="group-stats-container"></div>
+                        
+                        <div class="chart-container">
+                            <canvas id="group-accuracy-chart"></canvas>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="group-time-chart"></canvas>
+                        </div>
+                    </div>
                     <h2>Pytania:</h2>
                     <div class="questions-list"></div>
                 </main>
@@ -62,6 +123,7 @@ function resultsAsHtml(questions, userAnswers, times) {
                     ];
                 </script>
                 <script src="https://kamilapinski.github.io/wkp/scripts/results.js"></script>
+                <script src="https://kamilapinski.github.io/wkp/scripts/plots.js"></script>
             </body>
         </html>
     `;

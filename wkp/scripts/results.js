@@ -55,8 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
         questionContainer.innerHTML = textContent;
         console.log(textContent);
         main.appendChild(questionContainer);
-
-
     });
 
 
