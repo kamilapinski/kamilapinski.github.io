@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let textContent = `
             <h3>${index + 1}. pytanie</h3>
             <div>
-                <img src="media/konkursowe/${question.id}.png" alt="Ilustracja do pytania" class="question-image">
+                <img src="https://kamilapinski.github.io/wkp/media/konkursowe/${question.id}.png" alt="Ilustracja do pytania" class="question-image">
             </div>
             <div class="options" id="answers-area">
                 <span style="color: green;">Poprawna odpowiedź: ${correctAnswer}</span>

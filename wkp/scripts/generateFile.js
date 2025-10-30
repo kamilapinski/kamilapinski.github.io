@@ -29,7 +29,6 @@ function resultsAsHtml(questions, userAnswers, times) {
                 <title>Wyniki testu</title>
                 
                 <link href="https://kamilapinski.github.io/wkp/style.css" rel="stylesheet">
-                <link href="style.css" rel="stylesheet">
 
                 <style>
                     .questions-list > button {
@@ -88,7 +87,6 @@ function resultsAsHtml(questions, userAnswers, times) {
                         ${questionsText}
                     ];
                 </script>
-                <script src="scripts/results.js"></script>
                 <script src="https://kamilapinski.github.io/wkp/scripts/results.js"></script>
             </body>
         </html>
