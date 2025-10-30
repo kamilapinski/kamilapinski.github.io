@@ -1,13 +1,3 @@
-const questionContainers = document.querySelectorAll('.question-container');
-
-function showQuestion(questionNumber) {
-    console.log('Showing question ', questionNumber);
-    questionContainers.forEach((container, index) => {
-        console.log('Index:', index, 'Question number:', questionNumber);
-        container.style.display = index === questionNumber ? 'block' : 'none';
-    });
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     const main = document.querySelector('main');
     const questionsList = document.querySelector('.questions-list');
@@ -77,6 +67,14 @@ document.addEventListener('DOMContentLoaded', () => {
             button.classList.add('active');
             console.log('Showing question ', parseInt(button.value) - 1);
             showQuestion(parseInt(button.value) - 1);
+
+            let questionNumber = parseInt(button.value) - 1;
+
+            const questionContainers = document.querySelectorAll('.question-container');
+            questionContainers.forEach((container, index) => {
+                console.log('Index:', index, 'Question number:', questionNumber);
+                container.style.display = index === questionNumber ? 'block' : 'none';
+            });
         });
     });
 });
