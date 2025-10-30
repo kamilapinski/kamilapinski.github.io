@@ -1,5 +1,5 @@
 function yourOdpToString(type, yourOdp, correctOdp) {
-    let result = '';
+    let result = '"';
     if (type === 'choose') {
         let i = 0;
         for (const [key, value] of Object.entries(correctOdp)) {
@@ -15,16 +15,14 @@ function yourOdpToString(type, yourOdp, correctOdp) {
             i++;
         }
     }
-
-    if (result === '') {
-        return 'Brak odpowiedzi';
-    }
+    
+    result += '"';
 
     return result;
 }
 
 function correctOdpToString(type, correctOdp) {
-    let result = '';
+    let result = '"';
     if (type === 'choose') {
         for (const [key, value] of Object.entries(correctOdp)) {
             if (value) {
@@ -37,9 +35,7 @@ function correctOdpToString(type, correctOdp) {
         }
     }
 
-    if (result === '') {
-        return 'Brak odpowiedzi';
-    }
+    result += '"';
 
     return result;
 }
