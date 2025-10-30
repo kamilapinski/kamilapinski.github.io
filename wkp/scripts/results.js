@@ -1,3 +1,11 @@
+const questionContainers = document.querySelectorAll('.question-container');
+
+function showQuestion(questionNumber) {
+    questionContainers.forEach((container, index) => {
+        container.style.display = index === questionNumber ? 'block' : 'none';
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const main = document.querySelector('main');
     const questionsList = document.querySelector('.questions-list');
@@ -65,11 +73,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
-
-const questionContainers = document.querySelectorAll('.question-container');
-
-function showQuestion(questionNumber) {
-    questionContainers.forEach((container, index) => {
-        container.style.display = index === questionNumber ? 'block' : 'none';
-    });
-}
