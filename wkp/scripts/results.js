@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     questions.forEach((question, index) => {
         const button = document.createElement('button');
         button.textContent = (index + 1).toString();
+        button.value = index + 1;
         questionsList.appendChild(button);
 
         const questionContainer = document.createElement('div');
@@ -60,9 +61,10 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         questionContainer.innerHTML = textContent;
+        console.log(textContent);
         main.appendChild(questionContainer);
 
-        
+
     });
 
 
@@ -71,7 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', () => {
             buttons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-            showQuestion(parseInt(button.textContent) - 1);
+            console.log('Showing question ', parseInt(button.value) - 1);
+            showQuestion(parseInt(button.value) - 1);
         });
     });
 });
