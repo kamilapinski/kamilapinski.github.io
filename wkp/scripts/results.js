@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        questionContainer.innerHTML = textContent;
+        questionContainer.innerHTML = questionContainer.textContent + textContent;
     });
 
 
