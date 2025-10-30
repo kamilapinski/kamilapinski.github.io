@@ -19,7 +19,8 @@ function yourOdpToString(type, yourOdp, correctOdp) {
         }
     } else if (type === 'input') {
         let i = 0;
-        for (const [key, value] of Object.entries(correctOdp)) {
+        for (const e of correctOdp) {
+            let key = e["title"];
             result += `${key} = ${yourOdp[i]} | `;
             i++;
         }
@@ -39,7 +40,9 @@ function correctOdpToString(type, correctOdp) {
             }
         }
     } else if (type === 'input') {
-        for (const [key, value] of Object.entries(correctOdp)) {
+        for (const e of correctOdp) {
+            let key = e["title"];
+            let value = e["answer"];
             result += `${key} = ${value} | `;
         }
     }
@@ -68,7 +71,8 @@ function resultsAsHtml(questions, userAnswers, times) {
             "type": "${type}",
             "your-odp": ${yourOdp},
             "correct-odp": ${correctOdp},
-            "time": ${time}
+            "time": ${time},
+            "group": "${questions[i].group}"
         },
         `;
     }

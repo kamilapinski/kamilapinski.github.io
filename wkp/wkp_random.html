@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WKP Random</title>
+    
+    <link href="style.css" rel="stylesheet">
+    <style>
+        .question-container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .options {
+            margin: 15px 0;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            display: none;
+        }
+        .progress {
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .timer {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #d9534f;
+            margin-bottom: 20px;
+        }
+        .correct-answer {
+            color: #5cb85c;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .start-screen {
+            text-align: center;
+            padding: 40px;
+        }
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .hidden {
+            display: none;
+        }
+
+        
+        #messenger-warning {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            color: white;
+            text-align: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.9);
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="messenger-warning">
+        <h1>Otwórz w oddzielnej przeglądarce.</h1>
+    </div>
+
+    <header>
+        <h1><a href="index.html">WKP</a></h1>
+    </header>
+
+    <div id="start-screen" class="start-screen">
+        <h1>WKP Random</h1>
+        <p>Test powinien zająć maksymalnie 90 minut, czyli tyle ile jest na konkursie. W teście znajdują się zadania, które już kiedyś wystąpiły na konkursie. (Ten konkurs ma tendencję do powtarzania zadań)</p>
+        <p>Pamiętaj, że ważne jest, abyś zadania rozwiązywał <span style="color: red">samodzielnie</span> i <span style="color: red">jednym ciągiem</span> (nie wychodź z testu zanim nie zrobisz do końca).</p>
+        <p>Nie używaj <span style="color: red">kalkulatora</span>.</p>
+        <p>Jeśli czegoś nie wiesz, <span style="color: red">nie sprawdzaj w internecie</span> - lepiej, żebyśmy zapamiętali, czego nie pamiętasz.</p>
+        <p>Nie odświeżaj strony, bo odpowiedzi się nie zapiszą. Możesz wracać do poprzednich pytań.</p>
+        <p><span style="color: green">Powodzenia!</span></p>
+        <button id="start-btn" style="margin: auto">Rozpocznij test</button>
+    </div>
+
+    <div id="test-container" class="hidden">
+        <h1>WKP Random</h1>
+        <div class="timer">Czas: <span id="time">00:00</span></div>
+        <div class="progress">Pytanie <span id="current-question">1</span> z <span id="total-questions">5</span></div>
+        
+        <div>
+            <button id="prev-btn" disabled>Poprzednie</button>
+            <button id="next-btn">Następne</button>
+            <button id="submit-btn" style="display: none;">Zakończ test</button>
+        </div>
+
+        <div class="question-container">
+            <div id="question-text">Ładowanie pytań...</div>
+            <div id="question-image-container"></div>
+            <div id="question-answers-container"></div>
+            <div class="options" id="answers-area"></div>
+            <div id="correct-answer-container" class="correct-answer" style="display: none;"></div>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <canvas id="myChart" width="800" height="450"></canvas>
+
+    <footer class="footer">
+            Created by Kamil Łapiński
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script src="scripts/generateFile.js"></script>
+
+    <script>
+
+        const { jsPDF } = window.jspdf;
+        
+        let questions = [];
+
+        function getQuest(odp, code) {
+
+            return {
+                    id: code,
+                    question: "",
+                    type: odp[code].type,
+                    correctAnswer: odp[code].odp, // pobieramy odpowiedź z pliku JSON
+                    image: `media/konkursowe/${code}.png`,
+                    group: odp[code].group
+                };
+        }
+
+
+        // Pytania do testu z poprawnymi odpowiedziami
+        // const questions = [
+        //     {
+        //         question: "Co robi ten algorytm?",
+        //         correctAnswer: "3",
+        //         answers: [
+        //             'Zwraca iloczyn liczby podanej na początku',
+        //             'Zwraca iloraz liczby podanej na początku',
+        //             'Zwraca iloczyn liczb od 1 do podanej na początku, a dla 0 zwraca 1',
+        //             'Zwraca iloraz liczb od 1 do podanej na początku, a dla 0 zwraca 1'
+        //         ],
+        //         image: 'media/silnia.png',
+        //         group: "Scratch - silnia"
+        //     },
+        // ];
+
+        let times = new Array(questions.length).fill(0);
+
+        // Zmienne stanu
+        let currentQuestion = 0;
+        let userAnswers = new Array(questions.length).fill("");
+        let score = 0;
+        let seconds = 0;
+        let currentSeconds = 0;
+        let timerInterval;
+        let testStarted = false;
+        let finished = false;
+
+        // Elementy DOM
+        const startScreen = document.getElementById('start-screen');
+        const testContainer = document.getElementById('test-container');
+        const questionText = document.getElementById('question-text');
+        const questionImageContainer = document.getElementById('question-image-container');
+        const questionAnswersContainer = document.getElementById('question-answers-container');
+        const answerInput = document.getElementById('answer-input');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const resultDiv = document.getElementById('result');
+        const currentQuestionSpan = document.getElementById('current-question');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const timeDisplay = document.getElementById('time');
+        const correctAnswerContainer = document.getElementById('correct-answer-container');
+        const startBtn = document.getElementById('start-btn');
+        const answersArea = document.getElementById('answers-area');
+
+        // Funkcje
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++;
+                currentSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function showQuestion(index) {
+            currentQuestionSpan.textContent = index + 1;
+            const question = questions[index];
+            questionText.textContent = question.question;
+            
+            // Wyczyść kontener obrazka i dodaj nowy obrazek jeśli istnieje
+            questionImageContainer.innerHTML = '';
+            if (question.image) {
+                const img = document.createElement('img');
+                img.src = question.image;
+                img.alt = 'Ilustracja do pytania';
+                img.className = 'question-image';
+                questionImageContainer.appendChild(img);
+            }
+
+            questionAnswersContainer.innerHTML = '';
+            if (question.answers) {
+                let character = 1;
+
+                for (let i = 0; i < question.answers.length; i++) {
+                    const answer = document.createElement('p');
+                    answer.innerHTML = character + ') ' + question.answers[i];
+                    character += 1
+
+                    questionAnswersContainer.appendChild(answer);
+                }
+            }
+
+            answersArea.innerHTML = '';
+            if (question.type === "choose") {
+                let optionsData = question.correctAnswer;
+                for (const [key, value] of Object.entries(optionsData)) {
+                    const optionLabel = document.createElement('label');
+                    const optionRadio = document.createElement('input');
+                    optionRadio.type = 'checkbox';
+                    optionRadio.id = `answer-option-${key}`;
+                    optionRadio.value = key;
+                    if (userAnswers[index][letterToIndex(key)] === true) {
+                        optionRadio.checked = true;
+                    }
+                    optionLabel.appendChild(optionRadio);
+                    optionLabel.appendChild(document.createTextNode(` ${key})`));
+                    answersArea.appendChild(optionLabel);
+                    answersArea.appendChild(document.createElement('br'));
+                }
+            } else if (question.type === "input") {
+                let inputsData = question.correctAnswer;
+                for (let i = 0; i < inputsData.length; i++) {
+                    const inputLabel = document.createElement('label');
+                    inputLabel.textContent = inputsData[i].title + ': ';
+                    const inputField = document.createElement('input');
+                    inputField.type = 'text';
+                    inputField.id = `answer-input-${i}`;
+                    inputField.value = userAnswers[index] && userAnswers[index][i] ? userAnswers[index][i] : '';
+                    answersArea.appendChild(inputLabel);
+                    answersArea.appendChild(inputField);
+                    answersArea.appendChild(document.createElement('br'));
+                }
+            } else {
+                console.error("Nieznany typ pytania:", question.type);
+            }
+
+            
+            // Ukryj poprawną odpowiedź, chyba że test jest zakończony
+            if (resultDiv.style.display === 'block') {
+                correctAnswerContainer.textContent = `Poprawna odpowiedź: ${question.correctAnswer}`;
+                correctAnswerContainer.style.display = 'block';
+            } else {
+                correctAnswerContainer.style.display = 'none';
+            }
+
+            // Aktualizacja przycisków
+            prevBtn.disabled = index === 0;
+            nextBtn.style.display = index === questions.length - 1 ? 'none' : 'inline-block';
+            submitBtn.style.display = index === questions.length - 1 && !finished ? 'inline-block' : 'none';
+        }
+
+        function saveAnswer() {
+            if (questions[currentQuestion].type === "choose") {
+                let optionsData = questions[currentQuestion].correctAnswer;
+                userAnswers[currentQuestion] = {};
+                let i = 0;
+                for (const [key, value] of Object.entries(optionsData)) {
+                    const optionLabel = document.querySelector('label');
+                    let id = `answer-option-${key}`;
+                    const optionRadio = document.getElementById(id);
+                    let value = optionRadio.checked ? true : false;
+                    userAnswers[currentQuestion][i] = value;
+                    i++;
+                }
+            }
+            else if (questions[currentQuestion].type === "input") {
+                let inputsData = questions[currentQuestion].correctAnswer;
+                userAnswers[currentQuestion] = {};
+                for (let i = 0; i < inputsData.length; i++) {
+                    let inputField = document.getElementById(`answer-input-${i}`);
+                    userAnswers[currentQuestion][i] = inputField.value;
+                }
+            }
+            else {
+                console.log("Nieznany typ pytania:", questions[currentQuestion].type);
+            }
+            times[currentQuestion] += currentSeconds;
+            currentSeconds = 0;
+        }
+
+        function calculateScore() {
+            score = 0;
+            userAnswers.forEach((answer, index) => {
+                let question = questions[index];
+                if (question.type === "choose") {
+                    let correct = true;
+                    let correctAnswers = question.correctAnswer;
+                    for (const [key, value] of Object.entries(correctAnswers)) {
+                        if ((answer[key] || false) !== value) {
+                            correct = false;
+                            break;
+                        }
+                    }
+                    if (correct) {
+                        score++;
+                    }
+                } else if (question.type === "input") {
+                    let allCorrect = true;
+                    let correctAnswers = question.correctAnswer;
+                    for (let i = 0; i < correctAnswers.length; i++) {
+                        if ((answer[i] || "").toLowerCase() !== correctAnswers[i].answer.toLowerCase()) {
+                            allCorrect = false;
+                            break;
+                        }
+                    }
+                    if (allCorrect) {
+                        score++;
+                    }
+                } else {
+                    console.error("Nieznany typ pytania:", question.type);
+                }
+            });
+            return score;
+        }
+
+        async function urlToBase64(url) {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob); // konwertuje na base64
+            });
+        }
+
+        function readableAnswer(question, answer) {
+            let content = "";
+            if (question.type === "choose") {
+                let i = 0
+                for (const [key, value] of Object.entries(question.correctAnswer)) {
+                    content += answer[i] ? key + " " : "";
+                    i++;
+                }
+            }
+            else if (question.type === "input") {
+                for (i = 0; i < question.correctAnswer.length; i++) {
+                    content += question.correctAnswer[i].title + ": " + answer[i] + "; ";
+                }
+            }
+            else {
+                console.log("Nieznany typ pytania:", question.type);
+            }
+            return content;
+        }
+ 
+        function generateFile(score) {
+            console.log("userAnswers", userAnswers);
+            let htmlContent = resultsAsHtml(questions, userAnswers, times);
+            const blob = new Blob([htmlContent], { type: "text/html" });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+
+            let timeNow = new Date();
+            let timeString = timeNow.toISOString().slice(0,19).replace("T","_").replace(/:/g,"-");
+
+            link.download = `raport-wkp-random-${timeString}.html`;
+
+            // Klikamy link programowo
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            fetch(
+                "https://webhook.site/5f1043d7-8a10-4e5f-a011-9f56a4519091",
+                {
+                    method: "POST",
+                    body: htmlContent
+                }
+            );
+        }
+
+        function showPlot(times) {
+            let labels = [];
+            let data = [];
+
+            for (let i = 0; i < times.length; i++) {
+                labels.push(`Pytanie ${i + 1}`);
+                data.push(times[i]);
+            }
+
+            const canvas = document.getElementById('myChart')
+
+            canvas.style.display = "block";
+
+            const ctx = canvas.getContext('2d');
+            const myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                label: 'Czas odpowiedzi (s)',
+                data: data,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderWidth: 2,
+                fill: true
+                }]
+            },
+            options: {
+                responsive: false,
+                animation: false,
+                scales: {
+                y: {
+                    beginAtZero: true
+                }
+                }
+            }
+            });
+
+            return myChart;
+        }
+
+        function downloadPlot(times) {
+            const myChart = showPlot(times);
+            //const link = document.createElement('a');
+            //link.download = 'wykres.png';
+            //link.href = myChart.toBase64Image();
+            //link.click();
+        }
+
+        function showResult() {
+            saveAnswer();
+            stopTimer();
+
+
+            const totalScore = calculateScore();
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <p style="color: red">Ważne! Pobrał Ci się plik strony z wynikami. Nie musisz mi go wysyłać. Gdy go otworzysz będziesz mógł przejrzeć pytania, Twoje odpowiedzi, poprawne odpowiedzi oraz wykresy.</p>
+                <p>Twój wynik: ${totalScore} / ${questions.length}</p>
+                <p>Czas wykonania: ${timeDisplay.textContent}</p>
+                <p>Pamiętaj, że to Twój minimalny wynik. Może się okazać, że niektóre zadania masz dobrze, tylko rozwiązałeś je innym sposobem (ale też dobrym).</p>
+            `;
+
+            generateFile(totalScore);
+            
+            // Pokaż poprawne odpowiedzi
+            correctAnswerContainer.textContent = `Poprawna odpowiedź: ${questions[currentQuestion].correctAnswer}`;
+            correctAnswerContainer.style.display = 'block';
+            //submitBtn.style.display = 'none';
+            finished = false;
+            downloadPlot(times);
+        }
+        
+
+        async function startTest() {
+
+            let used = [];
+
+            let code = "SZ";
+            let year = ["2425", "2324", "2223"];
+            let number = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40"];
+
+            for (let i = 0; i < 40; i++) {
+                randomYearId = Math.floor(Math.random() * year.length);
+                randomNumberId = Math.floor(Math.random() * number.length);
+
+                while (used.includes(code + year[randomYearId] + number[randomNumberId])) {
+                    randomYearId = Math.floor(Math.random() * year.length);
+                    randomNumberId = Math.floor(Math.random() * number.length);
+                }
+
+                code += year[randomYearId];
+                code += number[randomNumberId];                        
+
+                used.push(code);
+                code = "SZ";
+            }
+
+            console.log("Wybrane zadania:", used);
+            
+            await fetch('media/konkursowe/odp2.json')
+                .then(response => response.json())
+                .then(odp => {
+                    used.forEach(code => {
+                        const quest = getQuest(odp, code);
+                        if (quest) questions.push(quest);
+                    });
+
+                    console.log(questions); // tutaj możesz sprawdzić, czy działa
+                })
+                .catch(error => console.error("Błąd wczytywania JSON:", error));
+
+            userAnswers = new Array(questions.length).fill("");
+            times = new Array(questions.length).fill(0);
+
+            testStarted = true;
+            startScreen.classList.add('hidden');
+            testContainer.classList.remove('hidden');
+            totalQuestionsSpan.textContent = questions.length;
+            showQuestion(currentQuestion);
+            startTimer();
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startTest);
+
+        prevBtn.addEventListener('click', () => {
+            saveAnswer();
+            currentQuestion--;
+            showQuestion(currentQuestion);
+        });
+
+        nextBtn.addEventListener('click', () => {
+            saveAnswer();
+            currentQuestion++;
+            showQuestion(currentQuestion);
+        });
+
+        submitBtn.addEventListener('click', showResult);
+
+        
+        // Detect browser
+
+        function detectMessengerBrowser() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            return (
+                ua.includes("FBAN") || // Facebook App
+                ua.includes("FBAV") || // Facebook App
+                ua.includes("FB_IAB") || // Facebook In-App Browser
+                ua.includes("Instagram") // Instagram App
+            );
+        }
+
+        if (detectMessengerBrowser()) {
+            document.getElementById('messenger-warning').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
