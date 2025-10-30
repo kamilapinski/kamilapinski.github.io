@@ -54,32 +54,6 @@ function resultsAsHtml(questions, userAnswers, times) {
                 <main>
                     <h2>Pytania:</h2>
                     <div class="questions-list"></div>
-                    <div class="question-container"></div>
-                    <div id="results-container" style="display: none;">
-                        <div class="summary">
-                            <h3>Podsumowanie</h3>
-                            <p>Liczba pytań: <span id="total-questions">0</span></p>
-                            <p>Poprawne odpowiedzi: <span id="correct-answers">0</span> (<span id="correct-percentage">0</span>%)</p>
-                            <p>Całkowity czas: <span id="total-time">0</span> sekund</p>
-                            <p>Średni czas na pytanie: <span id="avg-time">0</span> sekund</p>
-                        </div>
-                        
-                        <h2>Wykres czasów odpowiedzi</h2>
-                        <div class="chart-container">
-                            <canvas id="time-chart"></canvas>
-                        </div>
-                        
-                        <h2>Statystyki grup zadań</h2>
-                        <div class="group-stats" id="group-stats-container"></div>
-                        
-                        <div class="chart-container">
-                            <canvas id="group-accuracy-chart"></canvas>
-                        </div>
-                        
-                        <div class="chart-container">
-                            <canvas id="group-time-chart"></canvas>
-                        </div>
-                    </div>
                 </main>
 
                 <script>
