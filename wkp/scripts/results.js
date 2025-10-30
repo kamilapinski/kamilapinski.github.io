@@ -15,8 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         button.textContent = (index + 1).toString();
         questionsList.appendChild(button);
 
-        const questionContainer = document.createElement('div');
-        questionContainer.classList.add('question-container');
+        const questionContainer = document.getElementsByClassName('question-container')[0];
 
         let correctAnswer = '';
         let yourAnswer = '';
@@ -60,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         questionContainer.innerHTML = textContent;
-        main.appendChild(questionContainer);
     });
 
 
