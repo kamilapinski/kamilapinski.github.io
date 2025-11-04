@@ -557,7 +557,7 @@
         }
 
         // Event listeners
-        startBtn.addEventListener('click', startTest);
+        startBtn.addEventListener('click', async () => {await startTest();});
 
         prevBtn.addEventListener('click', () => {
             saveAnswer();
