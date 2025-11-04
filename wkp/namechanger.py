@@ -2,14 +2,14 @@ import os
 from pathlib import Path
 
 # 🔧 Ustaw ścieżkę do folderu z plikami PNG
-folder_path = Path(r"C:\Users\kamil\OneDrive\Dokument\github\wkp\media\konkursowe")  # ← zmień na swoją ścieżkę
+folder_path = Path(r"/home/kamil/Documents/kamilapinski.github.io/wkp/media/konkursowe")  # ← zmień na swoją ścieżkę
 
 # 🔢 Prefiks kodu
-prefix = "SZ2223"
+prefix = "SZ2021"
 
 # 🧭 Pobranie plików PNG i sortowanie po dacie modyfikacji
 png_files = sorted(
-    folder_path.glob("Zrzut*.png"),
+    folder_path.glob("Screenshot*.png"),
     key=lambda f: f.stat().st_mtime
 )
 

@@ -1,0 +1,40 @@
+C
+C
+A
+C
+A B
+45
+10011101
+D
+B
+D
+A B D
+A
+B
+C
+C
+B C
+B C
+A C
+A C
+A B
+C
+C
+A C
+98546
+25
+33
+28
+A D
+D
+A C
+A
+A B
+C
+B
+0
+A B
+C D
+A B
+C D
+Wartość jest spoza zakresu
