@@ -17,7 +17,7 @@ Bezpiecznym dystansem w ciągu definiujemy odstęp pomiędzy liczbami o tej same
 ```
 
 * Bezpiecznym dystansem pomiędzy liczbami o wartości `2` na pozycjach `0` i `3` jest `2`.
-* Bezpiecznym dystansem pomiędzy liczbami o wartości `8` na pozycjach `1` i `6` jest `3`.
+* Bezpiecznym dystansem pomiędzy liczbami o wartości `8` na pozycjach `1` i `5` jest `3`.
 
 Innymi słowy liczymy to tak `d(a1, a2) = abs(pos(a1) - pos(a2))`, gdzie `a1` i `a2`, to elementy ciągu, o takiej samej wartości.
 
@@ -32,4 +32,4 @@ Dla każdej możliwej wartości elementów wyznacz sumę bezpiecznych dystansów
 
 Spójny podciąg niemalejący, to taki fragment ciągu, w którym kolejne elementy rosną lub są sobie równe. Znajdź długość i początek najdłuższego takiego podciągu. 
 
-Jeśli istenieje ich wiele, wypisz ten, który zaczyna się największą liczbą. Jeżli takich też istnieje wiele, to wypisz spośród tych zaczynających się największą liczbą ten, który występuje jako pierwszy.
+Jeśli istenieje ich wiele, wypisz ten, który zaczyna się największą liczbą. Jeżeli takich też istnieje wiele, to wypisz spośród tych zaczynających się największą liczbą ten, który występuje jako pierwszy.
