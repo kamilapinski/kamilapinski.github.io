@@ -1,0 +1,1 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[974],{7683:(e,r,s)=>{Promise.resolve().then(s.bind(s,8455))},8455:(e,r,s)=>{"use strict";s.d(r,{default:()=>a});var n=s(5155);function a(){return(0,n.jsx)("footer",{children:(0,n.jsx)("p",{children:"2025 \xa9 Strona stworzona przez Kamila Łapińskiego"})})}}},e=>{e.O(0,[441,255,358],()=>e(e.s=7683)),_N_E=e.O()}]);
