@@ -1,4 +1,4 @@
-W pliku `liczby.txt` znajduje się `2000` wierszy. W każdym wierszu znajduje się liczba całkowita z zakresu `[1000, 9999]`.
+W pliku `liczby.txt` znajduje się `1000` wierszy. W każdym wierszu znajduje się liczba całkowita z zakresu `[1000, 9999]`.
 
 ### Zadanie 1
 
@@ -20,7 +20,7 @@ Wynik zapisz w pliku `liczby_odp_3.txt`.
 
 ### Zadanie 4
 
-Cały ciąg dzielimy na `4` równe segmenty po `500 liczb`. Dla każdego segmentu wypisz ile jest liczb w tym segmencie zaczynających się na `1`, ile na `2`, ile na `3`, itd.
+Cały ciąg dzielimy na `4` równe segmenty po `250 liczb`. Dla każdego segmentu wypisz ile jest liczb w tym segmencie zaczynających się na `1`, ile na `2`, ile na `3`, itd.
 
 Wynik zapisz w pliku `liczby_odp_4.txt`.
 

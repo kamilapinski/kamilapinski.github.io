@@ -1,5 +1,11 @@
 W pliku `punkty.txt` znajduje się `1000` wierszy. W każdym wierszu znajduje się para liczb oddzielona spacjąs, które oznaczają współrzędne punktu.
 
+### Zadanie 0
+
+Napisz funkcję, która wczytuje punkty z pliku, a następnie zwraca listę tych punktów, których odległość od punktu `(0, 0)` jest liczbą całkowitą.
+
+Wszystkie poniższe zadania dotyczą właśnie tych punktów, których odległość od punktu `(0, 0)` jest liczbą całkowitą. Resztę punktów pomijamy.
+
 ### Zadanie 1
 
 Wypisz wszystkie punkty, które się powtórzyły.
