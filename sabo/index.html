@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weryfikacja Hasła</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <img src="sabotazysta-logo.png" style="height: 10rem;">
+        <h1>SZYFRY</h1>
+        <div id="result" class="invisible"></div>
+        <p>Wprowadź 10-literowe hasło, aby sprawdzić, ile znaków jest poprawnych.</p>
+        
+        <input type="text" id="passwordInput" maxlength="10" placeholder="Wpisz 10 liter..." oninput="this.value = this.value.toUpperCase()">
+
+        <div class="button-group">
+            <button onclick="checkPassword()">Sprawdź Hasło</button>
+            <button onclick="clearInput()" id="clearButton">Wyczyść</button>
+        </div>
+        
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
