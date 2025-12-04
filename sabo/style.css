@@ -28,6 +28,12 @@ h1 {
     margin-bottom: 10px;
 }
 
+h2 {
+    color: var(--primary);
+    font-size: 1.2em;
+    margin-bottom: 5px;
+}
+
 p {
     color: #666;
     margin-bottom: 20px;
