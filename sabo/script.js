@@ -1,4 +1,4 @@
-const CORRECT_PASSWORD = "ORLYBOBOLI";
+const CORRECT_PASSWORD = "NIEWODNICA";
 const PASSWORD_LENGTH = CORRECT_PASSWORD.length;
 
 function checkPassword() {
