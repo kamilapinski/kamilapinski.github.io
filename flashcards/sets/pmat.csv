@@ -1,0 +1,89 @@
+How is a set defined by replacement (zastępowanie) notationally represented?;It is represented as $\{f(x) | x \in D\}$.
+What logical conditions are required to prove that two sets $A$ and $B$ are equal?;The conditions are $A \subseteq B$ and $B \subseteq A$.
+By definition, what is the power set $\mathcal{P}(A)$?;It is the set containing all subsets of $A$.
+Which logical connective is used in the definition of the union $A \cup B$?;The logical disjunction $\lor$ (OR) is used.
+How is the intersection (iloczyn) of sets $A$ and $B$ defined using set-builder notation?;$A \cap B = \{x : D | x \in A \land x \in B\}$.
+What is the definition of the set difference $A - B$?;$A - B = \{x : D | x \in A \land x \notin B\}$.
+How is the complement of a set $A$ relative to type $D$ expressed?;$-A = \{x : D | x \notin A\}$.
+What is the formula for the symmetric difference $A \triangle B$ (denoted $A .- B$ in the text)?;$(A - B) \cup (B - A)$.
+How is the generalized union $\bigcup \mathcal{R}$ of a family of sets $\mathcal{R}$ defined?;$\{x : D | \exists A(x \in A \land A \in \mathcal{R})\}$.
+Under what condition is the generalized intersection $\bigcap \mathcal{R}$ defined for a family of sets?;It is defined only if the family $\mathcal{R}$ is non-empty ($\mathcal{R} \ne \emptyset$).
+What logical quantifier is used to define the generalized intersection $\bigcap \mathcal{R}$?;The universal quantifier $\forall$ is used.
+What is the Cartesian product $A \times B$?;The set of all ordered pairs $\langle a, b \rangle$ such that $a \in A$ and $b \in B$.
+How is the ordered triple $\langle a, b, c \rangle$ formally defined in terms of pairs?;It is defined as the nested pair $\langle \langle a, b \rangle, c \rangle$.
+What is the disjoint union (coproduct) $A \oplus B$?;A sum of sets where elements are marked to indicate their set of origin (e.g., $\langle a \rangle_1$ or $\langle b \rangle_2$).
+In a disjoint union $A \oplus B$, under what condition are two elements $\langle x \rangle_i$ and $\langle y \rangle_j$ equal?;They are equal if and only if $x = y$ and $i = j$.
+What does the notation $f: A \to B$ signify in mathematics?;It signifies a function $f$ that uniquely assigns an element $f(x) \in B$ to every element $x \in A$.
+What is the formal definition of the domain $Dom(f)$ for a partial function?;$Dom(f) = \{x \in A | f(x) \text{ is defined}\}$.
+Under what condition are two functions $f, g: A \to B$ considered equal?;They are equal if and only if $f(x) = g(x)$ for every $x \in A$.
+What is the graph $W(f)$ of a function $f: A \to B$?;The set of pairs $\{\langle x, y \rangle | f(x) = y\} \subseteq A \times B$.
+How is the range $Rg(f)$ of a function $f: A \to B$ defined?;$Rg(f) = \{y \in B | \exists x \in A. f(x) = y\}$.
+What defines an injective (one-to-one) function?;A function where $x \ne y$ implies $f(x) \ne f(y)$ for all $x, y$ in the domain.
+What is the definition of a surjective (onto) function?;A function where for every $y \in B$, there exists at least one $x \in A$ such that $f(x) = y$.
+What is a bijection?;A function that is both an injection and a surjection.
+If $f: A \to B$ and $g: B \to C$, how is the composition $g \circ f$ defined?;It is defined by $(g \circ f)(x) = g(f(x))$ for every $x \in A$.
+What is the result of composing a bijection $f$ with its inverse $f^{-1}$?;$f \circ f^{-1} = id_B$ and $f^{-1} \circ f = id_A$.
+If $f$ and $g$ are both injections, what can be said about their composition $g \circ f$?;The composition $g \circ f$ is also an injection.
+How is the image $f(C)$ of a subset $C \subseteq A$ defined?;$f(C) = \{f(a) | a \in C\}$.
+How is the pre-image $f^{-1}(D)$ of a subset $D \subseteq B$ defined?;$f^{-1}(D) = \{a \in A | a \in Dom(f) \land f(a) \in D\}$.
+If a composition $h \circ g \circ f$ is a bijection, what must be true about the function $f$?;The function $f$ must be an injection.
+If a composition $h \circ g \circ f$ is a bijection, what must be true about the function $h$?;The function $h$ must be a surjection.
+What property of a relation $r$ on $A$ is defined by $\forall x \in A, x \, r \, x$?;Reflexivity (zwrotność).
+What property of a relation $r$ on $A$ is defined by $\forall x, y \in A, x \, r \, y \implies y \, r \, x$?;Symmetry (symetryczność).
+What property of a relation $r$ on $A$ is defined by $\forall x, y, z \in A, (x \, r \, y \land y \, r \, z) \implies x \, r \, z$?;Transitivity (przechodniość).
+What property of a relation $r$ on $A$ is defined by $\forall x, y \in A, (x \, r \, y \land y \, r \, x) \implies x = y$?;Antisymmetry (antysymetryczność).
+What does it mean for a relation $r$ to be connected (spójna)?;For every $x, y \in A$, either $x \, r \, y$ or $y \, r \, x$ holds.
+What three properties define an equivalence relation?;Reflexivity, symmetry, and transitivity.
+What is an equivalence class $[x]_r$?;The set of all elements $y \in A$ such that $x \, r \, y$.
+How is the quotient set $A/r$ defined for an equivalence relation $r$?;It is the set of all equivalence classes of $r$ in $A$.
+What are the three conditions for a family $P \subseteq \mathcal{P}(A)$ to be a partition (podział) of $A$?;All elements are non-empty, elements are pairwise disjoint, and their union is $A$.
+What is the relationship between equivalence relations and partitions?;Every equivalence relation determines a partition (the quotient set), and every partition determines an equivalence relation.
+What is the Axiom of Choice in the context of choice functions?;The assumption that for any family of non-empty sets $R$, there exists a function $f$ such that $f(A) \in A$ for all $A \in R$.
+What does it mean for two sets $A$ and $B$ to be equinumerous ($A \sim B$)?;There exists a bijection $f: A \to B$ between them.
+What is the cardinality (moc) of the set of natural numbers $\mathbb{N}$?;It is denoted by $\aleph_0$ (aleph-zero).
+What defines a countable set?;A set that is either finite or has cardinality $\aleph_0$.
+What is the cardinality of the set of real numbers $\mathbb{R}$?;It is called the continuum, denoted by $\mathfrak{c}$.
+According to the Cantor-Bernstein theorem, if $|A| \le |B|$ and $|B| \le |A|$, then what is true?;The sets $A$ and $B$ have equal cardinality ($|A| = |B|$).
+If $\kappa$ or $\lambda$ is an infinite cardinal, what is the result of $\kappa + \lambda$?;$max\{\kappa, \lambda\}$.
+What is the product of two cardinal numbers $\kappa \cdot \lambda$ if at least one is infinite?;$max\{\kappa, \lambda\}$.
+What three properties define a partial order relation?;Reflexivity, antisymmetry, and transitivity.
+What is a linear order (total order)?;A partial order that is also connected (every two elements are comparable).
+In a partial order, what is a chain (łańcuch)?;A subset where every two elements are comparable.
+In a partial order, what is an antichain (antyłańcuch)?;A subset where no two distinct elements are comparable.
+What is the difference between a maximal element and a greatest element?;A greatest element is $\ge$ all elements; a maximal element has no elements $>$ than it.
+What is a minimal element in a partially ordered set $\langle A, \le \rangle$?;An element $a \in A$ such that $\forall x \in A, x \le a \implies a = x$.
+How is the supremum ($sup B$) of a set $B$ defined?;It is the least upper bound of $B$.
+How is the infimum ($inf B$) of a set $B$ defined?;It is the greatest lower bound of $B$.
+What is an order isomorphism between $\langle A, \le_A \rangle$ and $\langle B, \le_B \rangle$?;A bijection $f: A \to B$ such that $a \le_A a' \iff f(a) \le_B f(a')$. 
+What defines a well-founded (dobrze ufundowany) partial order?;A partial order where every non-empty subset has a minimal element.
+What is a good order (well-order)?;A well-founded linear order (every non-empty subset has a least element).
+What condition involving sequences is equivalent to a set being well-founded?;There exists no infinite descending sequence $a_0 > a_1 > a_2 > \dots$.
+In set theory, what is an initial segment $O_A(x)$ generated by $x$?;The set of all elements $y \in A$ such that $y < x$.
+What is a tautology in propositional logic?;A formula that is true under every possible valuation of its variables.
+What is the propositional Law of Excluded Middle?;$p \lor \neg p$.
+State De Morgan's Law for the negation of a conjunction?;$\neg(p \land q) \iff (\neg p \lor \neg q)$.
+How can an implication $(p \Rightarrow q)$ be rewritten using only negation and disjunction?;$\neg p \lor q$.
+What is the structure of a formula in Conjunctive Normal Form (CNF)?;A conjunction of one or more disjunctions of literals.
+In Gentzen-style natural deduction, what does the judgment $\Gamma \vdash \phi$ represent?;$\Gamma$ is the set of assumptions, and $\phi$ is the goal to be proven.
+What is a signature in first-order logic?;A set of relation and function symbols, each with a defined arity.
+What are the two components of a model (structure) in first-order logic?;A non-empty domain (universe) and an interpretation for each symbol in the signature.
+What is a term in first-order logic?;An expression built from variables and function symbols.
+What defines a free variable in a first-order formula?;A variable that is not bound by any quantifier ($\forall$ or $\exists$).
+What is Prenex Normal Form?;A formula consisting of a string of quantifiers followed by a quantifier-free matrix.
+If $f$ is an injective function, how is the inverse function $f^{-1}$ defined for $y \in Rg(f)$?;$f^{-1}(y) = x$ such that $f(x) = y$.
+Is the set of rational numbers $\mathbb{Q}$ countable?;Yes, $\mathbb{Q}$ is a countable set.
+What is the cardinality of the power set of natural numbers $\mathcal{P}(\mathbb{N})$?;It has the cardinality of the continuum $\mathfrak{c}$.
+In the order $\langle \mathbb{N}, | \rangle$ (divisibility), what constitutes an antichain?;The set of all prime numbers.
+What is the smallest element in the power set $\mathcal{P}(\mathbb{N})$ ordered by inclusion $\subseteq$?;The empty set $\emptyset$.
+Does the set of rational numbers $\mathbb{Q}$ have a well-founded order under the standard $\le$ relation?;No, it is not well-founded.
+In first-order logic, what is a constant symbol formally?;A function symbol with arity 0.
+What does the symbol $\perp$ represent in propositional logic?;Falsity or a contradiction.
+If a function $f: \mathbb{N} \to \mathbb{N}$ is defined such that $f(n) = 2n$, what is the pre-image $f^{-1}(\{2, 3, 4\})$?;The set $\{1, 2\}$.
+What is a formula that can be made true by at least one valuation called?;A satisfiable formula.
+In cardinal arithmetic, what is $\mathfrak{c} \cdot \aleph_0$?;$\mathfrak{c}$.
+If a relation is reflexive, antisymmetric, transitive, and connected, what is it called?;A linear order (or total order).
+What is the supremum of a subset $X$ in the power set order $\langle \mathcal{P}(A), \subseteq \rangle$?;The union of the subset, $\bigcup X$.
+Can a partial order be extended to a linear order?;Yes, every partial order can be extended to a linear order.
+What logical connective is used to define the set difference $A - B$?;The logical conjunction $\land$ (AND) combined with negation $\neg$ (NOT).
+What is the cardinality of the set of all infinite binary sequences $\{0, 1\}^\mathbb{N}$?;The continuum $\mathfrak{c}$.
+In the system of natural deduction, what does the (Ax) rule signify?;That $\phi$ can be derived if $\phi$ is already in the set of assumptions $\Gamma$.

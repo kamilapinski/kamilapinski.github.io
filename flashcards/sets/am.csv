@@ -1,0 +1,90 @@
+What is the formal definition of a sequence $(a_n)$ converging to a limit $a \in \mathbb{R}$?;$\forall \epsilon > 0 \exists N_0 \in \mathbb{N} \forall n > N_0: |a_n - a| < \epsilon$.
+Which topological property is possessed by every convergent sequence?;Every convergent sequence is bounded.
+How many limits can a single convergent sequence have?;A convergent sequence has exactly one limit.
+According to the arithmetic properties of limits, what is the limit of $a_n \cdot b_n$ if $a_n \to a$ and $b_n \to b$?;The limit is $a \cdot b$.
+Under what condition does the limit of the quotient $\frac{a_n}{b_n}$ equal $\frac{a}{b}$?;It holds if $b_n \to b$, $b_n \ne 0$, and $b \ne 0$.
+What does the 'Theorem of Three Sequences' (Sandwich Theorem) conclude if $b_n \le a_n \le c_n$ and both $b_n$ and $c_n$ converge to $a$?;The sequence $a_n$ also converges to $a$.
+What is the limit of the sequence $\sqrt[n]{n}$ as $n$ approaches infinity?;The limit is $1$.
+For $q \in (-1, 1)$, what is the limit of the geometric sequence $q^n$?;The limit is $0$.
+What does the Bolzano-Weierstrass Theorem state regarding bounded sequences?;Every bounded sequence has a convergent subsequence.
+What two conditions guarantee that a sequence in $\mathbb{R}$ has a finite limit?;The sequence must be monotonic and bounded.
+What is the definition of a Cauchy sequence in $\mathbb{R}$?;$\forall \epsilon > 0 \exists N_0 \in \mathbb{N} \forall m, n > N_0: |a_n - a_m| < \epsilon$.
+What is the relationship between convergent sequences and Cauchy sequences in $\mathbb{R}$?;A sequence in $\mathbb{R}$ is convergent if and only if it is a Cauchy sequence.
+How is the number $e$ defined using the limit of a sequence?;$e = \lim_{n \to \infty} (1 + \frac{1}{n})^n$.
+What is the 'necessary condition' for the convergence of a series $\sum_{n=1}^{\infty} a_n$?;The limit of the terms must be zero: $\lim_{n \to \infty} a_n = 0$.
+What is a series called if the sequence of its partial sums $s_n$ has a finite limit $s$?;The series is called convergent.
+What does the Cauchy Condensation Test state for a non-increasing sequence of positive terms $a_n$?;The series $\sum a_n$ converges if and only if the series $\sum 2^n a_{2^n}$ converges.
+What is the convergence behavior of the harmonic series $\sum \frac{1}{n}$?;The harmonic series is divergent.
+Under the Comparison Test, if $0 \le a_n \le c \cdot b_n$ and $\sum b_n$ converges, what can be said about $\sum a_n$?;The series $\sum a_n$ is convergent.
+What does the Asymptotic Comparison Test conclude if $a_n, b_n > 0$ and $\lim_{n \to \infty} \frac{a_n}{b_n} \in (0, \infty)$?;Both series $\sum a_n$ and $\sum b_n$ either both converge or both diverge.
+For which values of $s$ does the series $\sum \frac{1}{n^s}$ converge?;The series converges for $s > 1$.
+What is the definition of absolute convergence for a series $\sum a_n$?;A series $\sum a_n$ is absolutely convergent if the series of absolute values $\sum |a_n|$ converges.
+What is the definition of conditional convergence?;A series is conditionally convergent if it converges but is not absolutely convergent.
+What are the requirements for the Leibniz Criterion to guarantee the convergence of $\sum (-1)^{n+1} a_n$?;The sequence $a_n$ must be non-negative, non-increasing, and $\lim_{n \to \infty} a_n = 0$.
+What is an example of a conditionally convergent series mentioned in the text?;The alternating harmonic series $\sum_{n=1}^{\infty} \frac{(-1)^{n+1}}{n}$.
+What constitutes a 'cluster point' (punkt skupienia) of a set $A \subset \mathbb{R}$?;A point $a$ is a cluster point if there exists a sequence $(a_n) \subset A \setminus \{a\}$ such that $a_n \to a$.
+What is the Heine definition of the limit of a function $f(x)$ as $x \to a$?;$\lim_{x \to a} f(x) = b$ if for every sequence $x_n \to a$ (where $x_n \ne a$), $f(x_n) \to b$.
+What is the Cauchy definition of the limit of a function $f(x)$ as $x \to a$?;$\forall \epsilon > 0 \exists \delta > 0 \forall x \in A \setminus \{a\}: |x - a| < \delta \implies |f(x) - b| < \epsilon$.
+What is the limit of $\frac{\sin x}{x}$ as $x$ approaches $0$?;The limit is $1$.
+What is the limit of $(1 + x)^{1/x}$ as $x$ approaches $0$?;The limit is $e$.
+According to Weierstrass's Theorem, what does a continuous function $f$ on a closed interval $[a, b]$ always achieve?;It achieves its supremum (maximum) and infimum (minimum) on that interval.
+What does the Darboux Property (Intermediate Value Theorem) state for a continuous function $f$ on $[a, b]$?;If $f$ takes values $f(x)$ and $f(y)$, it must also take every value between $f(x)$ and $f(y)$.
+How does the definition of uniform continuity differ from standard continuity?;In uniform continuity, the choice of $\delta$ depends only on $\epsilon$ and not on the point $x$.
+What is the Lipschitz condition for a function $f$ on set $A$?;$\exists L > 0 \forall x, y \in A: |f(x) - f(y)| \le L |x - y|$.
+What is the relationship between Lipschitz continuity and uniform continuity?;If a function satisfies the Lipschitz condition, it is uniformly continuous.
+What does Cantor's Theorem state regarding continuous functions on closed intervals?;Every continuous function $f: [a, b] \to \mathbb{R}$ is uniformly continuous on that interval.
+How is the derivative $f'(a)$ defined as a limit of the difference quotient?;$f'(a) = \lim_{x \to a} \frac{f(x) - f(a)}{x - a}$.
+What is the geometric interpretation of the derivative $f'(a)$?;It represents the slope of the tangent line to the graph of $f$ at the point $(a, f(a))$.
+What is the derivative of $f(x) = \ln x$ for $x > 0$?;$f'(x) = \frac{1}{x}$.
+What is the derivative of $f(x) = \arctan x$?;$f'(x) = \frac{1}{1 + x^2}$.
+What is the Product Rule for differentiating $f(x)g(x)$?;$(fg)'(a) = f'(a)g(a) + f(a)g'(a)$.
+What is the Chain Rule formula for the derivative of a composite function $(f \circ g)(x)$?;$(f \circ g)'(a) = f'(g(a)) \cdot g'(a)$.
+Does differentiability imply continuity, and does continuity imply differentiability?;Differentiability implies continuity, but continuity does not necessarily imply differentiability.
+What is the result of de l'Hospital's Rule for the limit of $\frac{f(x)}{g(x)}$ when both $f(a) = g(a) = 0$?;The limit is equal to $\frac{f'(a)}{g'(a)}$, provided $g'(a) \ne 0$.
+What does Rolle's Theorem state for a function $f$ continuous on $[a, b]$, differentiable on $(a, b)$, with $f(a) = f(b)$?;There exists at least one $c \in (a, b)$ such that $f'(c) = 0$.
+What is the formula provided by Lagrange's Mean Value Theorem?;$f'(c) = \frac{f(b) - f(a)}{b - a}$ for some $c \in (a, b)$.
+If $f'(x) > 0$ for all $x \in (c, d)$, what is the monotonicity of $f$ on $[c, d]$?;The function $f$ is strictly increasing on $[c, d]$.
+What does a second derivative $f''(x) \ge 0$ on an interval $P$ imply about the function's shape?;The function $f$ is convex on $P$.
+What is the general form of the Taylor polynomial of degree $k$ for $f$ at $x_0$ with Peano remainder?;$f(x) = \sum_{j=0}^{k} \frac{f^{(j)}(x_0)}{j!} (x - x_0)^j + r(x)$, where $\lim_{x \to x_0} \frac{r(x)}{(x - x_0)^k} = 0$.
+What is the expression for the Lagrange form of the remainder in Taylor's Theorem?;$R_k(x) = \frac{f^{(k+1)}(c)}{(k+1)!} (x - x_0)^{k+1}$ for some $c$ between $x_0$ and $x$.
+What is the power series expansion for $e^x$?;$\sum_{n=0}^{\infty} \frac{x^n}{n!} = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \dots$.
+What is the Taylor series expansion for $\sin x$ centered at $0$?;$\sum_{n=0}^{\infty} \frac{(-1)^n}{(2n+1)!} x^{2n+1} = x - \frac{x^3}{3!} + \frac{x^5}{5!} - \dots$.
+What is the power series expansion for $\ln(1+x)$?;$\sum_{n=1}^{\infty} (-1)^{n+1} \frac{x^n}{n} = x - \frac{x^2}{2} + \frac{x^3}{3} - \dots$.
+What is the definition of 'pointwise convergence' for a sequence of functions $(f_n)$ on set $X$?;$f_n \to f$ pointwise if $\forall x \in X: f(x) = \lim_{n \to \infty} f_n(x)$.
+What is the formal definition of 'uniform convergence' $(f_n \Rightarrow f)$ on set $X$?;$\forall \epsilon > 0 \exists n_0 \in \mathbb{N} \forall n > n_0 \forall x \in X: |f(x) - f_n(x)| < \epsilon$.
+If a sequence of continuous functions $f_n$ converges uniformly to $f$ on $P$, what can be said about $f$?;The limit function $f$ is also continuous on $P$.
+What does the Weierstrass M-test (Kryterium Weierstrassa) state for the uniform convergence of $\sum f_n(x)$?;If $|f_n(x)| \le a_n$ and $\sum a_n$ converges, then $\sum f_n(x)$ converges uniformly and absolutely.
+What is Fermat's Lemma regarding local extrema of differentiable functions?;If $f$ has a local extremum at $a$ and is differentiable there, then $f'(a) = 0$.
+Is $f'(x_0) = 0$ a sufficient condition for a local extremum?;No, it is a necessary condition; for example, $f(x) = x^3$ has $f'(0) = 0$ but no extremum at $0$.
+What is the definition of a primitive function $F$ for a function $f$ on interval $P$?;$F$ is a primitive function if $F'(x) = f(x)$ for all $x \in P$.
+What is the formula for integration by parts for indefinite integrals?;$\int f(x)g'(x) dx = f(x)g(x) - \int f'(x)g(x) dx$.
+What is the Newton-Leibniz formula for evaluating the definite integral $\int_a^b f(x) dx$?;$\int_a^b f(x) dx = F(b) - F(a)$, where $F$ is a primitive of $f$.
+How is the improper integral $\int_a^{\infty} f(x) dx$ defined?;It is defined as the limit $\lim_{y \to \infty} \int_a^y f(x) dx$, provided the limit exists.
+What is the derivative of $f(x) = a^x$?;$f'(x) = a^x \ln a$.
+What is the indefinite integral of $\frac{1}{x}$?;$\int \frac{1}{x} dx = \ln |x| + C$.
+What is the result of $\int \frac{1}{\cos^2 x} dx$?;$\tan x + C$.
+What does the 'Theorem on Differentiation of Function Sequences' require for $f'_n \Rightarrow g$ to imply $f' = g$?;It requires the sequence of derivatives to converge uniformly and the sequence of functions to converge at at least one point.
+What is the limit of the sequence $n^k q^n$ for $|q| < 1$?;The limit is $0$.
+In the context of series, what is the definition of a 'partial sum' $s_n$?;$s_n = \sum_{k=1}^n a_k$.
+What is the 'Cauchy Criterion for Series'?;$\forall \epsilon > 0 \exists n_{\epsilon} \forall m > k > n_{\epsilon}: |a_{k+1} + a_{k+2} + \dots + a_m| < \epsilon$.
+What is the convergence sum of the geometric series $\sum_{n=0}^{\infty} q^n$ for $|q| < 1$?;The sum is $\frac{1}{1 - q}$.
+If a sequence $(a_n)$ is non-negative and $\lim_{n \to \infty} a_n = L > 0$, what can be said about $\sum a_n$?;The series $\sum a_n$ must diverge because the terms do not approach zero.
+How is the 'Limit Superior' (lim sup) of a sequence $(a_n)$ defined?;$\limsup_{n \to \infty} a_n = \inf_{n \in \mathbb{N}} (\sup_{k \ge n} a_k)$.
+What is the radius of convergence $R$ for a power series $\sum c_n x^n$ according to the Cauchy-Hadamard formula?;$\frac{1}{R} = \limsup_{n \to \infty} \sqrt[n]{|c_n|}$.
+What is the value of $\int \sin x dx$?;$-\cos x + C$.
+What is the geometric interpretation of a definite integral of a positive function $f$ on $[a, b]$?;It represents the area of the region under the curve $y = f(x)$ and above the x-axis from $a$ to $b$.
+What is the derivative of $f(x) = \tan x$?;$f'(x) = 1 + \tan^2 x$ (or $\frac{1}{\cos^2 x}$).
+What is the value of $\int_0^1 x^n dx$ for $n > -1$?;$\frac{1}{n+1}$.
+What is the first-order Taylor expansion (linearization) of $f(x)$ at $x_0$?;$f(x) \approx f(x_0) + f'(x_0)(x - x_0)$.
+Under what condition is the set of partial sums of a positive series bounded?;It is bounded if and only if the series is convergent.
+What is the derivative of $f(x) = \arcsin x$ on $(-1, 1)$?;$f'(x) = \frac{1}{\sqrt{1 - x^2}}$.
+What is the derivative of $f(x) = \cos x$?;$f'(x) = -\sin x$.
+How is the natural logarithm $\ln x$ defined in terms of the exponential function?;It is the inverse function of $\exp(x): (0, \infty) \to \mathbb{R}$.
+What does a second derivative $f''(x) < 0$ on an interval imply about the function?;The function is strictly concave on that interval.
+What is the derivative of the constant function $f(x) = c$?;$f'(x) = 0$.
+What property of the exponential function $\exp(x)$ makes it a surjection onto $(0, \infty)$?;The exponential function is a strictly increasing continuous function with range $(0, \infty)$.
+How does 'absolute convergence' relate to standard 'convergence'?;Every absolutely convergent series is also convergent.
+What is the 'telescoping' technique for series?;It is a method where terms cancel out, leaving only the first and last parts of the partial sums.
+What is the derivative of $f(x) = x^n$ for $n \in \mathbb{R}$?;$f'(x) = nx^{n-1}$.
+What is the 'sufficient condition' for a local maximum using the first derivative sign change?;$f'(x_0) = 0$, $f'(x) > 0$ for $x < x_0$, and $f'(x) < 0$ for $x > x_0$.
+What is the 'sufficient condition' for a local minimum using the first derivative sign change?;$f'(x_0) = 0$, $f'(x) < 0$ for $x < x_0$, and $f'(x) > 0$ for $x > x_0$.

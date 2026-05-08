@@ -1,13 +1,18 @@
 // Configuration of available sets in the 'sets' folder
 const availableSets = [
+    // am, gal, pmat, md
+    { file: 'am.csv', name: 'AM' },
+    { file: 'gal.csv', name: 'GAL' },
+    { file: 'pmat.csv', name: 'PMAT' },
+    { file: 'md.csv', name: 'MD' },
     { file: 'rp.csv', name: 'RP' },
-    { file: 'akso.csv', name: 'AKSO' },
     { file: 'asd.csv', name: 'ASD' },
-    { file: 'awww.csv', name: 'AWWW' },
-    { file: 'bd.csv', name: 'BD' },
     { file: 'jaio.csv', name: 'JAIO' },
-    { file: 'po.csv', name: 'PO' },
+    { file: 'bd.csv', name: 'BD' },
     { file: 'pw.csv', name: 'PW' },
+    { file: 'po.csv', name: 'PO' },
+    { file: 'akso.csv', name: 'AKSO' },
+    { file: 'awww.csv', name: 'AWWW' },
     { file: 'sik.csv', name: 'SIK' }
 ];
 

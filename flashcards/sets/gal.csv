@@ -1,0 +1,91 @@
+In the set of real numbers $\mathbb{R}$, what are the two unary operations defined for every $x \ne 0$?;Determining the additive opposite ($-x$) and the multiplicative inverse ($x^{-1}$).
+What property is satisfied if for any $a, b \in \mathbb{R}$, the equation $a + b = b + a$ holds?;Commutativity of addition.
+What property is described by the equation $a \cdot (b + c) = a \cdot b + a \cdot c$?;Distributivity of multiplication over addition.
+What is the additive identity (neutral element) in the field of real numbers?;0
+What is the multiplicative identity (neutral element) in the field of real numbers?;1
+A set is said to be _____ with respect to an operation if the result of that operation on elements of the set is always an element of that same set?;Closed
+Is the set of non-zero real numbers $\mathbb{R} \setminus \{0\}$ closed under addition?;No (e.g., $1 + (-1) = 0$, which is not in the set).
+In the formal definition of a group $(G, \diamond, e)$, what property ensures that $x \diamond (y \diamond z) = (x \diamond y) \diamond z$?;Associativity
+What specific requirement must be met for every $x \in G$ in a group structure $(G, \diamond, e)$ regarding inverses?;There must exist an element $y \in G$ such that $x \diamond y = e$.
+What is the term for a group that additionally satisfies the condition $x \diamond y = y \diamond x$ for all $x, y \in G$?;Abelian group (or commutative group).
+Why is the set of real numbers $\mathbb{R}$ with the operation of multiplication not a group?;The element 0 does not have a multiplicative inverse.
+For any integer $n$, what structure is formed by the set $\mathbb{Z}_n = \{0, 1, \dots, n-1\}$ under addition modulo $n$?;An $n$-element abelian group.
+What are the two specific groups found within the structure of real numbers $\mathbb{R}$?;$(\mathbb{R}, +, 0)$ and $(\mathbb{R} \setminus \{0\}, \cdot, 1)$.
+A set $X$ with operations $+$ and $\cdot$ is a field if $(X, +, 0)$ is an abelian group, multiplication is commutative/associative, multiplication is distributive over addition, and _____ is an abelian group?;$(X \setminus \{0\}, \cdot, 1)$
+What is the term for a finite field $(\mathbb{Z}_p, +, \cdot, 0, 1)$ where $p$ is a prime number?;Galois field.
+If $(G, \diamond, e)$ is a group and $a \diamond c = e$, what is the relationship between $a \diamond c$ and $c \diamond a$?;$a \diamond c = c \diamond a = e$.
+In the group $G^{op}$ defined by $x \cdot y = y \circ x$, when does $G = G^{op}$?;Only when the group $G$ is abelian.
+What is the definition of the imaginary unit $i$?;$i = \sqrt{-1}$ (or $i^2 = -1$).
+How is a complex number $z$ formally represented in algebraic form?;$z = a + bi$, where $a, b \in \mathbb{R}$.
+Given $z = a + bi$, what notation is used to represent the real part $a$?;$\text{Re } z$
+Given $z = a + bi$, what notation is used to represent the imaginary part $b$?;$\text{Im } z$
+What is the result of the addition $(a + bi) + (c + di)$?;$(a + c) + (b + d)i$
+What is the result of the multiplication $(a + bi) \cdot (c + di)$?;$(ac - bd) + (ad + bc)i$
+What is the multiplicative inverse of $z = a + bi$ expressed in terms of $a$ and $b$?;$z^{-1} = \frac{a}{a^2 + b^2} - \frac{b}{a^2 + b^2}i$
+For a complex number $z = a + bi$, how is the conjugate $\bar{z}$ defined?;$\bar{z} = a - bi$
+On the complex plane, which axis corresponds to the imaginary part of a complex number?;The $y$-axis (vertical axis).
+How is the modulus $|z|$ of a complex number $z = a + bi$ defined?;$|z| = \sqrt{a^2 + b^2}$
+What inequality relates the sum of two complex numbers to their individual moduli?;The triangle inequality: $|z + w| \le |z| + |w|$.
+In the trigonometric form $z = |z|(\cos \phi + i \sin \phi)$, what is the term for the angle $\phi$?;The argument of the complex number ($\text{arg } z$).
+When multiplying two complex numbers in trigonometric form, what happens to their arguments?;The arguments are added together.
+What is Euler's formula used to define the exponential form of a complex number?;$e^{i\phi} = \cos \phi + i \sin \phi$
+What is the statement of de Moivre's theorem for an integer $n$ and $z = |z|e^{i\phi}$?;$z^n = |z|^n e^{in\phi} = |z|^n(\cos n\phi + i \sin n\phi)$.
+What is the result of $(1 + i)^{21}$ in simplified algebraic form?;$2^{10}(-1 - i)$ (or $-1024 - 1024i$).
+How many distinct complex $n$-th roots does a non-zero complex number $z$ have?;$n$
+What geometric shape is formed by the $n$-th roots of unity on the complex plane?;The vertices of a regular $n$-gon inscribed in a unit circle.
+If $x_0$ is a solution to $x^2 + x + 1 = 0$, what is the value of $x_0^3$?;1
+A set $V$ over a field $\mathbb{K}$ is a linear space if $(V, +, 0)$ is an abelian group and _____ is defined with specific distributive and associative properties?;Multiplication by a scalar ($a \in \mathbb{K}$).
+In a linear space $V$, what is the result of multiplying any vector $\vec{v}$ by the scalar $0 \in \mathbb{K}$?;The zero vector $\vec{0}$.
+What condition must be met for a subset $P$ of a linear space $V$ to be considered a linear subspace?;It must be non-empty and closed under addition and scalar multiplication.
+What is the term for the smallest linear subspace containing a set of vectors $G$?;The span of $G$ ($\text{span } G$).
+What is a linear combination of vectors $\vec{g}_1, \dots, \vec{g}_k$?;An expression of the form $a_1\vec{g}_1 + \dots + a_k\vec{g}_k$ for scalars $a_i$.
+When is a set of vectors $\{v_1, \dots, v_n\}$ considered linearly dependent?;If at least one vector can be represented as a linear combination of the others.
+Formally, a set of vectors is linearly independent if the equation $a_1 v_1 + \dots + a_n v_n = 0$ implies _____?;All scalars $a_1, \dots, a_n$ must be equal to zero.
+What is the definition of a basis for a linear space $V$?;A linearly independent set of vectors that spans $V$.
+In terms of representation, how can any vector in a space be written relative to a specific basis?;Exactly one way as a linear combination of the basis vectors.
+A basis is described as a _____ set of linearly independent vectors?;Maximal
+A basis is described as a _____ set of vectors that span a space?;Minimal
+What is the dimension of a linear space?;The number of vectors in any of its bases.
+What is the dimension of the zero subspace $\{\vec{0}\}$?;0
+If $U \subseteq V$ are finite-dimensional linear spaces, what is the necessary and sufficient condition for $U = V$?;$\dim U = \dim V$
+Is the intersection of a family of subspaces $Y_j$ of a space $X$ also a subspace of $X$?;Yes
+How is the sum of two subspaces $U$ and $V$ defined?;$U + V = \{u + v : u \in U, v \in V\}$.
+What is a direct sum $U \oplus V$?;A sum of subspaces where $U \cap V = \{0\}$.
+What is the formula for the dimension of the sum of two finite-dimensional subspaces $Y$ and $Z$?;$\dim(Y + Z) = \dim Y + \dim Z - \dim(Y \cap Z)$.
+For a matrix $A = [a_{i,j}]$, what do the indices $i$ and $j$ represent?;$i$ is the row index and $j$ is the column index.
+What is a diagonal matrix?;A square matrix where all non-zero elements are on the main diagonal.
+What is a permutation matrix?;A square matrix with exactly one '1' in each row and column, and zeros elsewhere.
+How is the transpose $A^T$ of a matrix $A$ obtained?;By swapping its rows with its columns.
+What is a symmetric matrix?;A matrix $A$ such that $A = A^T$.
+What is a Hermitian conjugate (or adjoint) of a complex matrix?;The transpose of the matrix with every element replaced by its complex conjugate.
+Is matrix multiplication generally commutative?;No ($AB \ne BA$ in general).
+What is the property $(AB)^T$ equal to?;$B^T A^T$
+What is a non-singular (or invertible) matrix?;A square matrix $A$ for which there exists a matrix $A^{-1}$ such that $AA^{-1} = I$.
+What is the determinant of an identity matrix $I_n$?;1
+What happens to the determinant of a matrix if two of its rows are swapped?;The sign of the determinant changes.
+How is the determinant of a $2 \times 2$ matrix $\begin{bmatrix} a & b \\ c & d \end{bmatrix}$ calculated?;$ad - bc$
+What is the relationship between $\det(A^{-1})$ and $\det(A)$ for an invertible matrix?;$\det(A^{-1}) = \frac{1}{\det(A)}$
+What is the image ($\text{im } A$) of a matrix $A$?;The set of all vectors that can be produced by multiplying a vector $x$ by $A$.
+What is the kernel ($\text{ker } A$) of a matrix $A$?;The set of all vectors $x$ such that $Ax = 0$.
+What does the rank of a matrix ($\text{rank } A$) represent?;The dimension of its image (or the number of linearly independent columns).
+According to the dimension theorem for a matrix $A \in \mathbb{K}^{m,n}$, what is $\dim(\text{im } A) + \dim(\text{ker } A)$?;$n$ (the number of columns).
+What is the primary condition on the determinant for a square matrix to be invertible?;The determinant must be non-zero.
+An mapping $f: X \to Y$ is a linear transformation if for any scalars $\alpha, \beta$ and vectors $x, y$, $f(\alpha x + \beta y) = $ _____?;$\alpha f(x) + \beta f(y)$
+What is a linear monomorphism?;An injective linear transformation (one-to-one).
+What is a linear epimorphism?;A surjective linear transformation (onto).
+What is a linear isomorphism?;A linear transformation that is both a monomorphism and an epimorphism (bijective).
+What is the kernel of a linear monomorphism?;The zero vector set $\{0\}$.
+What is the dual space $X^*$ of a linear space $X$?;The space of all linear functionals $L(X, \mathbb{K})$.
+What are the elements of a dual space $X^*$ called?;Linear functionals.
+If $\dim X = n$, what is the dimension of its dual space $X^*$?;$n$
+What is a dual basis?;A set of functionals $(x_1^*, \dots, x_n^*)$ that extract the coefficients of a vector relative to a basis $(x_1, \dots, x_n)$.
+What equation defines an eigenvalue $\lambda$ and its corresponding eigenvector $v$ for a matrix $A$?;$Av = \lambda v$
+If $\lambda$ is an eigenvalue of an invertible matrix $A$, what is an eigenvalue of $A^{-1}$?;$\lambda^{-1}$
+What is an inner product $\langle x, y \rangle$ on a real linear space?;A symmetric, bilinear, and positive definite function $X \times X \to \mathbb{R}$.
+What is a Euclidean space?;A finite-dimensional real linear space equipped with an inner product.
+How is the norm $\|x\|$ derived from an inner product $\langle x, x \rangle$?;$\|x\| = \sqrt{\langle x, x \rangle}$
+What is the Schwarz inequality in an inner product space?;$|\langle x, y \rangle| \le \|x\| \cdot \|y\|$
+When are two vectors $x$ and $y$ said to be orthogonal?;When their inner product is zero ($\langle x, y \rangle = 0$).
+What is an orthonormal set of vectors?;A set of orthogonal vectors where each vector has a norm of 1.
+Is every orthogonal set of non-zero vectors linearly independent?;Yes
+What is the orthogonal projection of a vector $x$ onto a subspace $Z$?;The unique vector $z \in Z$ such that $x - z$ is orthogonal to $Z$.

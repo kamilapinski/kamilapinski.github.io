@@ -1,0 +1,74 @@
+What is the result of applying the distributive property to factor out a constant $k$ from a finite sum $\sum k x_i$?;$k \cdot \sum x_i$
+How is a finite sum $\sum (x_i + y_i)$ decomposed according to the linearity of summation?;$\sum x_i + \sum y_i$
+What is the closed-form expression for the sum of the first $n$ terms of an arithmetic sequence $(a_n)$?;$\frac{a_1 + a_n}{2} \cdot n$
+For a geometric sequence $(g_n)$ with ratio $q$, what is the formula for the sum of the first $n$ terms?;$\frac{1 - q^n}{1 - q} \cdot g_1$
+In the perturbation method for calculating a sum $S_n = \sum_{i=0}^n a_i$, what is the fundamental equation relating $S_{n+1}$ and $S_n$?;$S_n + a_{n+1} = a_0 + \sum_{i=0}^n a_{i+1}$
+What is the closed-form result of the sum $\sum_{i=0}^n i 2^i$ calculated via the perturbation method?;$(n - 1)2^{n+1} + 2$
+How can a multiple sum $\sum_{1 \le i \le j \le n} a_{ij}$ be rewritten as an iterated sum?;$\sum_{i=1}^n \sum_{j=i}^n a_{ij}$
+What is the definition of the $k$-th harmonic number $H_k$?;$\sum_{i=1}^k \frac{1}{i}$
+What is the closed-form identity for the sum of the first $n$ harmonic numbers $\sum_{k=1}^n H_k$?;$(n + 1)H_n - n$
+What combinatorial value does the binomial coefficient $\binom{n}{k}$ represent?;The number of $k$-element subsets of an $n$-element set.
+What is the algebraic formula for the binomial coefficient $\binom{n}{k}$ in terms of factorials?;$\frac{n!}{k!(n-k)!}$
+Under what condition for $k$ and $n$ is the binomial coefficient $\binom{n}{k}$ equal to $0$?;When $k > n$ or $k < 0$.
+What is the symmetry property of binomial coefficients?;$\binom{n}{k} = \binom{n}{n-k}$
+State the absorption property (also known as the committee-chair identity) of binomial coefficients?;$\binom{n}{k} = \frac{n}{k} \binom{n-1}{k-1}$
+State the Binomial Theorem for the expansion of $(x + y)^n$?;$\sum_{i=0}^n \binom{n}{i} x^i y^{n-i}$
+What is the result of the sum $\sum_{i=0}^n \binom{n}{i}$?;$2^n$
+What is the value of the alternating sum of binomial coefficients $\sum_{i=0}^n (-1)^i \binom{n}{i}$ for $n > 0$?;$0$
+In permutation notation, what is the 'super-notation' (canonical cycle form)?;A cycle notation where each cycle starts with its smallest element and cycles are sorted descendingly by their first elements.
+What does the notation $1^{a_1} 2^{a_2} \dots n^{a_n}$ represent for a permutation?;The type of the permutation, where $a_i$ is the number of cycles of length $i$.
+What is the definition of Stirling numbers of the first kind $\left[ \genfrac{}{}{0pt}{}{n}{k} \right]$?;The number of $n$-permutations that consist of exactly $k$ cycles.
+What is the recurrence relation for Stirling numbers of the first kind $\left[ \genfrac{}{}{0pt}{}{n}{k} \right]$ for $k > 0$?;$(n-1) \left[ \genfrac{}{}{0pt}{}{n-1}{k} \right] + \left[ \genfrac{}{}{0pt}{}{n-1}{k-1} \right]$
+What is the base case $\left[ \genfrac{}{}{0pt}{}{n}{0} \right]$ for Stirling numbers of the first kind?;$[n = 0]$ (1 if $n=0$, else 0).
+What is the definition of Stirling numbers of the second kind $\left\{ \genfrac{}{}{0pt}{}{n}{k} \right\}$?;The number of ways to partition a set of $n$ elements into $k$ non-empty subsets (blocks).
+What is the recurrence relation for Stirling numbers of the second kind $\left\{ \genfrac{}{}{0pt}{}{n}{k} \right\}$ for $k > 0$?;$k \left\{ \genfrac{}{}{0pt}{}{n-1}{k} \right\} + \left\{ \genfrac{}{}{0pt}{}{n-1}{k-1} \right\}$
+What is the value of $\sum_{k} \left[ \genfrac{}{}{0pt}{}{n}{k} \right]$?;$n!$
+What is the formula for $\left\{ \genfrac{}{}{0pt}{}{n}{2} \right\}$ for $n > 0$?;$2^{n-1} - 1$
+How is the generating function $A(x)$ of a sequence $\langle a_n \rangle_{n \in \mathbb{N}}$ defined?;$A(x) = \sum_{n=0}^{\infty} a_n x^n$
+In the context of generating functions, what sequence corresponds to $x^m A(x)$?;The sequence $\langle a_n \rangle$ shifted $m$ positions to the right, starting with $m$ zeros.
+What operation on sequences corresponds to the product of two ordinary generating functions $A(x) \cdot B(x)$?;Convolution: $\langle \sum_{k=0}^n a_k b_{n-k} \rangle_{n \in \mathbb{N}}$
+What sequence is represented by the ordinary generating function $\frac{1}{1-x}$?;The constant sequence of ones $\langle 1, 1, 1, \dots \rangle$
+What sequence is represented by the ordinary generating function $\frac{1}{(1-x)^2}$?;$\langle n+1 \rangle_{n \in \mathbb{N}}$
+What is the general sequence represented by $\frac{1}{(1-x)^k}$ for $k \in \mathbb{Z}^+$?;$\langle \binom{n+k-1}{k-1} \rangle_{n \in \mathbb{N}}$
+How is the exponential generating function $B_e(x)$ of a sequence $\langle b_n \rangle_{n \in \mathbb{N}}$ defined?;$B_e(x) = \sum_{n=0}^{\infty} \frac{b_n x^n}{n!}$
+What combinatorial operation corresponds to the product of two exponential generating functions $A_e(x) \cdot B_e(x)$?;Binomial convolution: $\langle \sum_{k=0}^n \binom{n}{k} a_k b_{n-k} \rangle_{n \in \mathbb{N}}$
+How does differentiating an exponential generating function $B_e'(x)$ affect the underlying sequence?;It shifts the sequence to the left: $\langle b_1, b_2, b_3, \dots \rangle$
+What is the generating function $A(x)$ for the sequence $\langle a_n \rangle$ where $a_n$ is the partial sum of sequence $b_n$ with OGF $B(x)$?;$\frac{B(x)}{1-x}$
+According to the principle of inclusion-exclusion, how is the number of elements with exactly zero properties $D(0)$ calculated from the sums $S_j$?;$\sum_{j \ge 0} (-1)^j S_j$
+What is the general formula for the number of elements $D(k)$ having exactly $k$ properties in inclusion-exclusion?;$\sum_{j \ge k} \binom{j}{k} (-1)^{j-k} S_j$
+What is the summation formula for the number of $n$-derangements (permutations with no fixed points)?;$n! \sum_{j=0}^n \frac{(-1)^j}{j!}$
+What is the number of $r$-combinations with repetitions from an $n$-element set?;$\binom{n+r-1}{r}$
+What is the ordinary generating function for $r$-combinations with repetitions from an $n$-element set?;$(1 - t)^{-n}$
+What is the exponential generating function for $r$-permutations with repetitions of an $n$-element set?;$\exp(n \cdot t)$
+What is the Handshaking Lemma in graph theory?;$\sum_{v \in V} \text{deg}(v) = 2|E|$
+What is the definition of a $k$-regular graph?;A graph where every vertex has degree $k$.
+What is the degree of every vertex in a complete graph $K_n$?;$n - 1$
+How is a cycle in a graph defined?;A sequence of vertices $\langle v_1, \dots, v_k \rangle$ such that $v_1 = v_k$, edges connect consecutive vertices, and no edge is used twice.
+What characterizes a 2-connected (biconnected) graph?;The graph remains connected after the removal of any single vertex.
+What is an independent set of vertices in a graph?;A subset of vertices such that no two vertices in the set are connected by an edge.
+What defines a perfect matching in a graph?;A matching that covers all vertices of the graph.
+According to the equivalent conditions for trees, if a graph is connected, what relationship between $|V|$ and $|E|$ makes it a tree?;$|V| = |E| + 1$
+What is the necessary and sufficient condition for a connected graph to be Eulerian (contain an Euler cycle)?;Every vertex must have an even degree.
+What is the definition of a Hamiltonian cycle?;A cycle that passes through every vertex of the graph exactly once.
+What is the characteristic property of bipartite graphs regarding their cycles?;They do not contain any cycles of odd length.
+What is the necessary and sufficient condition for the existence of a System of Different Representatives (matching covering $V_1$) in a bipartite graph according to Hall's Theorem?;For every subset $S \subseteq V_1$, the number of its neighbors $|N(S)|$ must be at least $|S|$.
+State Euler's formula for a planar graph connected and embedded in a plane?;$v - e + f = 2$
+What is the maximum number of edges in a planar graph with $v \ge 3$ vertices?;$e \le 3v - 6$
+What is the maximum number of edges in a triangle-free planar graph with $v \ge 3$ vertices?;$e \le 2v - 4$
+State Kuratowski's Theorem regarding non-planar graphs?;A graph is non-planar if and only if it contains a subgraph homeomorphically reducible to $K_5$ or $K_{3,3}$.
+What is the Four Color Theorem?;Any planar graph can be colored with at most four colors such that no two adjacent vertices share the same color.
+According to Brooks' Theorem, what is the upper bound on the chromatic number $\chi(G)$ for a connected graph that is neither an odd cycle nor a complete graph?;$\chi(G) \le \Delta(G)$, where $\Delta(G)$ is the maximum vertex degree.
+State Vizing's Theorem for the edge chromatic index $\chi_e(G)$?;$\Delta(G) \le \chi_e(G) \le \Delta(G) + 1$
+What is the edge chromatic index $\chi_e(G)$ of a bipartite graph?;$\Delta(G)$
+What set of integers represents the greatest common divisor $\text{NWD}(a, b)$?;The smallest positive element of the set $\{ax + by : x, y \in \mathbb{Z}\}$.
+What is the relationship between $\text{NWD}(a, b)$, $\text{NWW}(a, b)$, and the product $ab$?;$\text{NWW}(a, b) = \frac{ab}{\text{NWD}(a, b)}$
+What is the Chinese Remainder Theorem for a system of congruences $a \equiv a_i \pmod{n_i}$ where $n_i$ are pairwise relatively prime?;There exists a unique solution modulo $n = \prod n_i$.
+State Fermat's Little Theorem?;If $p$ is prime and $p \nmid a$, then $a^{p-1} \equiv 1 \pmod{p}$.
+How is Euler's totient function $\Phi(n)$ defined?;The count of integers $k$ in $1 \le k \le n$ such that $\text{NWD}(k, n) = 1$.
+What is the formula for $\Phi(p^k)$ where $p$ is a prime number?;$p^k - p^{k-1}$
+State Euler's Theorem, which generalizes Fermat's Little Theorem?;If $\text{NWD}(a, n) = 1$, then $a^{\Phi(n)} \equiv 1 \pmod{n}$.
+In asymptotic notation, what does $f = o(g)$ imply about the limit $\lim_{n \to \infty} \frac{f(n)}{g(n)}$?;The limit is $0$.
+What is the master theorem solution for $T(n) = a T(n/b) + f(n)$ if $f(n) = \Theta(n^{\log_b a})$?;$\Theta(n^{\log_b a} \log n)$
+Rank the following functions in increasing order of asymptotic growth: $n^a$, $\log n$, $n!$, $b^n$ (for $a>0, b>1$)?;$\log n < n^a < b^n < n!$
+For a permutation $f$ of length $n$, what condition on its cycle lengths ensures $f^k$ is the identity permutation?;$k$ must be a multiple of the least common multiple of all cycle lengths in $f$.
+In inclusion-exclusion, if $S_j$ is the sum of sizes of intersections of $j$ properties, how do we find the number of elements with at least one property?;$S_1 - S_2 + S_3 - \dots + (-1)^{n-1} S_n$
