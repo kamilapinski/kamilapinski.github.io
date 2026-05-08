@@ -20,6 +20,8 @@ let allCards = []; // All flashcards from the loaded set
 let currentQueue = []; // Indices of flashcards the user hasn't learned yet
 let currentCardIndex = -1; // Currently displayed flashcard (index in allCards)
 let currentSetName = '';
+let previousQueue = null; 
+const btnUndo = document.getElementById('btn-undo');
 
 // DOM elements
 const setSelector = document.getElementById('set-selector');
@@ -134,6 +136,29 @@ function nextCard() {
     }
 }
 
+// Funkcja zapisująca stan przed zmianą
+function saveHistory() {
+    previousQueue = [...currentQueue];
+    btnUndo.style.display = 'block'; // Pokaż przycisk po pierwszej akcji
+}
+
+function undo() {
+    if (previousQueue) {
+        currentQueue = [...previousQueue];
+        previousQueue = null;
+        btnUndo.style.display = 'none'; // Ukryj po cofnięciu
+        
+        // Jeśli zestaw był ukończony, musimy przywrócić widoczność kontenera
+        flashcardContainer.style.display = 'block';
+        controls.style.display = 'flex';
+        messageEl.textContent = '';
+        
+        saveProgress();
+        updateStats();
+        nextCard();
+    }
+}
+
 function updateStats() {
     cardsLeftEl.textContent = currentQueue.length;
 }
@@ -153,9 +178,10 @@ flashcard.addEventListener('click', () => {
     flashcard.classList.toggle('flipped');
 });
 
+// Zaktualizowane listenery przycisków
 document.getElementById('btn-know').addEventListener('click', () => {
     if (currentQueue.length > 0) {
-        // Usuń nauczoną fiszkę z kolejki
+        saveHistory(); // Zapisz zanim usuniesz
         currentQueue.shift(); 
         saveProgress();
         updateStats();
@@ -165,12 +191,21 @@ document.getElementById('btn-know').addEventListener('click', () => {
 
 document.getElementById('btn-dont-know').addEventListener('click', () => {
     if (currentQueue.length > 0) {
-        // Przenieś na koniec kolejki
+        saveHistory(); // Zapisz zanim przesuniesz
         const card = currentQueue.shift();
         currentQueue.push(card);
         saveProgress();
         nextCard();
     }
+});
+
+btnUndo.addEventListener('click', undo);
+
+// Przy zmianie zestawu ukryj przycisk undo
+setSelector.addEventListener('change', (e) => {
+    previousQueue = null;
+    btnUndo.style.display = 'none';
+    loadSet(e.target.value);
 });
 
 document.getElementById('btn-shuffle').addEventListener('click', () => {
