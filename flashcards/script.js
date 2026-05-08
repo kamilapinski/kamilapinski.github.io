@@ -31,6 +31,20 @@ const controls = document.getElementById('controls');
 const messageEl = document.getElementById('message');
 const cardsLeftEl = document.getElementById('cards-left');
 
+// Funkcja zamieniająca znaki HTML na bezpieczny tekst
+function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, function(tag) {
+        const charsToReplace = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        };
+        return charsToReplace[tag] || tag;
+    });
+}
+
 // Initialize dropdown list
 availableSets.forEach(set => {
     const option = document.createElement('option');
@@ -68,16 +82,18 @@ async function loadSet(filename) {
 
 function parseCSV(text) {
     allCards = [];
-    // Split by newlines and remove empty lines
     const lines = text.split('\n').filter(line => line.trim() !== '');
-
+    
     lines.forEach(line => {
-        // Use semicolon as separator
         const [front, ...backArr] = line.split(';');
-        const back = backArr.join(';'); // Re-join if the answer also contained semicolons
-
+        const back = backArr.join(';'); 
+        
         if (front && back) {
-            allCards.push({ front: front.trim(), back: back.trim() });
+            // Przepuszczamy front i back przez escapeHTML
+            allCards.push({ 
+                front: escapeHTML(front.trim()), 
+                back: escapeHTML(back.trim()) 
+            });
         }
     });
 }

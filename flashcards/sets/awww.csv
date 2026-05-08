@@ -2,9 +2,9 @@ What is the primary role of HTML in web development?;It is a language used to de
 What is the primary purpose of CSS?;It is used to describe the visual appearance and styling of a web page.
 Which two main sections constitute a standard HTML document?;The head (metadata) and the body (content).
 What type of information is typically stored in the HTML `<head>` element?;Metadata such as the document title, character encoding, and links to external styles or scripts.
-Which HTML tag is used to specify the character encoding for a document?;The `<meta charset=utf8>` tag.
+Which HTML tag is used to specify the character encoding for a document?;The `<meta charset="utf-8">` tag.
 What is the function of the `<base>` tag in an HTML document?;It defines the base URL and target for all relative URLs in the document.
-How do you link an external CSS stylesheet to an HTML file?;Using the `<link rel=stylesheet href=style.css>` tag inside the `<head>`.
+How do you link an external CSS stylesheet to an HTML file?;Using the `<link rel="stylesheet" href="style.css">` tag inside the `<head>`.
 Which HTML element is intended for the primary, non-repeated content of a page?;The `<main>` element.
 What is the specific semantic purpose of the `<aside>` tag?;It represents content that is indirectly related to the main content, often displayed as a sidebar.
 Which tag should be used for independent, self-contained content such as a blog post or news story?;The `<article>` element.
