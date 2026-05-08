@@ -1,0 +1,80 @@
+In the formal definition of a Nondeterministic Finite Automaton (NFA) $\langle A, Q, I, F, \delta \rangle$, what does the set $I$ represent?;The set of initial states.
+What is the primary difference between the transition relation $\delta$ in an NFA and the transition function in a DFA?;In a DFA, $\delta$ is a function of type $Q \times A \to Q$ rather than a general relation.
+What kind of transition allows an automaton to move between states without consuming any input letter?;An $\epsilon$-transition, where $\epsilon$ represents the empty word.
+How is a 'run' (bieg) defined in the context of finite automata?;A sequence of transitions $q_0 \xrightarrow{a_1} q_1 \xrightarrow{a_2} q_2 \dots \xrightarrow{a_n} q_n$ where $q_0 \in I$.
+What condition must a run satisfy to be classified as an 'accepting run'?;The sequence of transitions must end in an accepting state $q_n \in F$.
+Under what condition does an automaton $A$ accept a word $w \in A^*$?;The word is accepted if there exists at least one accepting run for that word.
+What does it mean for an automaton $A$ to recognize a language $L$?;It means that a word $w$ belongs to $L$ if and only if $A$ accepts $w$.
+In regular expressions, what language is represented by the symbol $\emptyset$?;The empty language.
+If $A$ and $B$ are regular expressions, what language is represented by the expression $A + B$?;The union of languages $L(A) \cup L(B)$.
+What is the definition of the concatenation language $K \cdot L$ represented by the regular expression $AB$?;The set of all words $\{v \cdot w \mid v \in K, w \in L\}$ where $K=L(A)$ and $L=L(B)$.
+What is the formal definition of the language represented by the Kleene star $A^*$?;The set $\{w_1 \cdot w_2 \dots w_n \mid w_1, w_2, \dots, w_n \in L(A), n \in \mathbb{N}\}$.
+Which four models for recognizing languages are proven to be equivalent by the lemma on regular languages?;Regular expressions, NFAs, DFAs, and (non)deterministic automata with $\epsilon$-transitions.
+Are regular languages closed under the intersection operation?;Yes, if $K$ and $L$ are regular, then $K \cap L$ is also regular.
+What is the definition of the reversal $L^R$ of a regular language $L$?;The set $\{w^R \mid w \in L\}$, where $w^R$ is the mirror image of word $w$.
+Are regular languages closed under the complement operation?;Yes, for any regular language $K \subseteq A^*$, the language $A^* - K$ is regular.
+What is the formal definition of the Myhill-Nerode relation $u \sim_L v$?;Two words are related if $\forall w \in A^* : (uw \in L \iff vw \in L)$.
+How can one intuitively interpret the Myhill-Nerode relation between two words $u$ and $v$?;The words $u$ and $v$ share the same 'future' regarding membership in the language $L$.
+According to the Myhill-Nerode theorem, what determines the number of states in a syntactic (minimal) automaton for a language $L$?;The number of equivalence classes of the Myhill-Nerode relation.
+What property must the number of Myhill-Nerode abstraction classes have for a language to be considered regular?;The number of abstraction classes must be finite.
+What are the three mandatory properties of the decomposition $w = w_1 w_2 w_3$ in the Pumping Lemma for regular languages?;$w_2 \ne \epsilon$, $|w_1 w_2| \le N$, and $\forall k \ge 0, w_1 w_2^k w_3 \in L$.
+To prove that $L = \{a^n b^n \mid n \ge 0\}$ is not regular using the Pumping Lemma, why is the choice of $w = a^N b^N$ effective?;Because the condition $|w_1 w_2| \le N$ ensures $w_2$ consists only of 'a's, which changes the count ratio when pumped.
+What are the four components that define a Context-Free Grammar (CFG)?;A set of terminals $A$, a set of non-terminals $N$, a set of productions, and a start symbol $S$.
+In a parse tree, what labels are assigned to the leaf nodes?;Terminals from the set $A \cup \{\epsilon\}$.
+What is defined as the 'yield' (plon) of a parse tree?;The word formed by reading the labels of the leaves from left to right.
+Is it true that every regular language is also context-free?;Yes, every regular language can be represented by a context-free grammar.
+What are the five components of the word decomposition $w = prefix \cdot left \cdot infix \cdot right \cdot suffix$ in the Pumping Lemma for CFLs?;The factors are $prefix, left, infix, right, suffix$.
+What is the constraint regarding the length of the pumped parts $left$ and $right$ in the CFL Pumping Lemma?;The concatenation $left \cdot right$ must be non-empty.
+In the CFL Pumping Lemma, what is the maximum length of the substring $left \cdot infix \cdot right$?;The length must be at most $N$.
+Using the example $L = \{a^n b^n c^n \mid n \ge 0\}$, why is this language not context-free?;Pumping the word $a^N b^N c^N$ would necessarily disrupt the balance between at least two of the three letters.
+Which set operations are context-free languages NOT closed under?;Intersection and complement.
+What happens when you intersect a context-free language $L$ with a regular language $K$?;The resulting language $L \cap K$ is context-free.
+Which set operations are context-free languages closed under?;Union, concatenation, Kleene star, and reversal.
+What additional mechanism distinguishes a Pushdown Automaton (PDA) from a standard Nondeterministic Finite Automaton (NFA)?;A stack that allows for the storage and retrieval of symbols.
+In a PDA transition $p \xrightarrow{pop(Z), a, push(\gamma)} q$, what does $push(\gamma)$ signify?;It pushes the word $\gamma$ onto the top of the stack.
+What are the two equivalent models for word acceptance in Pushdown Automata?;Acceptance by final state and acceptance by empty stack.
+Is it possible to convert any Pushdown Automaton into an equivalent one that has only a single state and accepts via an empty stack?;Yes, every PDA can be transformed into a single-state PDA using the empty stack acceptance model.
+What are the six components of a Turing Machine $M = \langle A, B, Q, q_I, q_F, \delta \rangle$?;Input alphabet $A$, working alphabet $B$, states $Q$, start state $q_I$, end state $q_F$, and transition function $\delta$.
+In the Turing Machine transition function $\delta : Q \times B \to B \times \{\leftarrow, \rightarrow\} \times Q$, what do the arrows represent?;The direction in which the head moves along the tape.
+What defines the language $L(M)$ recognized by a Turing Machine $M$?;The set of all input words $w \in A^*$ on which the machine $M$ terminates.
+When is a partial function $f : A^* \to B^*$ considered 'computable'?;If there exists a Turing Machine that calculates the output for every word in the function's domain and terminates.
+What is the definition of a 'computable language'?;A language whose characteristic function is computable.
+What does it mean for a decision problem to be 'decidable' (rozstrzygalny)?;There exists an algorithm that terminates for every input $w$ and correctly answers 'YES' or 'NO'.
+Which operations are computable languages closed under?;Union, intersection, and complement.
+When is a language $L$ called 'partially computable' (częściowo obliczalny)?;If there is a Turing Machine that terminates for all $w \in L$ and does not terminate for $w \notin L$.
+What is the equivalent term for a decision problem being 'semi-decidable' (półrozstrzygalny)?;The corresponding language is partially computable.
+What is the relationship between computable languages and partially computable languages according to Lemma 1?;A language $L$ is computable if and only if both $L$ and its complement $A^* - L$ are partially computable.
+What set of words constitutes the HALT (Halting Problem) language?;All pairs $\langle M, w \rangle$ such that Turing Machine $M$ terminates on input $w$.
+Is the HALT language computable or only partially computable?;It is partially computable but not computable.
+Is the complement of the HALT language partially computable?;No, the complement of the Halting Problem is not partially computable.
+What is the $HALT_\epsilon$ problem?;The problem of determining if a given Turing Machine terminates when given an empty word as input.
+How is a reduction from language $L$ to language $K$ formally defined?;A function $f: A^* \to B^*$ such that $\forall w \in A^*, w \in L \iff f(w) \in K$.
+If a language $L$ reduces to $K$ and $K$ is computable, what can be concluded about $L$?;Language $L$ is also computable.
+Name one undecidable problem related to context-free languages mentioned in the text?;Determining whether a context-free language $L$ recognizes every possible word $w \in A^*$.
+What defines the complexity class P?;The class of languages solvable by a deterministic Turing Machine in polynomial time relative to the input length.
+What defines the complexity class NP?;The class of languages recognizable by a nondeterministic Turing Machine where every run is completed in polynomial time.
+What is the relationship between the class P and the class NP?;P is a subset of NP ($P \subseteq NP$).
+What does it mean for a problem to be 'NP-complete'?;The problem is in the class NP and every other problem in NP can be reduced to it in polynomial time.
+What is the CNF-SAT problem?;The problem of determining if a logical formula in Conjunctive Normal Form (conjunction of clauses) is satisfiable.
+What is a literal in the context of SAT problems?;A boolean variable or its negation.
+How is the 3CNF-SAT problem defined?;A variation of CNF-SAT where each clause contains at most three literals.
+What is the objective of the Hamiltonian Path problem?;To determine if a graph contains a path that visits every vertex exactly once.
+In graph theory, what is the 'Clique' problem?;Determining whether a given graph contains a complete subgraph of size $k$.
+What characterizes the 'Independent Set' problem?;Finding whether a graph contains a set of $k$ vertices where no two vertices are connected by an edge.
+What does the '3-coloring' problem ask?;Whether the vertices of a graph can be colored with 3 colors such that no two adjacent vertices share the same color.
+Why is the problem of accepting an empty word on a nondeterministic TM in $\le n$ steps NP-complete?;Because the machine's possible executions can be explored nondeterministically within the given time bound.
+What are the two steps required to prove that a problem $P$ is NP-complete?;Show that $P \in NP$ and reduce a known NP-hard problem to $P$ using a polynomial-time reduction.
+Is every NP-hard problem necessarily NP-complete?;No, a problem can be NP-hard without being in the class NP, such as the Halting Problem.
+Is the language $L = \{a^n b^n \mid n \in \mathbb{N}\}$ computable in polynomial time?;Yes, it is in class P and is also context-free.
+Under which class does the set of decimal representations of powers of two fall?;It belongs to the class P.
+Is the containment problem 'Is context-free language $L_1$ contained in context-free language $L_2$' decidable?;No, this is an undecidable problem.
+Is the problem 'Is regular language $R$ contained in context-free language $K$' decidable?;Yes, this containment problem is decidable.
+Is the problem 'Is context-free language $K$ contained in regular language $R$' decidable?;Yes, this is a decidable problem.
+If $L$ is a regular language, is the concatenation $L L^R$ also regular?;Yes, because regular languages are closed under reversal and concatenation.
+Is it possible to decide if a context-free grammar generates a regular language?;No, this is an undecidable problem.
+Can a deterministic Turing Machine determine if it recognizes all words of length $n$ within $f(n)$ steps?;Yes, since there are finitely many words of length $n$ and the step count is bounded.
+What is the status of the Halting Problem in terms of solvability?;It is semi-decidable (partially computable) but undecidable.
+Which complexity class contains problems that can be verified in polynomial time but not necessarily solved in polynomial time?;The class NP.
+In the reduction from 3-KOL to 3-CNF-SAT, what does the variable $x^i_v$ represent?;The assignment of color $i$ to vertex $v$.
+In a 3-CNF formula derived from a graph coloring problem, what does the clause $(\neg x^i_v \lor \neg x^i_u)$ enforce?;It ensures that adjacent vertices $u$ and $v$ do not share the same color $i$.
+Is the language of binary representations of numbers divisible by 7 regular?;Yes, languages consisting of representations of numbers divisible by a constant are regular.

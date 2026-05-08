@@ -1,0 +1,81 @@
+In NASM syntax for x86 assembly, what is the required order of operands;The destination operand is placed first, followed by the source operand.
+How is a value calculated in Natural Binary Code (NKB) for an $n$-bit number;It is calculated as the sum $\sum_{i=0}^{n-1} b_i 2^i$.
+What is the mathematical formula for interpreting an $n$-bit number in Two's Complement (U2) representation;It is interpreted as $-b_{n-1} 2^{n-1} + \sum_{i=0}^{n-2} b_i 2^i$.
+How is a value interpreted in the Sign-Magnitude (moduł-znak) representation;It is interpreted as $(-1)^{b_{n-1}} \cdot \sum_{i=0}^{n-2} b_i 2^i$.
+What distinguishes Little-endian from Big-endian data storage;Little-endian stores the least significant byte first, while Big-endian stores the most significant byte first.
+Which byte-ordering convention do x86 processors utilize;x86 processors utilize the Little-endian convention.
+In an 8-bit register, what value does $(11000000)_2$ represent in Natural Binary Code (NKB);It represents the decimal number $192$.
+In an 8-bit register, what value does $(11000000)_2$ represent in Two's Complement (U2);It represents the decimal number $-64$.
+In an 8-bit register, what value does $(11000000)_2$ represent in Sign-Magnitude (moduł-znak);It represents the decimal number $-64$.
+What does the Overflow Flag (OF) indicate in x86 arithmetic;It indicates that the signed result (U2) is outside the representable range.
+What does the Sign Flag (SF) reflect after an arithmetic operation;It reflects the value of the most significant bit of the result.
+What condition triggers the Carry Flag (CF) in x86 processors;It is triggered by a carry out of or a borrow into the most significant bit.
+Under what circumstance is the Zero Flag (ZF) set to 1;It is set when the result of an arithmetic or logical operation is exactly zero.
+Which architecture is characterized by a large number of instructions and variable instruction lengths;The CISC (Complex Instruction Set Computer) architecture.
+How do RISC architectures typically handle arithmetic-logical operations in terms of operands;Operations are performed exclusively on registers, not directly on memory.
+Why is pipelining more difficult to implement efficiently in CISC architectures like x86;Due to variable instruction sizes and highly varying execution times per instruction.
+What are the five typical phases of instruction processing in a pipeline;Fetch (F), Decode (D), Execute (E), Memory Access (M), and Write Back (W).
+How do modern x86 processors handle the complexity of CISC instructions to facilitate pipelining;They perform an intermediate translation of CISC instructions into simpler RISC-like micro-operations.
+What is the primary function of branch prediction in modern processors;To guess the path of conditional jumps so the pipeline can continue processing instructions without waiting.
+What constitutes the difference between a 'program' and a 'process';A program is a passive set of instructions, while a process is the active execution of those instructions.
+What specific data structure is used by the operating system to store information about a process;The Process Control Block (PCB).
+What is the term for the procedure where the OS saves the state of one process and restores the state of another;Context switching.
+What is the goal of long-term scheduling (szeregowanie długoterminowe);To select a balanced mix of I/O-bound and CPU-bound processes to enter the system.
+When does a preemptive scheduler (szeregowanie wywłaszczające) make a scheduling decision;When a process changes from running to ready, or from waiting to ready, or terminates.
+What is a major disadvantage of non-preemptive scheduling;Processes may wait a long time to execute, leading to poor responsiveness.
+Which scheduling algorithm serves processes in the exact order they arrive in the ready queue;First-Come, First-Served (FCFS).
+What is the 'convoy effect' in the context of FCFS scheduling;It occurs when a long CPU-bound process causes many short I/O-bound processes to wait for long periods.
+Which scheduling algorithm is provably optimal for minimizing average waiting time;Shortest Job First (SJF).
+Why is the Shortest Job First (SJF) algorithm difficult to implement for short-term scheduling;Because it is difficult to accurately estimate the length of the next CPU burst.
+What is Shortest Remaining Time First (SRTF);It is the preemptive version of the Shortest Job First (SJF) algorithm.
+What risk is associated with SJF and Priority scheduling regarding low-priority or long processes;They may suffer from starvation (zagłodzenie), where they never get to execute.
+What technique is used to prevent starvation by gradually increasing a process's priority over time;Aging (postarzanie).
+How does the Round-Robin (RR) scheduling algorithm handle process preemption;It preempts the running process after a fixed time interval called a quantum.
+What happens to Round-Robin scheduling if the time quantum is set to be extremely large;It behaves identically to the First-Come, First-Served (FCFS) algorithm.
+What is the main requirement for a scheduler in a Hard Real-Time System;It must guarantee that all processes meet their strict deadlines (terminy ostateczne).
+In synchronous real-time scheduling, what is a 'frame' (rama);A fixed-length interval of CPU time into which tasks must be fitted.
+What are the four necessary conditions for a deadlock (zakleszczenie) to occur;Mutual exclusion, hold and wait, no preemption, and circular wait.
+In a resource allocation graph, what does a directed edge from a process to a resource indicate;The process has requested the resource and is currently waiting for it.
+In a resource allocation graph, what does a directed edge from a resource to a process indicate;The resource has been allocated to that specific process.
+Is the presence of a cycle in a resource allocation graph sufficient to prove a deadlock exists;No, it is a necessary condition, but only sufficient if there is only one instance of each resource type.
+What is the 'Safe State' in the context of deadlock avoidance;A state where the system can allocate resources to every process in some order without causing a deadlock.
+Which algorithm is used to avoid deadlocks by simulating resource allocation for maximum possible claims;The Banker's Algorithm.
+What is internal fragmentation in memory management;Unused memory that is internal to an allocated partition or block.
+What is external fragmentation in memory management;Total free memory exists to satisfy a request, but it is not contiguous.
+How does the 'buddy system' (algorytm bliźniaków) allocate memory;It recursively divides a large block of memory into halves until it finds the smallest power-of-two size that fits the request.
+What is the basic unit of physical memory in a paging system;A frame (ramka).
+In a paging system, what does the page table contain;The mapping of logical page numbers to physical frame numbers for a specific process.
+If a 32-bit architecture uses $4\text{ KiB}$ pages, how many bits are used for the offset;12 bits (since $4\text{ KiB} = 2^{12}$ bytes).
+What is the purpose of the Translation Lookaside Buffer (TLB);It is a fast associative cache that stores recent page-to-frame translations to speed up memory access.
+Why are multi-level page tables used in systems with large virtual address spaces;To avoid storing the entire page table in contiguous physical memory, allowing it to be sparse.
+What event is triggered when a process attempts to access a page that is not currently in physical memory;A page fault (błąd braku strony).
+In a system with $2\text{ MiB}$ pages, why is a mapping from virtual address $0x00c00f04$ to physical address $0x00d00004$ invalid;Because the offsets do not match; $0x000f04 \ne 0x100004$.
+Which memory management method is most likely to suffer from internal fragmentation;Paging or static partitioning (strefy statyczne).
+How does an operating system typically view the contents of a file;As an uninterpreted sequence of bytes.
+What is the role of an 'inode' (i-węzeł) in a file system;It stores metadata about a file, such as permissions, link count, and the location of data blocks on the disk.
+In Unix-like systems, what is returned by the `open()` system call to act as a session handle for a file;A file descriptor (deskryptor).
+What is the difference between `open()` and `fork()` regarding the system-wide open file table;`open()` creates a new entry, whereas `fork()` duplicates the descriptor and increases the reference count to the existing entry.
+In the ext2 file system, what is the purpose of the block bitmap;It tracks the occupancy status (free or used) of every data block within a block group.
+What limits the maximum size of a block group in ext2;The size of a single block, as the block bitmap must fit within one block.
+If an ext2 block size is $1\text{ KiB}$, what is the maximum number of blocks a block group can contain;8,192 blocks (since one $1\text{ KiB}$ block contains $1024 \times 8$ bits).
+In a system with $8\text{ KiB}$ pages, what is the maximum possible offset for any address in hex;$0x1FFF$ (since $8\text{ KiB} = 2^{13}$, and $2^{13}-1 = 8191$).
+In a single-level paging system where the page table size equals the page size and entries are $4$ bytes, why is $4\text{ KiB}$ pages incompatible with a $32$-bit address space;A $4\text{ KiB}$ table only holds $1024$ entries, which at $4\text{ KiB}$ per page only covers $4\text{ MiB}$ of address space.
+A process has a $512\text{ KiB}$ address space with $1\text{ KiB}$ pages; how many entries must be in its page table;512 entries.
+When using the buddy system in a $1\text{ MiB}$ total area, what is the resulting block size if a process requests $32\text{ KiB}$;Exactly $32\text{ KiB}$.
+In a $48$-bit logical address space with $256\text{ KiB}$ pages, how many bits are reserved for the offset;18 bits (since $256\text{ KiB} = 2^{18}$ bytes).
+What is the maximum addressable space for a process using $16$-bit addresses;$64\text{ KiB}$ (calculated as $2^{16}$ bytes).
+If `al = 3` and `bl = 130`, what is the 8-bit result of `sub al, bl` interpreted as an unsigned integer;129 (calculated as $3 - 130 \pmod{256} = -127 + 256 = 129$).
+Why is 'circular wait' considered the most crucial necessary condition for deadlocks;Because it defines the actual state of deadlock where a closed chain of dependencies prevents any progress.
+What is a 'hard link' in the context of file system directories;A directory entry that associates a name with an existing inode number.
+How does the 'execute' phase in a pipeline differ from the 'memory access' phase;Execute performs the ALU calculation, while memory access retrieves from or stores data to RAM.
+Which CPU register contains the status flags updated after each arithmetic-logical operation;The status register (or EFLAGS/RFLAGS in x86).
+What is the primary trade-off when choosing a very small time quantum for Round-Robin scheduling;Improved responsiveness versus increased overhead from frequent context switching.
+In the context of the ext2 file system, how is the maximum partition size calculated;As $2^{32} \times \text{block\_size}$.
+What is the difference between an 'internal' and 'external' priority in process scheduling;Internal priorities are computed by the OS based on process behavior; external ones are assigned by users or administrators.
+If a process requests $256\text{ KiB}$ in a $1\text{ MiB}$ buddy system and it is the second request, where is it likely allocated;In the second $256\text{ KiB}$ block of the first $512\text{ KiB}$ half, or in the second $512\text{ KiB}$ half.
+What is the result of `sub al, bl` when `al = 129` and `bl = 130` in an 8-bit register;$255$ in NKB, or $-1$ in U2 (binary $11111111$).
+Which flag is set if an unsigned subtraction requires a borrow from the most significant bit;The Carry Flag (CF).
+In a $2$-level paging system, if the logical address is $32$ bits and offset is $12$ bits, how many bits remain for the page directory and page table indexes;20 bits (typically split as $10$ bits each).
+What component of the process state includes the Instruction Pointer and Stack Pointer;The set of registers.
+Under what condition can a non-preemptive kernel be forced to switch contexts;Only when the current process finishes its task or voluntarily enters a waiting state.
+Which architectural feature of RISC aims to simplify the decoding process;Fixed instruction lengths and consistent field placement within the instruction code.

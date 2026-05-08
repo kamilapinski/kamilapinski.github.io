@@ -1,0 +1,71 @@
+What symbol is used to denote the set of all possible outcomes, known as the sample space?;The Greek letter $\Omega$.
+What three conditions must a process satisfy to be considered a random experiment?;Clearly defined repeatable conditions, known set of possible outcomes, and unpredictable specific results.
+How are specific subsets of the sample space $\Omega$ usually designated in probability theory?;As events, typically denoted by capital letters such as $A, B, X,$ or $Y$.
+What is the probability of the empty set $\emptyset$ in any probability space?;The probability is 0.
+What is the probability of the entire sample space $\Omega$?;The probability is 1.
+For any event $A$, what is the defined range of its probability $P(A)$?;The range is the interval $[0, 1]$.
+If event $A$ is a subset of event $B$ ($A \subseteq B$), how do their probabilities compare?;$P(A) \le P(B)$.
+What is the formula to calculate the probability of the complement event $A'$?;$P(A') = 1 - P(A)$.
+What is the inclusion-exclusion formula for the probability of the union of two events $A \cup B$?;$P(A \cup B) = P(A) + P(B) - P(A \cap B)$.
+According to the provided text, what is the geometric visualization tool used to illustrate relationships between events?;Venn diagrams.
+What is the formula for the probability of $A' \cup B$ in terms of set difference?;$P(A' \cup B) = 1 - P(A \setminus B)$.
+Under the classical probability scheme, how is the probability of an event $A$ calculated if all elementary events are equally likely?;$P(A) = \frac{|A|}{ |\Omega| }$.
+In a 52-card deck, how many ways can the ranks of cards in a single pair be chosen?;There are 13 ways.
+In a poker hand, how many ways can the suits for a specific pair of cards be chosen?;There are $\binom{4}{2} = 6$ ways.
+What is the formal definition of the conditional probability $P(A|B)$?;$P(A|B) = \frac{P(A \cap B)}{P(B)}$, provided $P(B) > 0$.
+What is the intuitive interpretation of the event $B$ in the context of conditional probability $P(A|B)$?;Event $B$ becomes the new, reduced sample space.
+What is the 'product rule' formula for the intersection of $n$ events $A_1, A_2, \dots, A_n$?;$P(A_1 \cap \dots \cap A_n) = P(A_1) \cdot P(A_2 | A_1) \cdot P(A_3 | A_1 \cap A_2) \dots P(A_n | A_1 \cap \dots \cap A_{n-1})$.
+What two conditions must a collection of events $A_1, \dots, A_n$ satisfy to use the Law of Total Probability for an event $B$?;The events must be pairwise disjoint and their union must cover the sample space $\Omega$.
+What is the general formula for the Law of Total Probability for an event $B$ given a partition $A_i$?;$P(B) = \sum_{i=1}^{n} P(B|A_i)P(A_i)$.
+What is the formula for Bayes' Theorem to find $P(A_k|B)$?;$P(A_k|B) = \frac{P(A_k)P(B|A_k)}{\sum_{i=1}^{n} P(A_i)P(B|A_i)}$.
+When is Bayes' Theorem typically applied in multi-stage experiments?;When the final outcome is known and the probability of a specific prior path or cause is required.
+In the tree method, how is the probability of reaching a specific leaf node calculated?;By multiplying the probabilities along the path from the root to that node.
+What is the definition of a Bernoulli trial?;An experiment with exactly two possible outcomes: success (probability $p$) and failure (probability $1-p$).
+What is the formula for the probability of exactly $k$ successes in $n$ independent Bernoulli trials?;$P(X=k) = \binom{n}{k} p^k (1-p)^{n-k}$.
+Under what condition are two events $A$ and $B$ considered independent?;If $P(A \cap B) = P(A) \cdot P(B)$.
+If $P(A|B) = P(A)$, what does this imply about the relationship between events $A$ and $B$?;The events $A$ and $B$ are independent.
+What is a random variable?;A function $f: \Omega \to \mathbb{R}$ that maps every outcome of a random experiment to a real number.
+What is the probability mass function of a discrete random variable $X$ with a Binomial distribution $Binom(n, p)$?;$P(X=k) = \binom{n}{k} p^k (1-p)^{n-k}$ for $k \in \{0, \dots, n\}$.
+What does a random variable with a Geometric distribution $Geom(p)$ model?;The trial number of the first success in an infinite sequence of Bernoulli trials.
+What is the probability mass function for a Geometric distribution $Geom(p)$?;$P(X=k) = (1-p)^{k-1} \cdot p$ for $k \in \mathbb{N}^+$.
+What is the probability mass function for a Poisson distribution $Pois(\lambda)$?;$P(X=k) = \frac{e^{-\lambda} \lambda^k}{k!}$ for $k \in \mathbb{N}$.
+Under what circumstances does a Binomial distribution $Binom(n, p)$ converge to a Poisson distribution?;When $n \to \infty$ and $p = \frac{\lambda}{n}$.
+How is the expected value $E X$ defined for a discrete random variable?;$E X = \sum_{x \in \mathbb{R}} x \cdot P(X=x)$.
+What is the formula for the expected value of a function of a discrete random variable, $E f(X)$?;$E f(X) = \sum_{x \in \mathbb{R}} f(x) \cdot P(X=x)$.
+What does the property of 'linearity of expectation' state for any two random variables $X$ and $Y$?;$E(X + Y) = E X + E Y$.
+If $X$ and $Y$ are independent discrete random variables, what is $E(XY)$?;$E(XY) = E X \cdot E Y$.
+What is the formal definition of variance $Var X$ in terms of expected values?;$Var X = E(X - E X)^2$.
+What is the computationally simpler alternative formula for $Var X$?;$Var X = E(X^2) - (E X)^2$.
+How is the standard deviation $\sigma(X)$ related to the variance?;$\sigma(X) = \sqrt{Var X}$.
+What is the property for the variance of a scaled and shifted random variable $Var(aX + b)$?;$Var(aX + b) = a^2 Var X$.
+If $X$ and $Y$ are independent random variables, what is the variance of their sum $Var(X+Y)$?;$Var(X + Y) = Var X + Var Y$.
+What is the expected value of a Binomial distribution $Binom(n, p)$?;$E X = np$.
+What is the variance of a Binomial distribution $Binom(n, p)$?;$Var X = np(1-p)$.
+What is the expected value of a Geometric distribution $Geom(p)$?;$E X = \frac{1}{p}$.
+What is the expected value of a Poisson distribution $Pois(\lambda)$?;$E X = \lambda$.
+What is the variance of a Poisson distribution $Pois(\lambda)$?;$Var X = \lambda$.
+What is the definition of the probability generating function $g_X(t)$ for a natural-valued random variable $X$?;$g_X(t) = \sum_{k=0}^{\infty} P(X=k) t^k$.
+How can the expected value $E X$ be calculated using the probability generating function $g_X(t)$?;$E X = g'_X(1)$.
+How can $Var X$ be calculated using the first and second derivatives of the probability generating function $g_X(t)$?;$Var X = g''_X(1) + g'_X(1) - [g'_X(1)]^2$.
+If $X$ and $Y$ are independent, what is the probability generating function of their sum $g_{X+Y}(t)$?;$g_{X+Y}(t) = g_X(t) \cdot g_Y(t)$.
+What is the probability generating function for a Binomial distribution $Binom(n, p)$?;$g_X(t) = (pt - p + 1)^n$.
+What is Markov's inequality for a non-negative random variable $X$ and constant $c > 0$?;$P(X \ge c) \le \frac{E X}{c}$.
+What is Chebyshev's inequality for a random variable $X$ and constant $c > 0$?;$P(|X - E X| \ge c) \le \frac{Var X}{c^2}$.
+How is probability defined in the geometric scheme for a sample space $\Omega \subseteq \mathbb{R}^d$ and an event $A \subseteq \Omega$?;$P(A) = \frac{|A|}{|\Omega|}$, where $| \cdot |$ denotes the appropriate $d$-dimensional measure.
+When is a random variable $X$ considered to have a continuous distribution?;If there exists a non-negative density function $f_X$ such that $P(X \in [a, b]) = \int_a^b f_X(x) dx$.
+What is the required value of the integral of a density function $f_X$ over the entire real line?;$\int_{-\infty}^{+\infty} f_X(x) dx = 1$.
+What is the cumulative distribution function (CDF), denoted $F_X(x)$, defined as?;$F_X(x) = P(X \le x)$.
+What are the three main properties of any cumulative distribution function $F_X(x)$?;It is non-decreasing, right-continuous, and has limits 0 at $-\infty$ and 1 at $+\infty$.
+For a continuous random variable $X$, what is the relationship between the density function $f_X(x)$ and the CDF $F_X(x)$?;$f_X(x) = F'_X(x)$ (where the derivative exists).
+What is the density function of a continuous uniform distribution $Unif(a, b)$?;$f_X(x) = \frac{1}{b-a}$ for $x \in [a, b]$ and 0 otherwise.
+What does an exponential distribution $Exp(\lambda)$ typically model?;The waiting time until the occurrence of a specific event.
+What is the density function for an exponential distribution $Exp(\lambda)$ for $x \ge 0$?;$f_X(x) = \lambda e^{-\lambda x}$.
+What is the density function of a normal distribution $N(\mu, \sigma)$?;$f_X(x) = \frac{1}{\sqrt{2\pi}\sigma} e^{-\frac{(x-\mu)^2}{2\sigma^2}}$.
+What are the parameters of the 'standard' normal distribution?;Mean $\mu = 0$ and standard deviation $\sigma = 1$.
+If independent variables $X \sim N(\mu_X, \sigma_X)$ and $Y \sim N(\mu_Y, \sigma_Y)$, what is the distribution of $X+Y$?;$X + Y \sim N(\mu_X + \mu_Y, \sqrt{\sigma_X^2 + \sigma_Y^2})$.
+How is the expected value $E X$ defined for a continuous random variable with density $f_X$?;$E X = \int_{-\infty}^{+\infty} x f_X(x) dx$.
+What is the variance of a continuous uniform distribution $Unif(a, b)$?;$Var X = \frac{(a-b)^2}{12}$.
+What is the expected value of an exponential distribution $Exp(\lambda)$?;$E X = \frac{1}{\lambda}$.
+What is the variance of an exponential distribution $Exp(\lambda)$?;$Var X = \frac{1}{\lambda^2}$.
+According to the Central Limit Theorem, what distribution does the normalized sum of many i.i.d. variables approach?;The standard normal distribution $N(0, 1)$.
+What is the mathematical limit expression for the Central Limit Theorem for variables with mean $\mu$ and variance $\sigma^2$?;$\lim_{n \to \infty} P\left( \frac{\sum_{i=1}^n X_i - n\mu}{\sigma \sqrt{n}} \le t \right) = \Phi(t)$.

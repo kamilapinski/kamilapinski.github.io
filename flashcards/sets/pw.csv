@@ -1,0 +1,48 @@
+What is the fundamental difference between parallelism and concurrency in programming?;Parallelism involves the actual simultaneous execution of tasks, while concurrency is the abstraction of simultaneous execution via interleaving.
+What defines an 'atomic operation' in the context of concurrent processes?;An operation that is indivisible, meaning it either executes completely or not at all.
+How is 'interleaving' (przeplot) used to achieve the illusion of parallelism?;It cyclically switches execution between different threads or processes to execute their atomic operations one at a time.
+In a concurrent system with two processes executing $x = x + 1$ five times each ($x$ starting at 0), what is the minimum possible final value of $x$?;The minimum possible value is 2.
+Why is the line $x = x + 1$ considered non-atomic in concurrent programming?;It consists of three distinct atomic steps: reading the value, calculating the sum, and assigning the result back to memory.
+Which property of a concurrent program ensures that a 'bad' state defined by the problem specification is never reached?;Safety (bezpieczeństwo).
+Which property of a concurrent program ensures that every process wanting to perform an action can do so within a finite amount of time?;Liveness (żywotność).
+In terms of sequential correctness, what is the concurrent equivalent of 'partial correctness'?;The safety property.
+What constitutes the 'local section' of a process's code?;The part of the code that does not use shared resources and only operates on private, local variables.
+What is the primary synchronization requirement for a 'critical section'?;Only one thread or process may be inside the critical section at any given time.
+How does a 'deadlock' differ from 'starvation' regarding liveness?;Deadlock represents a global lack of liveness where actions wait for each other, while starvation is a local lack of liveness for a specific process.
+What is the definition of 'starvation' in process synchronization?;A situation where a process waits indefinitely because the event it awaits always triggers the resumption of a different process.
+What is the primary mechanism of a 'spinlock' (active waiting)?;The process continuously loops and checks if a condition (like a lock release) is met, consuming CPU cycles.
+What is one specific advantage of using spinlocks at the OS kernel level?;They avoid the time-consuming overhead of context switching to system code and process suspension.
+In cache-based systems, how do spinlocks optimize local checks?;They utilize active local waiting by checking values stored in the cache rather than accessing main memory repeatedly.
+What are the three mandatory operations defined for a general semaphore?;Initialization, P() (lowering/waiting), and V() (raising/signaling).
+In a Dijkstra semaphore, what happens during the P(S) operation?;The process waits until $S > 0$, then decrements $S$ by 1.
+What characterizes a 'strong semaphore' (silny semafor) compared to a weak one?;It uses a queue to wake processes, ensuring the first process in the queue is resumed (guaranteeing liveness).
+How does a 'strongly honest semaphore' (semafor silnie uczciwy) handle process resumption?;If V() is executed infinitely often, every waiting process will eventually be resumed, regardless of specific queue order.
+What is the constraint of a 'binary semaphore' (mutex) regarding its value?;It can only take the values 0 or 1, and raising it when it is already 1 results in an error.
+How is a 'doubly bounded semaphore' (semafor dwustronnie ograniczony) initialized?;With an initial value and a maximum value $M$ that limits how high the semaphore can be raised.
+What is the core principle of the 'critical section inheritance' technique?;A process waking another does not raise the mutex; the awakened process inherits the closed mutex and must raise it later.
+What is a 'monitor' in concurrent programming?;A programming module that encapsulates shared variables and provides mutual exclusion for all its internal functions.
+How does mutual exclusion work within a monitor?;It is enforced at the level of the entire monitor, meaning only one process can be 'inside' the monitor at once.
+What are the three operations available for 'condition variables' in monitors?;wait(c), signal(c), and empty(c).
+In Hoare monitor semantics, what happens to the signaling process after it executes signal(c)?;The signaling process is suspended and moved to the front of the entry queue, allowing the awakened process to run immediately.
+How does Mesa semantics differ from Hoare semantics regarding the 'signal' operation?;The signaling process continues its execution, and the awakened process must compete for the monitor once it's free, losing its immediate guarantee of the condition.
+In classic (Hoare) monitors, how are the process queues for condition variables structured?;Each condition variable is associated with its own simple FIFO (First-In-First-Out) queue.
+What is the main difference between synchronous and asynchronous communication in distributed systems?;Synchronous requires both processes to wait until the message is transferred, whereas asynchronous allows the sender to continue immediately after sending.
+What characterizes 'symmetric' communication between processes?;Both processes know and use each other's specific identifiers for the exchange.
+What is the function of 'indirect communication'?;Information is exchanged through shared data structures like queues or buffers without processes needing to know each other's IDs.
+In the Rendezvous system, what determines if a 'send' and 'receive' instruction are matched?;They are matched based on process addresses, the message name, and the number/types of arguments.
+What is 'Tuple Space' (przestrzeń krotek) in the context of asynchronous communication?;A global, infinite buffer where processes exchange messages (tuples) without needing to coexist in time.
+In Linda notation, how does the 'tsFetch' operation behave if no matching tuple is found?;It blocks (suspends) the calling process until a matching tuple becomes available in the space.
+What is the difference between 'tsFetch' and 'tsRead' in Tuple Space?;tsFetch removes the tuple from the space, while tsRead leaves it for others to access.
+What is the purpose of Peterson's algorithm?;To solve the mutual exclusion problem for two processes using only shared memory and atomic reads/writes.
+In the Producer-Consumer problem, what safety condition must be met for the consumer?;The consumer must wait if the buffer is empty.
+In the Readers-Writers problem, why is it safe for multiple readers to be in the 'reading room' simultaneously?;Because reading does not modify data, so it cannot lead to inconsistencies between concurrent readers.
+What is the safety rule for writers in the Readers-Writers problem?;If a writer is active, no other process (reader or writer) can have access to the data.
+How can the 'Five Philosophers' problem reach a deadlock?;If every philosopher simultaneously picks up their left fork and waits forever for their right fork.
+How does the 'Butler' (lokaj) solution prevent deadlock in the Five Philosophers problem?;By limiting the number of philosophers allowed at the table to 4, ensuring at least one philosopher can always access two forks.
+What is the core idea of the Ricart-Agrawala algorithm?;It provides mutual exclusion in distributed systems using asynchronous communication.
+How do processes update their logical clocks in Lamport's algorithm upon receiving a message?;Clock = $max(local\_clock, received\_timestamp) + 1$.
+In a distributed system with $N$ processes, what is the best possible time complexity for broadcasting a single message to everyone?;$O(\log N)$ units of time.
+What is the primary function of 'consensus algorithms' like Paxos?;To enable multiple processes to reach a unanimous agreement in an environment where some nodes may fail.
+Why is 'active waiting' generally considered inefficient?;It wastes CPU resources by executing empty loops while waiting for a condition that might take a long time to change.
+In Hoare monitor semantics, when does a signal() call NOT suspend the signaling process?;When niteher signal() is the last instruction in the procedure nor there are processes waiting on the condition variable.
+What does 'strong liveness' (silna żywotność) imply for a synchronization algorithm?;It guarantees that every specific request for a resource will eventually be granted in a finite timeframe.

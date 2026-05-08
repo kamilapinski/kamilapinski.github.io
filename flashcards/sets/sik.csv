@@ -1,0 +1,90 @@
+What is the primary pedagogical benefit of dividing a computer network into distinct layers?;It allows for the modular definition of components within a large system and simplifies the process of making changes.
+In a layered network stack, how does any given layer interact with the layer directly beneath it?;Each layer utilizes the specific services offered by the layer immediately below it.
+What defines the 'syntax' of a protocol in the application layer?;It defines the specific structure and format of the messages exchanged between processes.
+Which network architecture is characterized by a central server that handles client requests and possesses a permanently assigned IP address?;The client-server architecture.
+How do clients communicate in a standard client-server architecture?;Clients communicate only with the server and do not interact directly with one another.
+What is the defining characteristic of a Peer-to-Peer (P2P) network architecture?;It utilizes direct connections between pairs of communicating hosts, known as nodes, without the need for a central server.
+Why is P2P architecture considered 'samoskalowalne' (self-scalable)?;The network's capacity grows as more peers join because every new node provides resources as well as consuming them.
+What are the primary disadvantages of using a P2P architecture for network applications?;It typically suffers from lower levels of security, reliability, and performance compared to centralized systems.
+Which transport layer protocol does HTTP utilize to ensure reliable data delivery?;HTTP utilizes the TCP protocol.
+What is the primary responsibility of the transport layer during the data transmission process?;It handles the delivery of messages between specific processes running on different application hosts.
+What specific term is used to describe the data units created by the transport layer?;They are called segments.
+In the transport layer, what is the purpose of demultiplexing?;It is the process of delivering data from received segments to the correct application process on the host.
+Which transport layer protocol provides flow control to prevent a sender from overwhelming a receiver's buffer?;The TCP protocol.
+What is the main objective of the Network Layer in the Internet stack?;To provide a best-effort, connectionless transfer of datagrams between any two hosts in the network.
+How does the Network Layer treat data delivery according to its 'best-effort' principle?;It makes an attempt to deliver data but does not guarantee that the datagrams will actually reach their destination.
+What is the fundamental task of the Data Link Layer?;It transfers data frames across a single physical link between two adjacent network nodes.
+How many bits are used to represent a standard MAC (Media Access Control) address?;A standard MAC address is 48 bits long.
+Why is the structure of MAC addresses described as 'flat'?;The address is globally unique and remains constant regardless of the device's physical or logical location in the network.
+What is the function of the IEEE organization regarding MAC addresses?;The IEEE manages the address space and assigns unique blocks of $2^{24}$ addresses to network card manufacturers.
+What happens when a network card receives an Ethernet frame not addressed to its own MAC address or the broadcast address?;The network card simply discards the frame and does not notify the host system.
+Which physical medium is preferred for long-distance transmissions due to its immunity to electromagnetic interference?;Fiber optic cable.
+What is the most common and inexpensive physical medium used in modern local wired networks?;Unshielded Twisted Pair (UTP) cabling.
+What is the functional motto of the UDP protocol regarding data reliability?;UDP prioritizes speed and efficiency over reliability, accepting that some data may be lost during transmission.
+What information must a transport layer add to an application message to create a UDP segment?;It must add the source port number and the destination port number.
+Which fields are present in the header of a UDP segment?;The header contains the source port, destination port, length, and checksum fields.
+How does TCP handle the problem of out-of-order data arrival?;It uses sequence numbers to allow the receiver to reassemble the data in the correct original order.
+In TCP, what mechanism is used by the receiver to confirm the successful arrival of data?;The receiver sends an acknowledgment (ACK) containing the next sequence number it expects to receive.
+What is the primary cause of network congestion that TCP's congestion control tries to mitigate?;Congestion occurs when too many senders transmit data too quickly for the network's buffers, such as those in routers, to handle.
+What is the purpose of 'pipelining' in TCP data transmission?;It allows a sender to transmit multiple packets without waiting for individual acknowledgments, increasing throughput.
+How does Nagle's algorithm optimize TCP performance?;It combines several small application messages into a single TCP segment to minimize the total number of segments sent over the network.
+What is the bit-length of the source and destination IP addresses in an IPv4 header?;Both addresses are 32 bits long.
+What does the TTL (Time To Live) field in an IPv4 header signify?;It is a counter that is decremented by 1 at each router to prevent packets from circulating indefinitely in the network.
+In an IPv4 header, how is the 'Protocol' field used by the receiving host?;It identifies the specific higher-layer protocol (such as TCP or UDP) to which the payload should be passed.
+What is the function of the 'Offset' (pozycja fragmentu) field in an IPv4 fragmentation header?;It specifies the exact position of the fragment's data relative to the start of the original, unfragmented datagram.
+What is the fixed size of an IPv6 header in bytes?;An IPv6 header has a fixed size of 40 bytes.
+Why does the IPv6 header lack a checksum field?;The checksum was removed to speed up processing at routers, relying instead on error detection in other layers.
+Where is fragmentation performed in an IPv6 network?;Fragmentation is performed only at the end systems (hosts), as intermediate routers are not allowed to fragment IPv6 packets.
+Which ports are used by the DHCP protocol for its server and client functions?;DHCP uses UDP port 67 for the server and port 68 for the client.
+What source IP address does a client use in its initial DHCP discovery message?;The client uses the source address $0.0.0.0$.
+What is the primary role of the ICMP (Internet Control Message Protocol)?;ICMP is used by hosts and routers to communicate network-layer information, such as error reporting and diagnostic queries.
+Under what condition is an ICMP 'Destination Unreachable' message typically generated?;It is generated when a router or host cannot find a path to the destination or the destination port is closed.
+What does an ICMP 'Redirect' message signify to a host?;It informs the host that there is a more efficient router available on the same local network for a specific destination.
+Which security protocol provides protection specifically for TCP-based application data like HTTPS?;SSL (Secure Sockets Layer) or its successor TLS.
+What is the primary application of the IPSec protocol suite?;It is used to secure communications at the network layer, most notably for creating Virtual Private Networks (VPNs).
+In an Ethernet network, what does the MTU (Maximum Transmission Unit) parameter define?;It defines the maximum size of the data payload that can be carried in a single Ethernet frame.
+Which protocol is responsible for mapping a known IP address to a physical MAC address on a local network?;The ARP (Address Resolution Protocol).
+How is an IPv6 address represented in a simplified hexadecimal format?;Leading zeros are removed from each group, and the longest consecutive string of zero-value groups is replaced by a double colon (::).
+What is the total number of bits in an IPv6 address?;An IPv6 address is 128 bits long.
+What is the function of a subnet mask in CIDR (Classless Inter-Domain Routing)?;The subnet mask is used to distinguish the network portion of an IP address from the host portion.
+What mathematical operation is performed to determine the network address from an IP and its mask?;A bitwise AND (conjunction) operation is performed between the IP address and the subnet mask.
+What is the mathematical formula for calculating the number of usable host addresses in a subnet with a $/n$ prefix?;The formula is $2^{32-n} - 2$.
+What is the purpose of the IPv4 address $127.0.0.1$?;It is a loopback address used by a host to send network traffic to itself.
+What characterizes a 'private' IP address range?;Private addresses are used within local networks and are not routable on the public internet.
+Which IPv4 address range is designated for private Class C networks?;The range is $192.168.0.0/16$.
+In a routing table, what does a destination entry of $0.0.0.0$ with a mask of $0.0.0.0$ represent?;It represents the default route, used for any packets that do not match more specific entries in the table.
+What is the 'Longest Prefix Match' rule in network routing?;When multiple routes in a routing table match a destination IP, the router selects the one with the longest subnet mask (the most specific route).
+What is the primary function of NAT (Network Address Translation) on a router?;It maps multiple private IP addresses from a local network to a single public IP address for internet access.
+What is the primary role of a DNS (Domain Name System) server?;It translates human-readable domain names into the numerical IP addresses needed for network routing.
+In the DNS hierarchy, what is a TLD (Top-Level Domain) server?;It is a server responsible for domains like .com, .org, .net, or country-specific suffixes like .pl.
+What does a 'DNS recursive query' typically involve?;It involves a local DNS server performing multiple lookups on behalf of a client until it finds the final IP mapping.
+In a DNS zone file, what information is provided by an 'A' record?;It maps a hostname to its corresponding IPv4 address.
+Which DNS record type is used to map a hostname specifically to an IPv6 address?;The 'AAAA' record.
+What is a 'socket' in the context of network programming?;It is a software abstraction that acts as an interface between an application and the network protocol stack.
+What basic information must a client have to initiate a connection to a server via sockets?;The client must know the server's IP address, the port number the server is listening on, and the protocol to be used.
+Why is the TCP protocol described as 'connection-oriented'?;It requires a handshake process (negotiation) to establish a virtual connection before any application data can be sent.
+In Ethernet, what is the 'broadcast address' in hexadecimal format?;The broadcast address is $FF:FF:FF:FF:FF:FF$.
+What is the typical bit-length of the identifiers used for datagram fragmentation in IPv4?;The identifier field is 16 bits long.
+Which ICMP message is sent when a router determines that a datagram is too large for the next link's MTU but the 'Don't Fragment' bit is set?;An ICMP 'Packet Too Big' message.
+In a routing table, what does a 'Gateway' entry of $0.0.0.0$ signify?;It indicates that the destination network is local and can be reached directly via the specified interface without an intermediate router.
+What is the function of the 'Checksum' field in an IPv4 header?;It is used to detect bit-level corruption within the IP header itself, though it does not protect the data payload.
+How does an IPv6 flow label help routers process packets?;It allows routers to identify packets belonging to the same stream, enabling consistent Quality of Service (QoS) treatment.
+In the context of the physical layer, what is 'signal attenuation'?;It is the gradual loss of signal strength as it travels over a physical medium.
+What is the 'IHL' (Internet Header Length) field in IPv4 used for?;It specifies the length of the IP header in 32-bit words, which is necessary since the header can have variable-length options.
+What is the range of valid port numbers in the TCP/UDP protocols?;The port numbers range from $0$ to $65,535$.
+How does the CSMA/CD mechanism handle a detected collision on an Ethernet segment?;It stops transmission, sends a jam signal, and waits for a random backoff period before attempting to retransmit.
+In an IPv4 address, what is the purpose of the 'Don't Fragment' (DF) flag?;It instructs routers not to fragment the datagram; if it cannot pass a link without fragmentation, the router must discard it.
+What is 'Address Autoconfiguration' in the context of IPv6?;It is a mechanism that allows hosts to automatically generate their own globally unique IPv6 addresses without a stateful DHCP server.
+Which ICMP message is used by the 'ping' utility to test host reachability?;The ICMP Echo Request and its corresponding Echo Reply.
+How does a router determine the next hop if the destination IP is not in its local network?;It consults its routing table to find the gateway address for the matching network prefix.
+What is the size limit for the payload in a standard UDP datagram?;The total size of the datagram, including header, is limited by the 16-bit length field to $65,535$ bytes.
+In a TCP header, what does the 'Sequence Number' represent in terms of data bytes?;It represents the byte-stream number of the first byte of data in that specific segment.
+What is the function of the 'More Fragments' (MF) bit in the IPv4 header?;It is set to 1 for all fragments except the last one, allowing the receiver to know when all pieces have arrived.
+What happens to the checksum in a TCP segment if the underlying IP datagram is fragmented?;The TCP checksum is calculated over the entire original segment and is only verified after the fragments are reassembled at the destination.
+How does an Ethernet switch learn the location of hosts on its ports?;It observes the source MAC addresses of incoming frames and records them in a forwarding table alongside the receiving port.
+In a CIDR network, if the subnet mask is $255.255.240.0$, what is the corresponding prefix length ($/n$)?;The prefix length is $/20$.
+Which DNS server is the first point of contact for a client's resolver when a name is not in the local cache?;The Local DNS Server (often provided by the ISP).
+What is the primary difference between a 'hub' and a 'switch' in Ethernet networking?;A hub broadcasts incoming frames to all ports, whereas a switch selectively forwards frames only to the port where the destination MAC is located.
+Why is the use of 'options' in IPv4 headers generally discouraged for high-speed routing?;Processing options requires routers to leave the fast-switching path, significantly increasing latency and CPU overhead.
+In TCP, what is the 'RTT' (Round-Trip Time) and why is it important?;It is the time it takes for a segment to travel to the receiver and an acknowledgment to return, used to dynamically set retransmission timers.
+What is the purpose of the 'Type of Service' (ToS) field in the modern IPv4 header?;It is used for Differentiated Services (DiffServ) to prioritize certain types of traffic, such as voice over data.

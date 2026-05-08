@@ -1,0 +1,80 @@
+What is the primary mathematical foundation of the relational data model?;The algebra of relations.
+In a relational database, what term is used to describe a collection of relations?;A database schema.
+What component of a relation schema specifies the name and the list of columns?;The relation schema.
+What is the definition of a 'key' in a database relation?;An attribute or set of attributes that uniquely identifies each row (tuple).
+In relational algebra, why are duplicate rows automatically eliminated in the results?;Because relations are defined as sets.
+What are the three standard set operations included in relational algebra?;Union, intersection, and set difference.
+Which relational algebra operation combines every row of one relation with every row of another?;Cartesian product ($R \times S$).
+In a Cartesian product $R \times S$, how are columns with identical names handled?;They are prefixed with the name of the source relation (e.g., $R.A$ and $S.A$).
+What is the purpose of the 'selection' ($\sigma$) operation in relational algebra?;To filter rows based on a specific condition.
+Which relational algebra operation is used to select specific columns from a relation?;Projection ($\pi$).
+What is the primary requirement for performing a natural join ($R \bowtie S$)?;The relations must have at least one common column name.
+In a natural join, what happens to the rows that do not have a match in the other relation?;They are considered 'abandoned tuples' and are excluded from the result.
+Which join type includes abandoned tuples only from the first (left) relation?;Left outer join ($R \bowtie_L S$).
+What value is used to fill missing data in the results of an outer join?;NULL.
+If table $R$ has columns $A$ and $B$, where $A$ is the primary key and has $k$ distinct values, and $B$ has $l$ distinct values, what is the relationship between $k$ and $l$?;$k \ge l$.
+If relations $R$ and $Q$ each contain $n$ tuples, what is the maximum possible number of tuples in $R \bowtie Q$?;$n^2$.
+What are the three logical stages of executing a standard SQL SELECT query?;Identify tables (FROM), filter rows (WHERE), and choose columns (SELECT).
+What does the asterisk (*) symbol represent in a SQL SELECT clause?;All attributes (columns) of the relation.
+In SQL, which operator is used to check if a value belongs to a set or subquery result?;IN.
+Which SQL operator checks if a subquery returns at least one record?;EXISTS.
+In a SQL LIKE pattern, what character is used to represent exactly one arbitrary character?;The underscore (_).
+What keyword in SQL allows assigning a temporary name to a column or table?;AS (alias).
+In the context of three-valued logic in SQL, what is the result of comparing a value to NULL?;Unknown.
+Which SQL operators are specifically designed to check for the absence of data?;IS NULL and IS NOT NULL.
+What is the function of the COALESCE(v1, v2) expression in SQL?;It returns $v1$ if it is not NULL; otherwise, it returns $v2$.
+What keyword must be added to a SELECT clause to eliminate duplicate rows from the output?;DISTINCT.
+Which SQL set operation combines results but keeps all duplicates?;UNION ALL.
+What is the behavior of the COUNT(*) aggregate function regarding NULL values?;It counts all rows, including those with NULL values.
+How does the COUNT(column_name) function handle NULLs?;It counts all non-NULL values in that column.
+What SQL clause is used to partition rows into subsets for aggregate calculations?;GROUP BY.
+What is the difference between the WHERE clause and the HAVING clause in SQL?;WHERE filters individual rows, while HAVING filters entire groups.
+Which SQL join type is equivalent to a standard Cartesian product?;CROSS JOIN.
+In SQL, what keyword specifies the condition for joining two tables?;ON.
+Which SQL join type includes abandoned tuples from both tables?;FULL OUTER JOIN.
+What SQL command is used to add new rows to a table?;INSERT INTO.
+What SQL command is used to modify existing data within a table?;UPDATE.
+What happens if a DELETE command is executed without a WHERE clause?;All rows in the table are deleted.
+If a table $R$ has columns $A, B, C$ and the pair $(A, B)$ is a key, what is the maximum number of distinct values possible in column $C$?;$k \cdot l$ (where $k$ is the count of distinct $A$ values and $l$ is the count of distinct $B$ values).
+The notation $R: A \to B$ represents a _____?;Functional dependency.
+What does it mean for a functional dependency to be 'trivial'?;The right-hand side is a subset of the left-hand side (e.g., $AB \to A$).
+According to Armstrong's transitivity rule, if $X \to Y$ and $Y \to Z$ hold, then _____?;$X \to Z$.
+In database theory, what is a 'superkey'?;A set of attributes that functionally determines all other attributes in the relation.
+What distinguishes a 'key' from a 'superkey'?;A key is a minimal superkey, meaning no proper subset of it is a superkey.
+What term describes the unnecessary repetition of information in a database?;Redundancy.
+What is the primary goal of database normalization?;To eliminate redundancy and prevent data anomalies.
+What is the requirement for a relation to be in First Normal Form (1NF)?;Every attribute must contain only atomic (indivisible) values.
+What additional condition must a 1NF relation meet to be in Second Normal Form (2NF)?;Every non-key attribute must depend on the entire key, not just a part of it.
+A relation is in Third Normal Form (3NF) if it is in 2NF and _____?;Every non-key attribute depends only on the key (no transitive dependencies).
+What is the defining condition for Boyce-Codd Normal Form (BCNF)?;For every functional dependency $X \to Y$, $X$ must be a superkey.
+What is a potential disadvantage of decomposing a relation into BCNF?;Some functional dependencies might be lost.
+What is a 'transaction' in a database system?;A sequence of operations integrated into a single, indivisible unit of work.
+What command is used to permanently save the changes made by a transaction?;COMMIT.
+What command is used to undo changes made during a transaction?;ROLLBACK.
+Which transaction isolation level provides the highest degree of safety?;Serializable.
+What anomaly occurs when a transaction reads uncommitted changes from another transaction?;Dirty Read.
+What is a 'Non-repeatable Read'?;An anomaly where re-reading the same data in a transaction returns different values because another transaction modified it.
+What is a 'Phantom Read'?;An anomaly where a search query returns a different set of rows upon re-execution due to additions by another transaction.
+Which isolation level prevents Dirty Reads but allows both Non-repeatable Reads and Phantom Reads?;Read Committed.
+Which isolation level prevents Dirty Reads and Non-repeatable Reads but allows Phantom Reads?;Repeatable Read.
+Why does the I/O model prioritize minimizing disk access over CPU cycles?;Disk access is significantly slower (millions of cycles) than accessing RAM.
+In the I/O model, what is a 'block'?;The unit of data containing a fixed number of rows that is read or written at once.
+Which sorting algorithm is most optimal for database systems using the I/O model?;Merge Sort.
+In database terms, what is an 'index'?;A helper data structure stored in memory to speed up query evaluation.
+What is a 'composite index'?;An index whose key consists of multiple columns.
+What is the rule for choosing column order in a composite index?;Place the column that provides the greatest reduction in the number of result rows first.
+The Armstrong rule of 'augmentation' states that if $X \to Y$ holds, then _____ also holds?;$XZ \to YZ$ (for any $Z$).
+If a relation has no functional dependencies defined, what is the minimum number of keys it must have?;One (the set of all attributes).
+What occurs when the determinant of a functional dependency is only a part of the primary key in a 1NF relation?;A violation of Second Normal Form (2NF).
+Why is 1NF considered the most basic normal form?;It ensures that the table structure is flat and values are scalar.
+According to the I/O model, what determines the 'cost' of an algorithm?;The total number of disk reads and writes.
+In SQL, how are set operations like UNION and INTERSECT different from standard SELECT queries regarding duplicates?;They automatically eliminate duplicates unless the ALL keyword is used.
+What does the 'unknown' logical value signify in SQL query filtering?;It indicates that the condition is neither true nor false (usually due to a NULL).
+Which SQL command is used to remove specific rows from a table?;DELETE FROM.
+In the I/O model, how is 'scanning' optimized?;By processing data block by block instead of record by record.
+What is the relationship between BCNF and 3NF?;Every BCNF relation is also in 3NF, but not every 3NF relation is in BCNF.
+In a 2nd Normal Form relation with exactly two columns, is it always in BCNF?;Yes.
+What is the purpose of the 'journal' (transaction log) in database transaction management?;To temporarily store changes before they are permanently recorded in the database.
+Which transaction anomaly is allowed under 'Read Uncommitted' but prevented by 'Read Committed'?;Dirty Read.
+If a transaction isolation level is 'Repeatable Read', is a 'Phantom Read' possible?;Yes.
+What is the primary factor limiting database performance in the I/O model?;The speed of the disk drive.

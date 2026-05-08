@@ -1,0 +1,79 @@
+What three conditions must an algorithm $A$ meet to be considered (completely) correct relative to specification $\langle \alpha, \beta \rangle$?;Partial correctness, definedness of calculations, and the termination property.
+What does the 'partial correctness' property of an algorithm guarantee?;If the algorithm terminates for input satisfying condition $\alpha$, the results will satisfy condition $\beta$.
+What is meant by the 'definedness' of algorithm calculations?;For every input satisfying $\alpha$, the algorithm's execution is never interrupted.
+What is the 'termination property' (własność stopu) of an algorithm?;For every input satisfying the initial condition, the calculation is not infinite.
+What is the standard unit of measurement for memory complexity in algorithms?;The machine memory word.
+What is a 'dominant operation' in the context of time complexity?;An operation whose total count is proportional to the total number of all unit operations performed.
+How is the pessimistic time complexity function $W(n)$ defined?;$W(n) = \sup\{t(d) : d \in D_n\}$, where $t(d)$ is the number of dominant operations for input $d$.
+How is the expected time complexity function $A(n)$ calculated?;$A(n) = \sum_{k \ge 0} k \cdot p_{n,k} = E[X_n]$, the expected value of dominant operations.
+What characterizes an 'in-place' (w miejscu) algorithm?;It requires only a constant amount of additional memory beyond the data storage itself.
+What defines a 'stable' sorting algorithm?;It preserves the relative order of elements with equal values.
+What is an 'inversion' in a sequence $a$ of length $n$?;A pair of indices $(i, j)$ such that $1 \le i < j \le n$ and $a[i] > a[j]$.
+What is the maximum number of inversions in a sequence of size $n$?;$\frac{1}{2}n(n-1)$.
+In Insertion Sort, what is the exact number of dominant operations $v < a[j]$ in terms of inversions?;$n - 1 + Inv(a)$.
+What is the asymptotic pessimistic time complexity of Insertion Sort?;$\Theta(n^2)$.
+What is the asymptotic expected time complexity of Insertion Sort?;$\Theta(n^2)$.
+Which set of functions does $O(g(n))$ represent?;$\{f(n) : \exists c, n_0 > 0, \forall n \ge n_0, 0 \le f(n) \le c \cdot g(n)\}$.
+What is the formal definition of the set $\Omega(g(n))$?;$\{f(n) : \exists c, n_0 > 0, \forall n \ge n_0, 0 \le c \cdot g(n) \le f(n)\}$.
+When is it correct to write $f(n) = \Theta(g(n))$?;When $f(n) = O(g(n))$ and $f(n) = \Omega(g(n))$ both hold.
+What structural property defines a 'complete' (zupełny) binary heap?;Leaves appear only on the last and second-to-last levels, filled consistently from left to right.
+In an array-based binary heap $a$, what are the indices of the parent and children of node $i$?;Parent is $\lfloor i/2 \rfloor$; children are $2i$ and $2i+1$.
+How is a binomial tree $B_k$ constructed from $B_{k-1}$?;By attaching one $B_{k-1}$ tree to the root of another $B_{k-1}$ tree.
+What is the total number of nodes in a binomial tree $B_k$?;$2^k$.
+What is the time complexity of the $Join(T1, T2)$ operation for binomial trees of equal degree?;$O(1)$.
+What is the time complexity of the $Union(Q1, Q2)$ operation for two binomial queues?;$O(\log n)$.
+In a Fibonacci Heap, what is the amortized complexity of the $Insert$ operation?;$O(1)$.
+What is the amortized complexity of the $DeleteMin$ operation in a Fibonacci Heap?;$O(\log n)$.
+What mechanism allows the $DecreaseKey$ operation in a Fibonacci Heap to reach $O(1)$ amortized time?;The cascading cut operation.
+Why is the structure called a Fibonacci Heap?;The minimum size of a tree of degree $d$ is the $(d+2)$-th Fibonacci number.
+Which sorting algorithm is characterized by $n \cdot (n-1)/2$ comparisons and $Inv(a)$ swaps?;Bubble Sort.
+What is the primary advantage and primary disadvantage of Selection Sort?;Advantage: Small number of swaps ($n-1$); Disadvantage: Always $O(n^2)$ comparisons.
+Why is Selection Sort not stable?;Swapping the minimum element into its position can jump over and reorder equal elements.
+What is the pessimistic time complexity of Heap Sort?;$\Theta(n \log n)$.
+Is Heap Sort an in-place algorithm?;Yes.
+Is Merge Sort a stable algorithm?;Yes.
+What is the primary memory-related disadvantage of the standard Merge Sort?;It is not in-place (requires an auxiliary array of size $n$).
+What is the expected time complexity of Quick Sort with a random pivot?;$\Theta(n \log n)$.
+What is the worst-case time complexity of Quick Sort?;$\Theta(n^2)$.
+Under what condition does Count Sort achieve linear time complexity $\Theta(n)$?;When the maximum value $m$ in the array is $O(n)$.
+How does Bucket Sort differ from Count Sort?;It maintains a list (bucket) for each value rather than just a counter.
+What is the time complexity of lexicographical sorting for $n$ words of length $k$ over alphabet $m$?;$\Theta(k \cdot (n + m))$.
+What is the established lower bound for the number of comparisons in any comparison-based sorting algorithm?;$\Theta(n \log n)$.
+What is the time complexity of Dijkstra's algorithm using a complete (binary) heap?;$O(m \log n)$.
+What is the time complexity of Dijkstra's algorithm using a Fibonacci heap?;$O(m + n \log n)$.
+What is the time complexity of Breadth-First Search (BFS) in a graph with $n$ vertices and $m$ edges?;$O(n + m)$.
+What special property do non-tree edges have in a DFS spanning tree?;They connect ancestors directly to descendants (or vice versa), never 'sideways'.
+What defines the height of a rooted tree?;The maximum number of edges on a path from the root to any leaf.
+How many permutations of $\{1, 2, ..., 7\}$ result in a BST of height 6?;64 (calculated as $2^6$).
+What is the height balance property of an AVL tree?;For every node, the heights of its left and right subtrees differ by at most 1.
+What is the maximum possible height of an AVL tree with 2022 nodes?;14.
+How is the minimum number of nodes $min(n)$ in an AVL tree of height $h$ calculated?;Using the recurrence $F_h = F_{h-1} + F_{h-2} + 1$, with $F_0=1, F_1=2$.
+What is the effect of the $LocalSplay(x)$ operation in a Splay Tree?;Node $x$ is moved to the root via rotations while preserving symmetric order.
+What are the amortized and pessimistic costs of Splay Tree operations?;Amortized: $O(\log n)$; Pessimistic: $\Theta(n)$.
+What color must the root and all external (NULL) nodes be in a Red-Black tree?;Black.
+In a Red-Black tree, what is the 'black height' rule?;Every path from a node to its descendant NULL nodes must contain the same number of black nodes.
+What is modular hashing?;A function $h(k) = k \pmod m$, where $m$ is usually a prime number.
+What is the time complexity of the Knuth-Morris-Pratt (KMP) algorithm for text $n$ and pattern $m$?;$O(n + m)$.
+What is a 'trie' (prefix tree)?;A search tree where nodes store fragments of keys, often used for word sets.
+What is the time complexity to check if a word of length $k$ exists in a trie?;$O(k)$.
+Which text structure allows finding all occurrences of pattern $s$ in text $t$ in linear time relative to lengths?;A Suffix Tree or Suffix Array.
+In the function $coto(n)$, if $n > 0$, it returns $coto(n-1) + coto(-n)$. If $n < 0$, it returns $coto(n+1) - 1$. What is $coto(-2012)$?;$-2011$.
+What is the height of a binary heap with 1 node?;0.
+In a max-heap, what is the value relationship between a parent $P$ and its child $C$?;$P \ge C$.
+Which sorting algorithm performs poorly on nearly sorted data if the first element is always chosen as the pivot?;Quick Sort.
+What is the 'sentinel' (strażnik) often used for in the implementation of Insertion Sort?;A value at index 0 (like $-INF$) to prevent the loop index from going out of bounds.
+What is the complexity of initializing a Fibonacci Heap?;$O(1)$.
+What does $sup\{t(d) : d \in D_n\}$ describe?;The worst-case (pessimistic) complexity $W(n)$.
+Is Selection Sort stable?;No.
+Is Quick Sort stable?;No.
+Is Bubble Sort in-place?;Yes.
+Is Count Sort in-place?;No.
+Which graph algorithm finds shortest paths from a source in an unweighted graph?;Breadth-First Search (BFS).
+In a biconnected (dwuspójny) graph with $n \ge 4$ nodes, what is the minimum height of any DFS tree?;3.
+What is the height of a BFS tree for the complete bipartite graph $K_{n,n}$?;2.
+What is the maximum possible height of a BST containing 100 vertices?;99.
+What is the minimum possible height of a BST containing 100 vertices?;6 (calculated as $\lfloor \log_2 100 \rfloor$).
+In the context of the KMP algorithm, what is 'preprocessing'?;The phase where the pattern is analyzed to build a transition or failure function.
+What is the time complexity of the KMP preprocessing phase for a pattern of length $m$?;$O(m)$.
+In the game where Bartek finds two numbers chosen by Agata from $\{1, ..., n\}$, what is the complexity of queries needed?;$O(\log n)$.
+How does the height of an AVL tree compare to a Red-Black tree for the same number of nodes?;An AVL tree is generally more strictly balanced and thus usually shorter.

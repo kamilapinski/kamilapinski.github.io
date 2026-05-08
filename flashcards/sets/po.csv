@@ -1,0 +1,80 @@
+In Java, what is the conceptual relationship between a class and an object?;A class is a template or factory, while an object is a specific instance of that class.
+What is the primary purpose of a constructor in a Java class?;To initialize the object by setting the initial values of its fields.
+What naming rule must all Java constructors follow?;The constructor's name must be identical to the name of the class.
+What is the return type of a Java constructor?;A constructor has no return type, not even void.
+What is the term for defining multiple constructors in a class with different parameter counts or types?;Constructor overloading.
+What happens if a programmer does not define any constructor in a Java class?;The compiler provides a default no-argument constructor that performs no additional operations.
+What does the keyword 'this' refer to within a class method or constructor?;It refers to the current instance of the object.
+How can one constructor call another constructor in the same class to avoid code duplication?;By using the syntax 'this(...)' as the first line of the constructor.
+In what specific position must a call to 'this()' or 'super()' be placed within a constructor?;It must be the very first instruction in the constructor's body.
+When a constructor calls another constructor via 'this()', what is the first thing executed?;The constructors for the parameters passed to the 'this()' call.
+What is the sequence of execution for a constructor that does NOT use 'this()'?;1. Parameter constructors, 2. Attribute constructors (initializers), 3. Constructor body.
+Concept: Encapsulation?;Hiding the internal implementation details of an object and providing access through methods like getters and setters.
+Which visibility modifier is the most restrictive in Java?;private
+What is the visibility of a field if no access modifier is specified?;Default (also called package-private) visibility.
+Under package-private visibility, which classes can access the fields or methods?;Only classes located within the same package.
+Which classes can access a member marked with the 'protected' modifier?;Classes in the same package and all subclasses, even those in different packages.
+How does 'public' visibility affect access to a class member?;The member is accessible to all classes regardless of their package.
+Are private attributes of an object accessible to other objects of the same class?;Yes, private attributes are accessible from other instances of the same class.
+What is the correct hierarchical order of visibility from widest to narrowest?;public $\succ$ protected $\succ$ default (package) $\succ$ private.
+In Java, what keyword is used to establish an inheritance relationship between classes?;extends
+Does Java support multiple inheritance for classes?;No, a class can only inherit from a single superclass.
+When a subclass object is created, which constructor is implicitly called first if not specified?;The no-argument constructor of the superclass.
+What is the term for a method in a subclass that has the same signature as a method in the superclass?;Method overriding.
+What annotation is used to indicate that a method is intended to override a superclass method?;@Override
+What is a 'virtual method' in Java?;A method that can be overridden by a subclass.
+Are private methods in Java considered virtual?;No, private methods cannot be overridden and thus are not virtual.
+Concept: Polymorphism?;The ability to treat an object of a subclass as an object of its base class.
+According to the Liskov substitution principle, what can always be substituted for a superclass object?;An object of any of its subclasses.
+When overriding a method, how can the visibility range be modified?;The visibility can be kept the same or made wider, but never narrower.
+If a superclass method is 'protected', what visibility can the overriding method in the subclass have?;Either 'protected' or 'public'.
+What determines which version of an overridden method is called at runtime?;The actual dynamic type of the object, not the static type of the reference.
+If a subclass defines an attribute with the same name as one in the superclass, which one is accessed via a superclass reference?;The attribute in the superclass, as attribute access depends on the static type of the reference.
+How can a subclass access an overridden method or a shadowed field in the immediate superclass?;By using the 'super' keyword.
+What are 'static' members in a Java class?;Members that belong to the class itself rather than any specific instance; they are shared among all objects of the class.
+Can static methods be overridden (i.e., are they virtual)?;No, static methods are not virtual and cannot be overridden.
+What is the effect of the 'final' keyword when applied to a class?;The class cannot be extended (it cannot have subclasses).
+What is the effect of the 'final' keyword when applied to a method?;The method cannot be overridden by subclasses.
+What is the restriction on a variable marked as 'final'?;Its value cannot be changed once it has been initialized.
+What is the difference between 'overloading' and 'overriding' regarding method return types?;Overloading requires different parameters (return type alone isn't enough), while overriding requires a compatible return type (same or subclass).
+What keyword is used to declare a class that cannot be instantiated and may contain methods without bodies?;abstract
+What must a non-abstract subclass do if it inherits an abstract method?;It must provide an implementation for that abstract method.
+Is it permissible for a concrete method to call an abstract method within the same abstract class?;Yes, this is a valid and common practice.
+What must happen to a class if it contains at least one abstract method?;The class itself must be declared as 'abstract'.
+How do interfaces differ from classes in terms of their conceptual purpose?;Interfaces define what a class can do (behavior), whereas classes define what a class is (identity/structure).
+Which keyword allows a class to adopt the behavior defined by an interface?;implements
+Can a single Java class implement multiple interfaces?;Yes, Java supports multiple inheritance only through interfaces.
+What are the implicit modifiers for all constants defined within an interface?;public static final
+What is a 'default' method in a Java interface?;A method that includes a default implementation, allowing classes to inherit it without mandatory overriding.
+What is the implicit visibility and nature of methods in an interface?;They are implicitly 'public' and 'abstract' (unless static or default).
+Are 'protected' methods allowed in a Java interface?;No, all methods in an interface must be public.
+What is the root class for all exceptions in Java?;Throwable
+Which subclass of 'Throwable' is intended for serious system problems that should not be caught?;Error
+What are 'checked exceptions' in Java?;Exceptions (subclasses of Exception excluding RuntimeException) that must be either handled by a try-catch block or declared in the method signature.
+What defines an 'unchecked exception'?;Any exception that is a subclass of 'RuntimeException'; they do not require mandatory handling or declaration.
+Which keyword is used to explicitly throw an exception instance within a method?;throw
+What is the purpose of the 'throws' keyword in a method signature?;To declare a list of checked exceptions that the method might throw.
+When overriding a method, what is the rule for the 'throws' clause?;The overriding method can declare the same exceptions, a subset (fewer), or subclasses of the original exceptions, but never more or broader checked exceptions.
+In a try-catch-finally block, which section is guaranteed to run regardless of whether an exception was thrown or caught?;finally
+If multiple 'catch' blocks match a thrown exception, which one is executed?;The first one that matches the exception type.
+How can a custom exception class be created in Java?;By extending the 'Exception' or 'RuntimeException' class and providing a constructor.
+What is a Java 'collection'?;An object used to store and manage a group of other objects with dynamic sizing.
+Which interface serves as the parent for List, Set, and Queue in the collection hierarchy?;Collection<E>
+In the Java collection hierarchy, does the Map interface extend the Collection interface?;No, Map is a separate hierarchy.
+What does the 'add(E e)' method in the Collection interface return?;A boolean indicating whether the collection was changed as a result of the call.
+Which method is used to obtain an object for traversing the elements of a collection one by one?;iterator()
+What method returns the number of elements currently stored in a collection?;size()
+If a class 'B' extends 'A', and 'A' has a method 'm1()', can 'B' define a method 'm1()' with narrower visibility?;No, this would cause a compilation error.
+Class A { void m() { print('A'); } }; Class B extends A { void m() { print('B'); } }; A obj = new B(); obj.m(); What is printed?;B (because methods are virtual and use dynamic dispatch).
+Class A { int i = 1; }; Class B extends A { int i = 2; }; A obj = new B(); System.out.print(obj.i); What is printed?;1 (because field access depends on the static type of the reference).
+When a constructor in class B calls 'super()', when are the attributes of class B initialized?;After the superclass constructor finishes but before the rest of B's constructor body executes.
+Can an interface extend another interface?;Yes, an interface can extend one or more other interfaces using the 'extends' keyword.
+What happens if a 'catch' block throws a new exception?;The new exception will not be caught by the current try-catch block; it must be handled by an outer scope.
+Can a 'try' block exist without a 'catch' block?;Yes, provided it is followed by a 'finally' block.
+Is 'NullPointerException' a checked or unchecked exception?;Unchecked (it is a subclass of RuntimeException).
+Is 'IOException' a checked or unchecked exception?;Checked (it extends Exception but not RuntimeException).
+What is the purpose of 'super(s)' in a custom exception constructor?;It passes the error message string to the parent 'Exception' class constructor for storage.
+Which standard collection interface forbids duplicate elements?;Set
+Which standard collection interface maintains elements in a specific sequence and allows duplicates?;List
+How can you check if a collection contains no elements without checking its size?;By using the 'isEmpty()' method.
+What is 'shadowing' in the context of Java inheritance?;When a subclass declares a field with the same name as one in its superclass, hiding the superclass field.

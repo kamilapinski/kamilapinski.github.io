@@ -1,0 +1,83 @@
+What is the primary role of HTML in web development?;It is a language used to describe the structure and content of a web page.
+What is the primary purpose of CSS?;It is used to describe the visual appearance and styling of a web page.
+Which two main sections constitute a standard HTML document?;The head (metadata) and the body (content).
+What type of information is typically stored in the HTML `<head>` element?;Metadata such as the document title, character encoding, and links to external styles or scripts.
+Which HTML tag is used to specify the character encoding for a document?;The `<meta charset=utf8>` tag.
+What is the function of the `<base>` tag in an HTML document?;It defines the base URL and target for all relative URLs in the document.
+How do you link an external CSS stylesheet to an HTML file?;Using the `<link rel=stylesheet href=style.css>` tag inside the `<head>`.
+Which HTML element is intended for the primary, non-repeated content of a page?;The `<main>` element.
+What is the specific semantic purpose of the `<aside>` tag?;It represents content that is indirectly related to the main content, often displayed as a sidebar.
+Which tag should be used for independent, self-contained content such as a blog post or news story?;The `<article>` element.
+When should a `<div>` tag be used according to modern semantic standards?;Only when no other semantic element (like `<section>` or `<nav>`) appropriately fits the content.
+What is the difference between `<ul>` and `<ol>` tags?;`<ul>` is for unordered lists (bullet points), while `<ol>` is for ordered lists (numbered).
+Which HTML tag provides a line break without starting a new paragraph?;The `<br>` tag.
+What attribute is required for an `<a>` tag to function as a hyperlink?;The `href` attribute.
+What are the three ways to include CSS in an HTML document?;External file (link), internal style block in the head, and inline styles directly on a tag.
+What does the universal CSS selector `*` match?;It matches every element within the document.
+In CSS, how is a class selector distinguished from an ID selector?;A class selector starts with a dot (.), while an ID selector starts with a hash (#).
+Which CSS selector targets an element that is a direct child of another element?;The child selector, denoted by the `>` sign (e.g., `div > p`).
+What is the difference between the `div p` and `div > p` selectors?;`div p` targets all descendant paragraphs, while `div > p` only targets direct child paragraphs.
+Which CSS selector targets the first paragraph that immediately follows an `h1` element at the same level?;The adjacent sibling selector, denoted by `+` (e.g., `h1 + p`).
+What does the CSS selector `h1 ~ p` target?;All paragraph elements that are siblings of an `h1` and appear after it in the document.
+Which common CSS properties are typically inherited from parent elements?;Properties like `color`, `font`, and `text-align`.
+Name two CSS properties that are NOT inherited from parent elements?;`width` and `display`.
+What is the purpose of the `::after` pseudo-element?;It is used to insert content or styling after the content of the selected element.
+How would you target every second item in an unordered list using CSS?;By using the `:nth-child(2n)` pseudo-class on the `li` element.
+In the CSS specificity formula $A.B.C$, what does the value $A$ represent?;The number of ID selectors in the overall selector.
+In the CSS specificity formula $A.B.C$, what does the value $B$ represent?;The count of class selectors, attribute selectors, and pseudo-classes.
+In the CSS specificity formula $A.B.C$, what does the value $C$ represent?;The count of element (tag) selectors and pseudo-elements.
+If two CSS selectors apply to the same element, how is the priority determined?;The selector with the higher lexicographical value of $A.B.C$ (higher specificity) takes priority.
+What has a higher priority than any CSS selector defined in a stylesheet?;Styles defined directly in the HTML tag via the `style` attribute.
+What is the specificity of the selector `.class_name #id_name`?;The specificity is $1.1.0$ ($A=1$ for the ID, $B=1$ for the class, $C=0$ for no tags).
+List the primitive data types in JavaScript?;Numbers, strings, booleans, null, undefined, and symbols.
+How do JavaScript objects differ from primitive values regarding property assignment?;Objects allow dynamic property assignment, whereas primitives do not (assignment to a primitive property returns `undefined`).
+What happens if you try to reassign a value to a variable declared with `const`?;It will result in an error.
+What are the two possible scopes for a variable declared with `var`?;Global scope or function scope.
+Define the concept of 'hoisting' in JavaScript?;It is the behavior where `var` declarations are processed before code execution, effectively moving them to the top of their scope.
+Why does `console.log(a); var a = 2;` inside a function output `undefined` instead of `2`?;Because the declaration `var a` is hoisted to the top, but the assignment `a = 2` remains in its original position.
+What is the result of the expression `1 + 2` in JavaScript?;The string `12` due to string conversion.
+What is the result of the expression `22 - 2` in JavaScript?;The number `20` because the subtraction operator converts strings to numbers.
+How does the `==` operator differ from the `===` operator?;`==` performs type coercion before comparison, while `===` requires both value and type to be identical.
+In a `for...of` loop iterating over an array, what does the loop variable represent?;It represents the values of the elements in the array.
+In a `for...in` loop iterating over an array, what does the loop variable represent?;It represents the keys (indexes) of the array.
+What will happen if you attempt to use a `for...of` loop on a standard non-iterable object?;It will throw an error because the object is not 'iterable'.
+What is a JavaScript prototype?;It is an 'ancestor' object from which another object inherits properties and methods.
+Which object sits at the root of the prototype chain for most JavaScript objects?;`Object.prototype`.
+Explain the lookup process when accessing a property on a JavaScript object?;The engine checks the object itself, then travels up the prototype chain until the property is found or it hits `null`.
+What is a JavaScript closure?;A function bundled together with references to its lexical environment (variables present at the time of creation).
+Why might a list of functions created in a `for(var a = 0; a < 3; a++)` loop all return `3`?;Because they all share the same closure reference to the variable `a`, which is `3` after the loop ends.
+How does using `let` in a `for` loop header solve closure-related issues compared to `var`?;`let` creates a new, separate variable binding for each iteration of the loop.
+What is the purpose of the `Array.reduce()` method?;It executes a reducer function on each element to result in a single output value.
+What does `Array.map()` return?;A new array containing the results of calling a provided function on every element in the calling array.
+How does `Array.filter()` work?;It creates a new array with all elements that pass a test implemented by the provided function.
+What is Node.js?;An asynchronous, event-driven JavaScript runtime designed to build scalable network applications.
+What does NPM stand for and what is its role?;Node Package Manager; it is used to manage project dependencies and share software packages.
+Which command is used to initialize a new Node.js project?;`npm init`.
+What is Eslint?;A static code analysis tool for JavaScript that identifies errors and ensures coding standards are met.
+In which file are project dependencies and custom scripts defined in Node.js?;In the `package.json` file.
+What does the acronym HTTP stand for?;Hypertext Transfer Protocol.
+Which HTTP method is primarily used to retrieve data from a server?;The `GET` method.
+Which HTTP method is used to submit data to be processed by a specific resource?;The `POST` method.
+What is the difference between the `PUT` and `PATCH` methods?;`PUT` is used for full updates/replacements, while `PATCH` is for partial updates.
+What information does the `HEAD` method retrieve?;It retrieves only the response headers, without the body.
+Which HTTP status code range indicates a client-side error?;The 4xx range (e.g., 404 Not Found).
+Which HTTP status code range indicates a successful request?;The 2xx range (e.g., 200 OK).
+What does the `User-Agent` header communicate to the server?;It provides information about the client's browser and operating system.
+What is the meaning of a `DNT: 1` header in an HTTP request?;It indicates that the user does not want to be tracked (Do Not Track).
+Identify the 'query' portion of the URI `http://example.com:8042/over/there?name=ferret#nose`?;The query is `name=ferret`.
+What part of a URI is indicated by the `#` symbol?;The 'fragment', which points to a specific section within the resource.
+What is Express in the context of Node.js?;A minimalist and flexible web application framework for managing routes, requests, and views.
+In Express, what is the 'routing' mechanism?;The process of mapping specific HTTP requests (URL + Method) to specific handler functions.
+What is the role of the `next()` function in Express route handlers?;It passes control to the next matching middleware or route handler in the stack.
+How can you define a dynamic parameter in an Express route path?;By using a colon followed by the parameter name, such as `/users/:id`.
+In Express, where are dynamic path parameters (like `:id`) stored in the request object?;In the `req.params` object.
+What is Express Middleware?;Functions that have access to the request and response objects and execute during the request-response cycle.
+How do you apply a middleware function to every incoming request in Express?;By using the `app.use()` method.
+Which HTTP status code is returned by default in Express if a requested path is not handled?;404 - Not Found.
+What is the function of the `Accept-Language` header?;It informs the server about the user's preferred language for the response.
+Which part of the URI `https://mimuw.edu.pl/` represents the scheme?;The scheme is `https`.
+What is the specificity of the CSS selector `div p`?;The specificity is $0.0.2$ ($A=0, B=0, C=2$ tags).
+What is the specificity of the CSS selector `#main p`?;The specificity is $1.0.1$ ($A=1$ ID, $B=0, C=1$ tag).
+In CSS, between a selector matching a tag and an inherited style, which takes precedence?;The selector matched directly to the tag takes precedence over inherited styles.
+What is the effect of the `unarny plus` (+) operator on a string like `+1`?;It converts the string to the number `1`.
+How does `for...of` handle arrays vs plain objects?;It works on arrays (which are iterable) but throws an error on plain objects.
