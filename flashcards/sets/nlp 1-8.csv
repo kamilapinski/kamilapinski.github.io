@@ -1,0 +1,44 @@
+What is the primary requirement for text to be processed by a neural network??,It must be transformed into a sequence of numbers through tokenization.
+How many numbers would a byte-level tokenizer produce for the sentence 'The pizza is best served when it's still warm.'??,"It would produce 46 numbers, corresponding to the ASCII values of the characters."
+What is the typical maximum input size (in numbers) for most standard NLP neural networks??,Most networks accept an input size of approximately 512 numbers.
+What are the two primary constraints that a tokenization method must balance regarding sequence length and vocabulary size??,"The sequence should not be too long to fit input limits, and the vocabulary should not be too large to avoid excessive parameters."
+Why is word-level tokenization particularly problematic for inflectional languages like Polish??,It results in a massive vocabulary where similar meanings across different word forms are discarded.
+What is the approximate vocabulary size used by the GPT-3 model??,"GPT-3 uses a vocabulary size of approximately 50,000 tokens."
+What is the approximate vocabulary size used by the BERT model??,"BERT uses a vocabulary size of approximately 30,000 tokens."
+What subword tokenization method relies on text compression to coalesce the most frequent occurrences into tokens??,Byte Pair Encoding (BPE).
+What is a major algorithmic downside to the Byte Pair Encoding (BPE) approach??,It is a greedy algorithm and is therefore not always optimal.
+Why is counting individual letters difficult when using Byte Pair Encoding (BPE)??,It requires reversing the BPE process to recover the original characters.
+"In terms of efficiency, why do Transformers outperform RNNs during training??",Transformers allow for massive parallelization because they process all tokens in a single pass rather than sequentially.
+What specific characteristic defines a Causal (Decoder) Transformer during training??,"It fits the model to all prefixes of a sequence in a single pass, allowing efficient training on causal language modeling."
+What is the standard percentage of tokens corrupted during the training of a Masked Language Model (MLM)??,Approximately 15% of the tokens are corrupted or masked.
+Why is it impossible to generate text using only a standard Encoder Transformer??,"It allows a bidirectional flow of information, which prevents the sequential auto-regressive generation required for text."
+What training objective is used in the ELECTRA model to improve efficiency over standard Masked Language Modeling??,Replaced Token Detection (RTD).
+How does the Replaced Token Detection (RTD) objective function??,A discriminator model attempts to identify which tokens in a corrupted sequence were replaced by a generator model.
+What architecture combines a bidirectional encoder with a unidirectional decoder??,"The Encoder-Decoder (ED) transformer, exemplified by models like T5 and UL2."
+What is the primary benefit of the Encoder-Decoder transformer architecture??,It retains the encoder's superior ability for downstream fine-tuning while enabling text generation through the decoder.
+What are the three specific denoising objectives used to train the UL2 model??,"R-Denoising, S-Denoising, and X-Denoising."
+"In the self-attention mechanism, what is the mathematical purpose of the Query ($q$) vector??",It is used to softly match against Key vectors to determine where the model should focus its attention.
+What formula represents the contextualization of a token $z_i$ in self-attention??,$z_i = \alpha_{i1}v_1 + \alpha_{i2}v_2 + \dots + \alpha_{in}v_n$.
+What constraint must the attention weights (scalars) $\alpha_i$ satisfy for a given query??,The sum of the weights must equal 1 ($\Sigma a_i = 1$).
+"In the context of attention, what operation is typically used to calculate the similarity 'score' between a user query and a movie (key)??",The dot product of the two vectors.
+What are the three core vector components derived from input embeddings in a self-attention layer??,"Query ($q$), Key ($k$), and Value ($v$)."
+What post-training method utilizes human preferences to align language models??,Reinforcement Learning from Human Feedback (RLHF).
+What alternative to RLHF directly optimizes for human preferences without a separate reward model??,Direct Preference Optimization (DPO).
+What is the 'Probing' method in the context of NLP model analysis??,It involves training small supervised models (probes) on the frozen parameters of a pre-trained model to detect encoded knowledge.
+What is a significant quality risk associated with using crowd work services like Mechanical Turk for dataset generation??,"Annotators may prioritize speed over accuracy, leading to 'just click whatever' behavior."
+"In teacher-student model optimization, how is the student's performance used??",The student's performance on a task is used to directly optimize the teacher's parameters for generating better pseudo-labels.
+What is the definition of 'Prompting' in modern NLP??,Putting a model into a temporary state by providing a specific context and generating a sample from that state.
+How does 'Few-shot' learning differ from 'Zero-shot' learning in prompting??,"Few-shot learning provides several examples (demonstrations) in the prompt, whereas zero-shot provides only the task description."
+What phenomenon describes how Large Language Models (LLMs) can perform tasks by observing examples in a prompt without parameter updates??,In-Context Learning (ICL).
+"According to research on In-Context Learning (ICL), how do large models behave differently than small models when labels are flipped??",Large models are better at overriding semantic priors to follow the specific input-label mappings provided in the context.
+What mathematical framework explains In-Context Learning as the model identifying a latent 'concept' within the prompt??,Implicit Bayesian Inference.
+What is the core workflow of Retrieval Augmented Generation (RAG)??,Relevant context paragraphs are retrieved from a collection and added to the prompt before the LLM generates an answer.
+"In Information Retrieval, how is a 'Collection' (or Knowledge Base) defined??",A collection is a set of documents or passages containing information that can be searched.
+What term refers to a paragraph of text containing user input that usually specifies a task or question??,A Query.
+Why is 'Replaced Token Detection' considered more efficient than 'Masked Language Modeling'??,It forces the model to learn from all tokens in the input sequence rather than just the 15% that were masked.
+Which specific model is known for introducing the Byte Pair Encoding (BPE) spinoff called Wordpiece??,Google (used in models like BERT).
+What are the typical components of the final grade in Juliusz Straszyński's NLP course??,"Two practical assignments (33%), a team NLP project (33%), and a theoretical exam (33%)."
+What is the purpose of the 'Value' ($v$) vector in the self-attention mechanism??,It represents the actual information that is weighted and aggregated based on the attention scores.
+Under what condition is high relevance achieved between a query and a document in Information Retrieval??,When the document contains the specific information required to satisfy the user's task or question.
+What is the role of a 'Sentinel Token' in the context of T5's Span Corruption objective??,It is a special token used to replace a span of text that the model must then auto-regressively predict.
+What is the main limitation of using a purely character-level tokenizer??,"The resulting sequences are extremely long, which limits the amount of context the model can process."

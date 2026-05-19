@@ -13,14 +13,15 @@ const availableSets = [
     { file: 'po.csv', name: 'PO' },
     { file: 'akso.csv', name: 'AKSO' },
     { file: 'awww.csv', name: 'AWWW' },
-    { file: 'sik.csv', name: 'SIK' }
+    { file: 'sik.csv', name: 'SIK' },
+    { file: 'nlp 1-8.csv', name: 'NLP 1-8' }
 ];
 
 let allCards = []; // All flashcards from the loaded set
 let currentQueue = []; // Indices of flashcards the user hasn't learned yet
 let currentCardIndex = -1; // Currently displayed flashcard (index in allCards)
 let currentSetName = '';
-let previousQueue = null; 
+let previousQueue = null;
 const btnUndo = document.getElementById('btn-undo');
 
 // DOM elements
@@ -35,7 +36,7 @@ const cardsLeftEl = document.getElementById('cards-left');
 
 // Funkcja zamieniająca znaki HTML na bezpieczny tekst
 function escapeHTML(str) {
-    return str.replace(/[&<>'"]/g, function(tag) {
+    return str.replace(/[&<>'"]/g, function (tag) {
         const charsToReplace = {
             '&': '&amp;',
             '<': '&lt;',
@@ -66,14 +67,14 @@ async function loadSet(filename) {
         const response = await fetch(`sets/${filename}`);
         if (!response.ok) throw new Error("Unable to load file. Make sure you're using a local server.");
         const text = await response.text();
-        
+
         parseCSV(text);
         loadProgress();
-        
+
         flashcardContainer.style.display = 'block';
         controls.style.display = 'flex';
         messageEl.textContent = '';
-        
+
         nextCard();
     } catch (error) {
         messageEl.textContent = "Error: " + error.message;
@@ -85,16 +86,16 @@ async function loadSet(filename) {
 function parseCSV(text) {
     allCards = [];
     const lines = text.split('\n').filter(line => line.trim() !== '');
-    
+
     lines.forEach(line => {
         const [front, ...backArr] = line.split(';');
-        const back = backArr.join(';'); 
-        
+        const back = backArr.join(';');
+
         if (front && back) {
             // Przepuszczamy front i back przez escapeHTML
-            allCards.push({ 
-                front: escapeHTML(front.trim()), 
-                back: escapeHTML(back.trim()) 
+            allCards.push({
+                front: escapeHTML(front.trim()),
+                back: escapeHTML(back.trim())
             });
         }
     });
@@ -116,8 +117,15 @@ function saveProgress() {
 }
 
 function nextCard() {
+    // Temporarily disable transition to prevent flip animation when moving to the next card
+    flashcard.style.transition = 'none';
     flashcard.classList.remove('flipped');
-    
+
+    // Restore the transition asynchronously so the browser has time to apply the 'none' state
+    setTimeout(() => {
+        flashcard.style.transition = 'transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1)';
+    }, 50);
+
     if (currentQueue.length === 0) {
         flashcardContainer.style.display = 'none';
         messageEl.textContent = "Congratulations! You have mastered the set.";
@@ -126,10 +134,10 @@ function nextCard() {
 
     // Wyciągnij pierwszy element z kolejki nienauczonych
     currentCardIndex = currentQueue[0];
-    
+
     cardFront.innerHTML = `<div class="card-content">${allCards[currentCardIndex].front}</div>`;
     cardBack.innerHTML = `<div class="card-content">${allCards[currentCardIndex].back}</div>`;
-    
+
     // Wymuszenie przetworzenia składni LaTeX przez MathJax
     if (window.MathJax) {
         MathJax.typesetPromise([cardFront, cardBack]);
@@ -147,12 +155,12 @@ function undo() {
         currentQueue = [...previousQueue];
         previousQueue = null;
         btnUndo.style.display = 'none'; // Ukryj po cofnięciu
-        
+
         // Jeśli zestaw był ukończony, musimy przywrócić widoczność kontenera
         flashcardContainer.style.display = 'block';
         controls.style.display = 'flex';
         messageEl.textContent = '';
-        
+
         saveProgress();
         updateStats();
         nextCard();
@@ -182,7 +190,7 @@ flashcard.addEventListener('click', () => {
 document.getElementById('btn-know').addEventListener('click', () => {
     if (currentQueue.length > 0) {
         saveHistory(); // Zapisz zanim usuniesz
-        currentQueue.shift(); 
+        currentQueue.shift();
         saveProgress();
         updateStats();
         nextCard();
@@ -213,7 +221,7 @@ document.getElementById('btn-shuffle').addEventListener('click', () => {
 });
 
 document.getElementById('btn-reset').addEventListener('click', () => {
-    if(confirm("Are you sure you want to reset progress for this set?")) {
+    if (confirm("Are you sure you want to reset progress for this set?")) {
         localStorage.removeItem(`flashcards_progress_${currentSetName}`);
         loadProgress();
         nextCard();
