@@ -1,5 +1,6 @@
 // Configuration of available sets in the 'sets' folder
 const availableSets = [
+    { file: 'hardest', name: '🔥 The hardest' },
     // am, gal, pmat, md
     { file: 'am.csv', name: 'AM' },
     { file: 'gal.csv', name: 'GAL' },
@@ -61,26 +62,109 @@ setSelector.addEventListener('change', (e) => {
     loadSet(e.target.value);
 });
 
+function updateMistake(setId, index, change) {
+    if (setId === 'hardest') return;
+    const key = `flashcards_mistakes_${setId}`;
+    const mistakes = JSON.parse(localStorage.getItem(key) || '{}');
+    mistakes[index] = Math.max(0, (mistakes[index] || 0) + change);
+    localStorage.setItem(key, JSON.stringify(mistakes));
+}
+
 async function loadSet(filename) {
     currentSetName = filename;
     try {
+        if (filename === 'hardest') {
+            await loadHardestSet();
+            return;
+        }
+
         const response = await fetch(`sets/${filename}`);
         if (!response.ok) throw new Error("Unable to load file. Make sure you're using a local server.");
         const text = await response.text();
 
         parseCSV(text);
         loadProgress();
-
-        flashcardContainer.style.display = 'block';
-        controls.style.display = 'flex';
-        messageEl.textContent = '';
-
-        nextCard();
+        showCards();
     } catch (error) {
         messageEl.textContent = "Error: " + error.message;
         flashcardContainer.style.display = 'none';
         controls.style.display = 'none';
     }
+}
+
+function showCards() {
+    flashcardContainer.style.display = 'block';
+    controls.style.display = 'flex';
+    messageEl.textContent = '';
+    nextCard();
+}
+
+async function loadHardestSet() {
+    const savedCards = localStorage.getItem('flashcards_hardest_cards');
+    if (savedCards) {
+        allCards = JSON.parse(savedCards);
+        loadProgress();
+        showCards();
+        return;
+    }
+
+    const fetchPromises = availableSets
+        .filter(set => set.file !== 'hardest')
+        .map(async (set) => {
+            try {
+                const response = await fetch(`sets/${set.file}`);
+                if (!response.ok) return null;
+                const text = await response.text();
+                return { file: set.file, name: set.name, text };
+            } catch (e) {
+                return null;
+            }
+        });
+
+    const results = await Promise.all(fetchPromises);
+    let allHardest = [];
+
+    results.forEach(result => {
+        if (!result) return;
+        const lines = result.text.split('\n').filter(line => line.trim() !== '');
+        const mistakes = JSON.parse(localStorage.getItem(`flashcards_mistakes_${result.file}`) || '{}');
+
+        lines.forEach((line, index) => {
+            const [front, ...backArr] = line.split(';');
+            const back = backArr.join(';');
+            const errCount = mistakes[index] || 0;
+            if (front && back && errCount >= 1) {
+                allHardest.push({
+                    front: escapeHTML(front.trim()) + ` <br><span style="font-size: 0.7em; color: #888;">(${result.name})</span>`,
+                    back: escapeHTML(back.trim()),
+                    mistakes: errCount,
+                    originalIndex: index,
+                    originalSet: result.file
+                });
+            }
+        });
+    });
+
+    allHardest.sort((a, b) => b.mistakes - a.mistakes);
+    allHardest = allHardest.slice(0, 100);
+
+    allCards = allHardest.map(c => ({
+        front: c.front,
+        back: c.back,
+        originalSet: c.originalSet,
+        originalIndex: c.originalIndex
+    }));
+
+    if (allCards.length === 0) {
+        messageEl.textContent = "You don't have any hard flashcards yet. Keep studying other sets!";
+        flashcardContainer.style.display = 'none';
+        controls.style.display = 'none';
+        return;
+    }
+
+    localStorage.setItem('flashcards_hardest_cards', JSON.stringify(allCards));
+    loadProgress();
+    showCards();
 }
 
 function parseCSV(text) {
@@ -190,6 +274,12 @@ flashcard.addEventListener('click', () => {
 document.getElementById('btn-know').addEventListener('click', () => {
     if (currentQueue.length > 0) {
         saveHistory(); // Zapisz zanim usuniesz
+        
+        const cardData = allCards[currentCardIndex];
+        const actualSet = cardData.originalSet || currentSetName;
+        const actualIndex = cardData.originalIndex !== undefined ? cardData.originalIndex : currentCardIndex;
+        updateMistake(actualSet, actualIndex, -1);
+        
         currentQueue.shift();
         saveProgress();
         updateStats();
@@ -200,6 +290,12 @@ document.getElementById('btn-know').addEventListener('click', () => {
 document.getElementById('btn-dont-know').addEventListener('click', () => {
     if (currentQueue.length > 0) {
         saveHistory(); // Zapisz zanim przesuniesz
+        
+        const cardData = allCards[currentCardIndex];
+        const actualSet = cardData.originalSet || currentSetName;
+        const actualIndex = cardData.originalIndex !== undefined ? cardData.originalIndex : currentCardIndex;
+        updateMistake(actualSet, actualIndex, 1);
+        
         const card = currentQueue.shift();
         currentQueue.push(card);
         saveProgress();
@@ -223,7 +319,12 @@ document.getElementById('btn-shuffle').addEventListener('click', () => {
 document.getElementById('btn-reset').addEventListener('click', () => {
     if (confirm("Are you sure you want to reset progress for this set?")) {
         localStorage.removeItem(`flashcards_progress_${currentSetName}`);
-        loadProgress();
-        nextCard();
+        if (currentSetName === 'hardest') {
+            localStorage.removeItem('flashcards_hardest_cards');
+            loadHardestSet();
+        } else {
+            loadProgress();
+            nextCard();
+        }
     }
 });
