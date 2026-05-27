@@ -224,7 +224,7 @@ function parseCSV(text) {
     allCards = [];
     const lines = text.split('\n').filter(line => line.trim() !== '');
 
-    lines.forEach(line => {
+    lines.forEach((line, index) => {
         const [front, ...backArr] = line.split(';');
         const back = backArr.join(';');
 
@@ -232,7 +232,8 @@ function parseCSV(text) {
             // Przepuszczamy front i back przez escapeHTML
             allCards.push({
                 front: escapeHTML(front.trim()),
-                back: escapeHTML(back.trim())
+                back: escapeHTML(back.trim()),
+                originalIndex: index
             });
         }
     });
@@ -334,12 +335,15 @@ flashcard.addEventListener('click', () => {
 document.getElementById('btn-know').addEventListener('click', () => {
     if (currentQueue.length > 0) {
         saveHistory(); // Zapisz zanim usuniesz
-        
+
         const cardData = allCards[currentCardIndex];
         const actualSet = cardData.originalSet || currentSetName;
         const actualIndex = cardData.originalIndex !== undefined ? cardData.originalIndex : currentCardIndex;
-        updateMistake(actualSet, actualIndex, -1);
-        
+
+        if (currentSetName === 'hardest') {
+            updateMistake(actualSet, actualIndex, -1);
+        }
+
         currentQueue.shift();
         saveProgress();
         updateStats();
@@ -350,12 +354,12 @@ document.getElementById('btn-know').addEventListener('click', () => {
 document.getElementById('btn-dont-know').addEventListener('click', () => {
     if (currentQueue.length > 0) {
         saveHistory(); // Zapisz zanim przesuniesz
-        
+
         const cardData = allCards[currentCardIndex];
         const actualSet = cardData.originalSet || currentSetName;
         const actualIndex = cardData.originalIndex !== undefined ? cardData.originalIndex : currentCardIndex;
         updateMistake(actualSet, actualIndex, 1);
-        
+
         const card = currentQueue.shift();
         currentQueue.push(card);
         saveProgress();
