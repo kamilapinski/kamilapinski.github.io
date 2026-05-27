@@ -57,6 +57,59 @@ availableSets.forEach(set => {
     setSelector.appendChild(option);
 });
 
+async function updateSetOptions() {
+    for (const option of setSelector.options) {
+        if (!option.value) continue;
+
+        const setFile = option.value;
+        const setDef = availableSets.find(s => s.file === setFile);
+        if (!setDef) continue;
+
+        let remaining = 0;
+
+        const progress = localStorage.getItem(`flashcards_progress_${setFile}`);
+        if (progress) {
+            remaining = JSON.parse(progress).length;
+        } else {
+            if (setFile === 'hardest') {
+                const savedCards = localStorage.getItem('flashcards_hardest_cards');
+                if (savedCards) {
+                    remaining = JSON.parse(savedCards).length;
+                } else {
+                    let allHardestCount = 0;
+                    for (const s of availableSets) {
+                        if (s.file === 'hardest') continue;
+                        const mistakes = JSON.parse(localStorage.getItem(`flashcards_mistakes_${s.file}`) || '{}');
+                        allHardestCount += Object.values(mistakes).filter(v => v >= 1).length;
+                    }
+                    remaining = Math.min(allHardestCount, 100);
+                }
+            } else {
+                try {
+                    const response = await fetch(`sets/${setFile}`);
+                    if (response.ok) {
+                        const text = await response.text();
+                        const lines = text.split('\n').filter(line => line.trim() !== '');
+                        let validCount = 0;
+                        lines.forEach(line => {
+                            const [front, ...backArr] = line.split(';');
+                            const back = backArr.join(';');
+                            if (front && back) validCount++;
+                        });
+                        remaining = validCount;
+                    }
+                } catch (e) {
+                    console.error("Error fetching set info", e);
+                }
+            }
+        }
+
+        option.textContent = `${setDef.name} (${remaining})`;
+    }
+}
+
+updateSetOptions();
+
 // Listen for set selection
 setSelector.addEventListener('change', (e) => {
     loadSet(e.target.value);
@@ -253,6 +306,13 @@ function undo() {
 
 function updateStats() {
     cardsLeftEl.textContent = currentQueue.length;
+    const option = Array.from(setSelector.options).find(opt => opt.value === currentSetName);
+    if (option) {
+        const setDef = availableSets.find(s => s.file === currentSetName);
+        if (setDef) {
+            option.textContent = `${setDef.name} (${currentQueue.length})`;
+        }
+    }
 }
 
 function shuffleQueue() {
