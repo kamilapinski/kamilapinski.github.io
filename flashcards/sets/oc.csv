@@ -1,0 +1,35 @@
+Jakie regulacje prawne wymuszają na organizacjach posiadanie operacji bezpieczeństwa (SOC)?;"Należą do nich między innymi RODO (GDPR), PCI DSS, HIPAA oraz lokalne akty prawne jak Cybersecurity Act w Korei Południowej."
+Dlaczego SOC potrzebuje usługi Intelligence (Threat Intelligence)?;"Pozwala ona na gromadzenie i analizowanie danych o zagrożeniach, aby wyprzedzać nowe rodzaje ataków oraz podatności."
+Jaki jest główny cel platformy SOAR w architekturze cyberbezpieczeństwa?;"Orkiestruje ona odpowiedź na incydenty, automatyzuje działania naprawcze i wzbogaca dane dla operatora."
+Jaka jest podstawowa różnica między alertem a incydentem?;"Alert to powiadomienie wygenerowane na podstawie zdarzeń, natomiast incydent to zdarzenie negatywnie wpływające na poufność, integralność lub dostępność systemu."
+Dlaczego metryki w SOC są uważane za istotne?;"Są niezbędne do raportowania wyników, mierzenia wydajności oraz ciągłego doskonalenia procesów operacyjnych."
+Co należy wziąć pod uwagę podczas planowania budżetu dla SOC?;"Kluczowe czynniki to koszty personelu (nadgodziny, dyżury nocne), licencje na oprogramowanie (SIEM, EDR), sprzęt oraz regulacje lokalne dotyczące czasu pracy."
+Na czym polega proces wzbogacania logów (enrichment)?;"Jest to dodawanie kontekstowych metadanych z systemów zewnętrznych, takich jak zarządzanie zasobami, w celu skrócenia czasu analizy."
+Wymień dwa czynniki mające wpływ na czas retencji logów w organizacji.;Czynniki te obejmują wymogi prawne i zgodności (compliance) oraz potrzeby śledcze związane z dochodzeniami poincydentalnymi.
+Jakie środowisko służy do bezpiecznego uruchamiania i analizowania potencjalnie złośliwych plików?;"Jest to sandbox (piaskownica), który pozwala na analizę zagrożeń przy minimalnym ryzyku dla systemu gospodarza."
+W jaki sposób można zarządzać problemem zmęczenia alertami (alert fatigue)?;"Można to osiągnąć poprzez agregację (stacking) i deduplikację alertów, automatyzację powtarzalnych zadań oraz filtrowanie szumu."
+Jakie są korzyści z posiadania precyzyjnych reguł detekcji?;Zapewniają one niski wskaźnik fałszywych alarmów (false positives) i pozwalają na szybsze wykrywanie podejrzanych zachowań.
+Jaka jest rola procesu Threat Huntingu w SOC?;"Polega na proaktywnym poszukiwaniu zagrożeń, które mogły ominąć istniejące automatyczne mechanizmy zabezpieczające."
+Co stanowi wczesne ostrzeżenie o możliwym ataku (precursor)?;Są to np. logi ze skanera podatności na serwerze WWW lub ogłoszenia o nowych exploitach dotyczących krytycznych systemów.
+Czym są wskaźniki (indicators) w kontekście analizy incydentów?;"To oznaki sugerujące, że atak trwa lub już się wydarzył, takie jak alerty antywirusowe czy nietypowy ruch sieciowy."
+"Wymień trzy przykłady technik, taktyk i procedur (TTPs) stosowanych przez atakujących.";"Przykłady obejmują beaconing (wysyłanie sygnałów do serwera C2), infekcje złośliwym oprogramowaniem oraz próby logowania z zewnątrz."
+Czym różni się automatyzacja od orkiestracji w kontekście bezpieczeństwa?;"Automatyzacja to wykonywanie pojedynczych zadań bez udziału człowieka, a orkiestracja to koordynowanie wielu narzędzi i procesów w ramach jednego przepływu pracy."
+"Jakie wyzwania stoją przed organizacją, która nie stosuje automatyzacji w bezpieczeństwie?";Główne wyzwania to ogromna liczba alertów trudna do zweryfikowania ręcznie oraz wysokie ryzyko błędu ludzkiego przy powtarzalnych czynnościach.
+Podaj przykłady metryk stosowanych w zarządzaniu podatnościami.;"Metryki te obejmują pokrycie skanerem (scanner coverage), częstotliwość skanowania oraz średni czas do naprawy (MTTR)."
+Jakie są typowe rodzaje raportów w procesie Vulnerability Management?;Wyróżnia się szczegółowe raporty techniczne dla zespołów naprawczych oraz wysokopoziomowe podsumowania dla kadry zarządzającej.
+Wymień najczęstsze opcje postępowania z wykrytą podatnością (treatment).;"Najczęstsze opcje to instalacja poprawki (patching), zmiana konfiguracji lub akceptacja ryzyka (remediation/mitigation)."
+Jaki jest punkt startowy działań zespołu Red Team?;"Punktem startowym jest identyfikacja informacji krytycznych i analiza działań, które mogą zostać zaobserwowane przez przeciwnika (OpSec)."
+Co wchodzi w skład modelu 'PIACT' w cyklu życia zarządzania podatnościami wg SANS?;"Są to etapy: Prepare (Przygotuj), Identify (Zidentyfikuj), Analyze (Analizuj), Communicate (Komunikuj) i Treat (Napraw)."
+Jakie są kluczowe kroki procesu reagowania na incydenty według NIST?;"Proces obejmuje: Preparation, Identification, Containment, Eradication, Recovery oraz Post-Incident Activity."
+Czym charakteryzuje się 4. poziom dojrzałości SOC (Quantitatively Managed)?;Operacje są mierzone i kontrolowane za pomocą metryk i wskaźników KPI w celu ciągłego obniżania czasów MTTD i MTTR.
+Jakie funkcje pełni system EDR (Endpoint Detection and Response)?;"Monitoruje procesy na hostach, szuka złośliwych plików, analizuje ruch sieciowy i pozwala operatorom np. na ubicie procesu lub kwarantannę pliku."
+Czym jest 'Single Pane of Glass' w kontekście zarządzania podatnościami?;"To skonsolidowany widok lub portal prezentujący dane z wielu źródeł (skanowanie infrastruktury, testy penetracyjne, aplikacje) w jednym miejscu."
+Jaką funkcję w SOC pełni inżynier bezpieczeństwa (Security Engineer)?;"Odpowiada za automatyzację, utrzymanie systemów oraz wdrażanie i konfigurację narzędzi obronnych."
+Dlaczego synchronizacja czasu (Clock Synchronization) jest ważna w analizie incydentów?;Spójne znaczniki czasu są niezbędne do poprawnej korelacji zdarzeń pochodzących z wielu różnych źródeł.
+Na czym polega 'stacking' w zarządzaniu alertami?;"To kompresowanie alertów na podstawie okna czasowego lub obiektów (np. adresu IP), co pozwala na redukcję szumu."
+"Wymień trzy przykładowe akcje automatyczne, które może wykonać SOAR.";"SOAR może automatycznie zablokować adres IP, zresetować hasło użytkownika lub wyłączyć zainfekowaną maszynę wirtualną."
+Jaki jest cel tworzenia bazy wiedzy (Knowledge Base) w zespole SOC?;"Służy ona do dokumentowania powszechnych wskaźników ataku, kodów błędów i znanych wzorców, co przyspiesza przyszłe dochodzenia."
+Czym są metryki operacyjne (Operational Metrics)?;"To miary pochodzące bezpośrednio z narzędzi, skupiające się na analizie trendów, np. liczba nowo otwartych podatności w danej grupie."
+Co definiuje KPI (Key Performance Indicator) w kontekście SOC?;"To bieżące parametry, które muszą być utrzymane na określonym poziomie, np. wskaźnik False Positives nie wyższy niż 10%."
+Jaka jest rola OKR (Objectives and Key Results) w strategii SOC?;"OKRs to cele na przyszłość, które mają zostać osiągnięte, np. zmniejszenie liczby nieobsłużonych incydentów o 80%."
+Dlaczego komunikacja z wyższą kadrą zarządzającą powinna wykorzystywać storytelling?;Pomaga to nietechnicznym decydentom zrozumieć wizję bezpieczeństwa i wspierać inicjatywy techniczne poprzez osadzenie ich w kontekście biznesowym.
