@@ -1,0 +1,80 @@
+What is the primary difference between point estimation and interval estimation?;"Point estimation provides a single value for a parameter $\theta$, while interval estimation provides a subset (range) of the parameter space."
+Under what condition is an estimator $\theta_n$ considered 'unbiased'?;An estimator is unbiased if its expected value $E[\theta_n]$ is equal to the true parameter value $\theta$.
+How is the 'bias' of an estimator $\theta_n$ mathematically defined?;The bias is defined as $b(\theta_n) = E[\theta_n] - \theta$.
+What characteristic defines an 'efficient' estimator?;An efficient estimator is an unbiased estimator that possesses the smallest possible variance.
+An estimator is considered 'consistent' if the probability of the estimator deviating from $\theta$ by more than $\epsilon$ approaches _____ as $n \to \infty$?;Zero
+What is the conceptual difference between a consistent estimator and a 'strongly consistent' estimator?;"Consistency requires convergence in probability, while strong consistency requires the estimator to converge to $\theta$ with probability 1."
+What is the primary objective of the Maximum Likelihood Estimation (MLE) method?;"To find the parameter values $\hat{\theta}$ that maximize the likelihood function $L(x_1, ..., x_n, \theta)$ for the observed data."
+"In hypothesis testing, what does the null hypothesis ($H_0$) usually represent?";A statement of 'no effect' or a specific status quo regarding the population parameter.
+What occurs during a Type I error in statistical testing?;The null hypothesis $H_0$ is rejected when it is actually true (a false positive).
+What occurs during a Type II error in statistical testing?;The null hypothesis $H_0$ is accepted (not rejected) when it is actually false (a false negative).
+How is the 'Power of a Test' defined in relation to Type II error ($\beta$)?;"The power is $1 - \beta$, representing the probability of correctly rejecting a false null hypothesis."
+How is a 'p-value' defined in terms of the significance level $\alpha$?;It is the lowest significance level $\alpha$ for which the null hypothesis would be rejected for a given sample.
+What is the intuitive interpretation of a p-value?;"The probability of obtaining a test statistic result at least as extreme as the one observed, assuming $H_0$ is true."
+Why is the Bonferroni correction used in multiple hypothesis testing?;To control the Family-Wise Error Rate (FWER) by adjusting the significance level to $\frac{\alpha}{m}$ for $m$ tests.
+How does Holm's method differ from the Bonferroni correction?;"Holm's method is a sequential, step-down procedure that is less conservative than the single-step Bonferroni adjustment."
+What does the 'False Discovery Rate' (FDR) measure?;The expected proportion of rejected null hypotheses that are actually false positives ($FDR = \frac{FP}{R}$).
+"In the statistical model $Y = f(X) + \epsilon$, what does $\epsilon$ represent?";A random error term (noise) with an expected value of zero that is independent of $X$.
+What is the difference between reducible and irreducible error in machine learning?;"Reducible error stems from the inaccuracy of the estimate $\hat{f}$, while irreducible error arises from inherent noise $\text{Var}(\epsilon)$ in the data."
+What is the trade-off involved in the 'Bias-Variance Tradeoff'?;Increasing model flexibility decreases bias but increases variance; decreasing flexibility decreases variance but increases bias.
+What phenomenon occurs when a model is 'overfitted' to training data?;"The model fits the random noise in the training data too closely, leading to poor generalization on new test data."
+What is the Residual Sum of Squares (RSS) in linear regression?;The sum of the squares of the differences between observed values and the values predicted by the model ($RSS = \sum (y_i - \hat{y}_i)^2$).
+What does the Coefficient of Determination ($R^2$) represent?;The proportion of the total variance in the dependent variable that is explained by the independent variables in the model.
+"According to the Gauss-Markov Theorem, why is the OLS estimator considered 'BLUE'?";"It is the Best Linear Unbiased Estimator, meaning it has the minimum variance among all linear unbiased estimators."
+What is the 'hierarchical principle' in linear models involving interactions?;"If an interaction term $X_i X_j$ is included in the model, the main effects $X_i$ and $X_j$ must also be included, regardless of their p-values."
+How can one identify 'heteroscedasticity' (non-constant variance) in a residuals plot?;"By observing a 'funnel' shape in the residuals, where the spread of errors changes as the fitted values increase."
+What does 'leverage' measure in the context of regression diagnostics?;The extent to which an observation's predictor values $X$ are outliers relative to the rest of the observations.
+How does Logistic Regression model the probability $p(X)$ to ensure it stays between 0 and 1?;It uses the logistic function $p(X) = \frac{e^{\beta_0 + \beta_1 X}}{1 + e^{\beta_0 + \beta_1 X}}$.
+"In Logistic Regression, what is the 'Logit' or 'Log-odds'?";"The logarithm of the odds ratio, defined as $\log(\frac{p(X)}{1 - p(X)}) = \beta_0 + \beta_1 X$."
+What is the primary assumption regarding class-specific distributions in Linear Discriminant Analysis (LDA)?;Each class follows a normal distribution with its own mean $\mu_k$ but a common covariance matrix $\Sigma$.
+How does Quadratic Discriminant Analysis (QDA) differ from LDA?;"QDA assumes that each class has its own distinct covariance matrix $\Sigma_k$, resulting in a non-linear decision boundary."
+Under what circumstances is LDA generally preferred over Logistic Regression?;"When the classes are well-separated, the sample size is small and predictors are approximately normal, or when there are more than two classes."
+"In the K-Nearest Neighbors (KNN) algorithm, what happens to the decision boundary as $K$ increases?";"The decision boundary becomes smoother and less flexible, leading to lower variance but potentially higher bias."
+What is the core purpose of K-fold Cross-Validation?;To estimate the test error of a model by partitioning data into $K$ subsets and iteratively training on $K-1$ parts while testing on the $K$-th part.
+How does the Bootstrap method estimate the uncertainty of a statistical estimator?;By repeatedly sampling observations from the original dataset with replacement to create many 'simulated' datasets.
+What is the penalty term used in Ridge Regression ($l_2$ regularization)?;A penalty proportional to the sum of the squares of the coefficients: $\lambda \sum \beta_j^2$.
+What is the penalty term used in Lasso Regression ($l_1$ regularization)?;A penalty proportional to the sum of the absolute values of the coefficients: $\lambda \sum |\beta_j|$.
+What unique advantage does Lasso have over Ridge Regression regarding feature selection?;"Lasso can force some coefficients to be exactly zero, effectively performing automatic variable selection."
+Why is scaling (standardization) of predictors critical before applying Ridge or Lasso regression?;Because the regularization penalty is sensitive to the magnitude of the predictors; larger scales would be penalized more heavily regardless of importance.
+"In a Regression Tree, how is the prediction for a terminal node (leaf) typically calculated?";It is the average of the response values $Y$ for all training observations that fall into that specific region.
+What is the 'Gini Index' used for in Classification Trees?;It is a measure of node purity (total variance across classes) used to evaluate the quality of a potential split.
+How does 'Bagging' (Bootstrap Aggregating) reduce the variance of high-variance models like trees?;"It takes many training sets from the population, builds separate models, and averages the predictions (or uses majority voting)."
+What modification does 'Random Forests' make to the standard Bagging process?;"At each split in a tree, it only considers a random subset of $m$ predictors out of $p$ total predictors to decorrelate the trees."
+How does 'Boosting' differ from 'Bagging' in terms of how trees are grown?;"In Boosting, trees are grown sequentially, where each new tree is fit to the residuals of the previous model to slowly improve performance."
+What are 'Out-of-Bag' (OOB) observations in the context of Bagging?;"The approximately one-third of observations not included in a particular bootstrap sample, used to estimate test error without separate cross-validation."
+"In Support Vector Machines, what are 'Support Vectors'?";"The observations that lie on the edge of the margin or on the wrong side of the margin, which solely determine the position of the hyperplane."
+What is the role of the budget parameter $C$ in a Support Vector Classifier?;"It controls the 'error budget'; a large $C$ allows for a wider margin with more violations (higher bias, lower variance)."
+What is the main goal of Principal Component Analysis (PCA)?;To find a low-dimensional representation of a dataset that captures as much of the original data's variance as possible.
+What does the first Principal Component (PC1) represent?;The direction in the feature space along which the data varies the most.
+"In PCA, what is the 'Proportion of Variance Explained' (PVE)?";The percentage of total variance in the dataset that is accounted for by each individual principal component.
+How does Principal Component Regression (PCR) perform dimensionality reduction?;It uses the first $M$ principal components as predictors in a standard linear regression model instead of the original $p$ features.
+What is the fundamental difference between supervised learning and unsupervised learning?;"Supervised learning uses labeled response variables $Y$ to guide training, while unsupervised learning looks for patterns in features $X$ without labels."
+What is the objective of the K-means clustering algorithm?;To partition the data into $K$ clusters such that the within-cluster sum of squares (variation) is minimized.
+What is a 'Perceptron' in the context of neural networks?;"A basic model of a biological neuron that takes weighted inputs, sums them, and passes them through an activation function to produce an output."
+What is the role of 'Backpropagation' in training neural networks?;It is an algorithm used to calculate the gradient of the loss function with respect to the weights by propagating the error backward through the network.
+How is 'Silhouette Score' used in cluster analysis?;"It measures how similar an object is to its own cluster compared to other clusters, helping to determine the optimal number of clusters."
+What is the 'Rand Index' used for in clustering?;"It is a measure of similarity between two different data clusterings, often used to validate the performance of an unsupervised model against known labels."
+What defines a 'statistically significant' result in the context of p-values and $\alpha$?;A result is statistically significant if the calculated p-value is less than the pre-determined significance level $\alpha$.
+"In Linear Regression, what does a very high p-value for a specific coefficient $\beta_i$ suggest?";"It suggests that there is no strong evidence of a relationship between that predictor $X_i$ and the response $Y$, given the other predictors."
+What is 'standardization' of a variable?;Subtracting the mean and dividing by the standard deviation to produce a variable with mean 0 and variance 1.
+"In the context of the Bias-Variance tradeoff, how does 'smoothing' a spline affect the model?";"Increasing the smoothness decreases the degrees of freedom (flexibility), which decreases variance but increases bias."
+Why can OLS regression not be used when the number of predictors $p$ is greater than the number of observations $n$?;"Because the system of equations is underdetermined, leading to no unique solution for the coefficients (the $X^T X$ matrix is not invertible)."
+How does the 'kernel trick' allow SVMs to handle non-linear decision boundaries?;It implicitly maps the input features into a higher-dimensional space where a linear hyperplane can separate the classes.
+What is the primary difference between PCA and Partial Least Squares (PLS)?;"PCA is unsupervised (looks for max variance in $X$), whereas PLS is supervised (looks for directions that explain both $X$ and $Y$)."
+"In a decision tree, what is 'pruning'?";"The process of removing parts of a tree that provide little power to classify instances, helping to prevent overfitting."
+What is the 'elbow method' used for in K-means clustering?;A heuristic used to determine the optimal number of clusters $K$ by looking for a point where the rate of decrease in within-cluster variation sharply changes.
+What is 'multicollinearity' in regression?;"A situation where two or more predictor variables are highly correlated, making it difficult to determine the individual effect of each predictor."
+How does 'Forward Stepwise Selection' work?;It starts with an empty model and sequentially adds the predictor that provides the greatest additional improvement until a stopping criterion is met.
+"In terms of the 'Logit', what does the coefficient $\beta_1$ represent in Logistic Regression?";The change in the log-odds of the response for a one-unit increase in the predictor $X_1$.
+What is 'Homoscedasticity'?;The assumption that the variance of the error terms is constant across all levels of the independent variables.
+What is the 'Adjusted $R^2$' and why is it used?;"A modified version of $R^2$ that accounts for the number of predictors in the model, penalizing unnecessary complexity."
+What is the definition of 'Training MSE'?;The Mean Squared Error calculated on the same data used to fit the model: $\frac{1}{n} \sum (y_i - \hat{f}(x_i))^2$.
+Why is the test MSE usually larger than the training MSE?;"Because the model is optimized specifically to minimize the error on the training data, often failing to capture the full variability of unseen data."
+"In PCA, what are 'loadings'?";The weights $\phi_{jm}$ assigned to each original feature $X_j$ that define the principal component $Z_m$.
+What is 'Scree Plot' in the context of PCA?;"A plot of the Proportion of Variance Explained (PVE) for each principal component, used to decide how many components to retain."
+What is 'Z-score' in statistical testing?;A measure of how many standard deviations a data point is from the mean: $Z = \frac{\hat{\beta} - \beta_0}{SE(\hat{\beta})}$.
+"In a confusion matrix for classification, what is 'Sensitivity' (Recall)?";The proportion of actual positives that were correctly identified by the model.
+"In a confusion matrix for classification, what is 'Specificity'?";The proportion of actual negatives that were correctly identified by the model.
+What is an 'Activation Function' in a neural network?;A function applied to the output of a neuron (like Sigmoid or ReLU) to introduce non-linearity into the model.
+How does a 'Hidden Layer' in a neural network function?;It processes inputs from the previous layer using weighted connections to extract increasingly abstract features before passing them to the next layer.
+What is the 'Curse of Dimensionality'?;"The phenomenon where the volume of the feature space increases exponentially with the number of dimensions, making data sparse and distance measures unreliable."

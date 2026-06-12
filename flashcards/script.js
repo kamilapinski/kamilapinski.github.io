@@ -15,6 +15,7 @@ const availableSets = [
     { file: 'akso.csv', name: 'AKSO' },
     { file: 'awww.csv', name: 'AWWW' },
     { file: 'sik.csv', name: 'SIK' },
+    { file: 'wum.csv', name: 'WUM' },
     { file: 'nlp 1-8.csv', name: 'NLP 1-8' },
     { file: 'oc.csv', name: 'OC' }
 ];
