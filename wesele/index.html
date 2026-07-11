@@ -2,58 +2,221 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Wesele</title>
-    <link rel="stylesheet" href="style.css">
-
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FAF9F6">
+    <link rel="apple-touch-icon" href="img/icon-192x192.png">
+    
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Great+Vibes&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <link href="./output.css" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <nav class="!hidden">
-        <ul>
-            <li><a href="index.html">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M96 160C96 142.3 110.3 128 128 128L512 128C529.7 128 544 142.3 544 160C544 177.7 529.7 192 512 192L128 192C110.3 192 96 177.7 96 160zM96 320C96 302.3 110.3 288 128 288L512 288C529.7 288 544 302.3 544 320C544 337.7 529.7 352 512 352L128 352C110.3 352 96 337.7 96 320zM544 480C544 497.7 529.7 512 512 512L128 512C110.3 512 96 497.7 96 480C96 462.3 110.3 448 128 448L512 448C529.7 448 544 462.3 544 480z"/></svg>
-            </a></li>
-            <li><a href="index.html">Ważne informacje</a></li>
-            <li><a href="index.html">Msza Święta</a></li>
-            <li><a href="index.html">Sala weselna</a></li>
-            <li><a href="index.html">Menu</a></li>
-            <li><a href="index.html">Galeria</a></li>
-            <li><a href="kontakt.html">Kontakt</a></li>
-        </ul>
-    </nav>
-    
-    <main class="w-full max-w-7xl mx-auto text-center">
-        <section class="page flex flex-col items-center justify-center py-0 md:py-8 h-screen">
-            <div class="w-full flex flex-col md:flex-row justify-center space-y-2 md:space-y-0 md:space-x-2 h-screen md:h-auto py-2 md:py-0">
-                <div class="aspect-16/9 md:aspect-3/4 w-full overflow-hidden relative">
-                    <img src="media/1.jpg" alt="Zuzanna i Kamil" class="w-full md:h-full object-cover absolute bottom-1 -left-4 md:-left-8 scale-120 z-10">
-                    <span class="text-[40vw] md:text-[20vw] xl:text-[15vw] absolute bottom-0 left-[50%] -translate-x-[50%] z-20 !text-white font-serif">26</span>
+
+    <!-- Header / Stories -->
+    <header class="top-header">
+        <h1 class="logo">A & B</h1>
+        <div class="stories-container">
+            <div class="story" data-story-index="0">
+                <div class="story-ring new">
+                    <img src="https://ui-avatars.com/api/?name=Anna&background=424242&color=fff" alt="User story">
                 </div>
-                <div class="aspect-16/9 md:aspect-3/4 w-full overflow-hidden relative">
-                    <img src="media/2.jpg" alt="Zuzanna i Kamil" class="w-full md:h-full object-cover absolute scale-110 left-3 -top-35 md:top-0 z-10">
-                    <span class="text-[40vw] md:text-[20vw] xl:text-[15vw] absolute bottom-0 left-[50%] -translate-x-[50%] z-20 !text-white font-serif">06</span>
+                <span class="story-name">Anna</span>
+            </div>
+            <div class="story" data-story-index="1">
+                <div class="story-ring new">
+                    <img src="https://ui-avatars.com/api/?name=Piotr&background=EAE0D5&color=000" alt="User story">
                 </div>
-                <div class="aspect-16/9 md:aspect-3/4 w-full overflow-hidden relative">
-                    <img src="media/3.jpg" alt="Zuzanna i Kamil" class="w-full md:h-full object-cover absolute scale-110 left-3 -top-55 md:top-0 z-10">
-                    <span class="text-[40vw] md:text-[20vw] xl:text-[15vw] absolute bottom-0 left-[50%] -translate-x-[50%] z-20 !text-white font-serif">27</span>
+                <span class="story-name">Piotr</span>
+            </div>
+            <div class="story" data-story-index="2">
+                <div class="story-ring">
+                    <img src="https://ui-avatars.com/api/?name=Kasia&background=424242&color=fff" alt="User story">
+                </div>
+                <span class="story-name">Kasia</span>
+            </div>
+            <div class="story" data-story-index="3">
+                <div class="story-ring">
+                    <img src="https://ui-avatars.com/api/?name=Michał&background=EAE0D5&color=000" alt="User story">
+                </div>
+                <span class="story-name">Michał</span>
+            </div>
+             <div class="story" data-story-index="4">
+                <div class="story-ring">
+                    <img src="https://ui-avatars.com/api/?name=Zosia&background=424242&color=fff" alt="User story">
+                </div>
+                <span class="story-name">Zosia</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="content-area">
+        
+        <!-- Tab 1: Para młoda -->
+        <section id="tab-couple" class="tab-content active">
+            <div class="feed-post">
+                <div class="post-header">
+                    <img src="https://ui-avatars.com/api/?name=A&B&background=424242&color=fff" class="post-avatar" alt="Avatar">
+                    <div class="post-user-info">
+                        <strong>Para Młoda</strong>
+                        <span>Poznań, Polska</span>
+                    </div>
+                </div>
+                <div class="post-image">
+                    <img src="img/couple.png" alt="Zdjęcie Pary Młodej" style="width: 100%; height: auto; display: block;">
+                </div>
+                <div class="post-actions">
+                    <i class="ph ph-heart"></i>
+                    <i class="ph ph-chat-circle"></i>
+                    <i class="ph ph-paper-plane-tilt"></i>
+                </div>
+                <div class="post-description">
+                    <strong>Para Młoda</strong> Poznaliśmy się 5 lat temu... 💍✨ Dziękujemy, że jesteście z nami!
                 </div>
             </div>
-            <div class="hidden md:flex h-screen md:h-auto flex-col items-center justify-center space-y-4">
-                <h1 class="text-center my-10 md:my-20 text-5xl md:text-8xl">Zuzanna & Kamil</h1>
-                <span>Strona jest jeszcze tworzona. Tutaj będą się pojawiać ważne informacje odnośnie ślubu i wesela.</span>
+
+            <div class="feed-post">
+                <div class="post-header">
+                    <img src="https://ui-avatars.com/api/?name=A&B&background=424242&color=fff" class="post-avatar" alt="Avatar">
+                    <div class="post-user-info">
+                        <strong>Para Młoda</strong>
+                        <span>Ciekawostki</span>
+                    </div>
+                </div>
+                <div class="post-image-placeholder alt-bg">
+                    <span>Ciekawostka o nas</span>
+                </div>
+                <div class="post-actions">
+                    <i class="ph ph-heart"></i>
+                    <i class="ph ph-chat-circle"></i>
+                    <i class="ph ph-paper-plane-tilt"></i>
+                </div>
+                <div class="post-description">
+                    <strong>Para Młoda</strong> Czy wiecie, że nasza pierwsza randka odbyła się w pizzerii? 🍕
+                </div>
             </div>
         </section>
-        <section class="page md:hidden flex flex-col items-center justify-center py-8 h-screen">
-            <h1 class="text-center my-10 md:my-20 text-5xl md:text-8xl">Zuzanna & Kamil</h1>
-            <span>Strona jest jeszcze tworzona. Tutaj będą się pojawiać ważne informacje odnośnie ślubu i wesela.</span>
+
+        <!-- Tab 2: Let's party -->
+        <section id="tab-party" class="tab-content">
+            <div class="party-header">
+                <h2>Let's Party</h2>
+                <button class="add-photo-btn"><i class="ph ph-camera-plus"></i> Dodaj zdjęcie</button>
+            </div>
+            
+            <div class="photo-grid">
+                <div class="grid-item"></div>
+                <div class="grid-item"></div>
+                <div class="grid-item"></div>
+                <div class="grid-item"></div>
+                <div class="grid-item"></div>
+                <div class="grid-item"></div>
+            </div>
         </section>
+
+        <!-- Tab 3: Info -->
+        <section id="tab-info" class="tab-content">
+            <div class="info-container">
+                <h2 class="info-title">Informacje</h2>
+                
+                <div class="info-card" data-type="slub">
+                    <i class="ph ph-church info-icon"></i>
+                    <h3>Ślub</h3>
+                </div>
+
+                <div class="info-card" data-type="wesele">
+                    <i class="ph ph-martini info-icon"></i>
+                    <h3>Wesele</h3>
+                </div>
+
+                <div class="info-card" data-type="transport">
+                    <i class="ph ph-bus info-icon"></i>
+                    <h3>Transport</h3>
+                </div>
+
+                <div class="info-card" data-type="nocleg">
+                    <i class="ph ph-bed info-icon"></i>
+                    <h3>Nocleg</h3>
+                </div>
+            </div>
+        </section>
+
     </main>
-    
-    <script src="script.js"></script>
+
+    <!-- Info Modal -->
+    <div id="info-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close"><i class="ph ph-x"></i></button>
+            <div class="modal-image-placeholder">
+                <i class="ph ph-image"></i>
+                <span>Miejsce na zdjęcie</span>
+            </div>
+            <h3 id="modal-title">Tytuł</h3>
+            <div id="modal-body">
+                <p>Informacje...</p>
+            </div>
+            <a href="#" class="modal-btn" id="modal-link" target="_blank">Więcej informacji / Link</a>
+        </div>
+    </div>
+
+    <!-- Story Viewer Modal -->
+    <div id="story-viewer" class="story-viewer-overlay">
+        <div class="story-viewer-content">
+            <!-- Progress bars -->
+            <div class="story-progress-container" id="story-progress-container">
+                <!-- Progress segments added via JS -->
+            </div>
+            
+            <!-- Header -->
+            <div class="story-header">
+                <div class="story-user-info">
+                    <img id="story-viewer-avatar" src="" alt="Avatar">
+                    <span id="story-viewer-name">Name</span>
+                    <span class="story-time">2h</span>
+                </div>
+                <button class="story-close-btn" id="story-close-btn"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <!-- Story image -->
+            <img id="story-viewer-image" src="" alt="Story Image" class="story-main-image">
+            <div id="story-viewer-placeholder" class="story-main-placeholder">
+                <span id="story-placeholder-text">Relacja</span>
+            </div>
+
+            <!-- Navigation Areas -->
+            <div class="story-nav-area story-nav-left" id="story-prev-area"></div>
+            <div class="story-nav-area story-nav-right" id="story-next-area"></div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" data-target="tab-couple">
+            <i class="ph ph-users"></i>
+            <span>Para młoda</span>
+        </a>
+        <a href="#" class="nav-item" data-target="tab-party">
+            <i class="ph ph-camera"></i>
+            <span>Let's party</span>
+        </a>
+        <a href="#" class="nav-item" data-target="tab-info">
+            <i class="ph ph-info"></i>
+            <span>Info</span>
+        </a>
+    </nav>
+
+    <!-- JS -->
+    <script src="js/app.js"></script>
 </body>
 </html>
