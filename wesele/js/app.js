@@ -475,9 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     fab.classList.remove('fab-visible');
                 }
             }
-
-
-
+            
             if (targetId === 'tab-couple' && typeof ScrollTrigger !== 'undefined') {
                 setTimeout(() => {
                     ScrollTrigger.refresh();
