@@ -2832,9 +2832,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function showToast(message, duration = 3000) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.textContent = message;
+        Object.assign(toast.style, {
+            position: 'fixed',
+            bottom: '100px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(0, 0, 0, 0.85)',
+            color: '#fff',
+            padding: '12px 24px',
+            borderRadius: '50px',
+            fontSize: '0.9rem',
+            fontWeight: '600',
+            zIndex: '10000',
+            opacity: '0',
+            transition: 'opacity 0.3s ease, transform 0.3s ease',
+            pointerEvents: 'none',
+            textAlign: 'center',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            whiteSpace: 'nowrap'
+        });
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(-50%) translateY(-10px)';
+        }, 50);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    }
+
     if (openDirectMsgBtn) {
         openDirectMsgBtn.addEventListener('click', () => {
-            if (openDirectMsgBtn.disabled) return;
+            if (openDirectMsgBtn.dataset.locked === 'true') {
+                showToast("Na życzenia jeszcze za wcześnie!");
+                return;
+            }
             if (directMsgModal) directMsgModal.style.display = 'flex';
         });
     }
@@ -4521,18 +4559,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         openWishesBtn.style.display = 'inline-flex';
                         if (config.wishes_locked === true) {
-                            openWishesBtn.disabled = true;
-                            openWishesBtn.classList.add('disabled');
-                            openWishesBtn.innerHTML = `<i class="ph ph-lock-key"></i> Na złożenie życzeń jeszcze poczekasz :P`;
-                            openWishesBtn.style.opacity = '0.6';
-                            openWishesBtn.style.cursor = 'not-allowed';
+                            openWishesBtn.disabled = false; // Musi być klikalny, by wywołać toast
+                            openWishesBtn.dataset.locked = 'true';
+                            openWishesBtn.innerHTML = `<i class="ph-fill ph-chat-circle-dots"></i> Złóż życzenia`;
+                            openWishesBtn.style.opacity = '0.5';
                             openWishesBtn.style.background = '#888';
                         } else {
                             openWishesBtn.disabled = false;
-                            openWishesBtn.classList.remove('disabled');
+                            openWishesBtn.dataset.locked = 'false';
                             openWishesBtn.innerHTML = `<i class="ph-fill ph-chat-circle-dots"></i> Złóż życzenia`;
                             openWishesBtn.style.opacity = '1';
-                            openWishesBtn.style.cursor = 'pointer';
                             openWishesBtn.style.background = '';
                         }
                     }
