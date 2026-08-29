@@ -408,6 +408,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (saveGuestBtn) {
             saveGuestBtn.addEventListener('click', async () => {
                 const id = document.getElementById('admin-guest-id').value;
+                const phoneVal = document.getElementById('admin-guest-phone').value.trim();
+
+                function isValidPhone(p) {
+                    const clean = p.replace(/[\s\-\(\)]/g, '');
+                    return /^\+?[0-9]{9,15}$/.test(clean);
+                }
+
+                if (phoneVal && !isValidPhone(phoneVal)) {
+                    alert('Nieprawidłowy format numeru telefonu. Wprowadź min. 9 cyfr, np. +48 500 600 700.');
+                    return;
+                }
+
                 const payload = {
                     prefix: document.getElementById('admin-guest-prefix').value,
                     first_name: document.getElementById('admin-guest-first-name').value,
@@ -418,7 +430,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     table_number: document.getElementById('admin-guest-table').value || null,
                     seat_number: document.getElementById('admin-guest-seat').value || null,
                     relationship: document.getElementById('admin-guest-relationship').value,
-                    phone: document.getElementById('admin-guest-phone').value,
+                    phone: phoneVal,
                     how_we_met: document.getElementById('admin-guest-how-met').value
                 };
 

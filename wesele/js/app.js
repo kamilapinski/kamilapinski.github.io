@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             btn.style.color = '#333';
                             let prefix = guest.prefix ? `${guest.prefix} ` : '';
                             let displayName = `${prefix}${guest.first_name} ${guest.last_name}`.trim();
-                            if (!displayName && guest.is_plus_one) displayName = "Osoba Towarzysząca (TOW)";
+                            if (!displayName && guest.is_plus_one) displayName = "Osoba Towarzysząca";
                             else if (!displayName) displayName = `Gość #${guest.id}`;
                             
                             btn.textContent = displayName;
@@ -346,10 +346,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    function isValidPhone(phone) {
+        const clean = phone.replace(/[\s\-\(\)]/g, '');
+        return /^\+?[0-9]{9,15}$/.test(clean);
+    }
+
     if (loginPhoneSubmitBtn) loginPhoneSubmitBtn.addEventListener('click', () => {
         const phone = loginPhoneInput.value.trim();
         if (!phone) {
             loginError.textContent = 'Numer telefonu jest wymagany.';
+            return;
+        }
+        if (!isValidPhone(phone)) {
+            loginError.textContent = 'Nieprawidłowy format numeru telefonu. Wprowadź min. 9 cyfr, np. +48 500 600 700.';
             return;
         }
         const pwd = loginPasswordInput ? loginPasswordInput.value.trim() : null;
@@ -693,6 +702,25 @@ document.addEventListener('DOMContentLoaded', () => {
             renderVenueMapFallback();
         }
         initSearch();
+        updateFilterButtonVisibility();
+        updateProfileUI();
+    }
+
+    function updateFilterButtonVisibility() {
+        const filterBtn = document.getElementById('filter-btn');
+        if (!filterBtn) return;
+
+        let user = null;
+        try { user = JSON.parse(localStorage.getItem('user')); } catch(e) {}
+        
+        const isLayoutReady = window._activeLayout && window._activeLayout.isReady;
+        const hasTable = user && user.table_number !== null && user.table_number !== undefined && user.table_number !== '';
+
+        if (!isLayoutReady || !hasTable) {
+            filterBtn.style.display = 'none';
+        } else {
+            filterBtn.style.display = 'flex';
+        }
     }
 
     function renderVenueMapFromLayout(layout) {
@@ -2600,7 +2628,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             if (userTableInfo) {
-                if (user.table_number !== null && user.table_number !== undefined && user.table_number !== '') {
+                const isLayoutReady = window._activeLayout && window._activeLayout.isReady;
+                if (!isLayoutReady) {
+                    userTableInfo.textContent = 'Plan stołów jest jeszcze niedostępny';
+                } else if (user.table_number !== null && user.table_number !== undefined && user.table_number !== '') {
                     const tableLabel = (user.table_number === 0 || user.table_number === '0') 
                         ? 'Stół Pary Młodej' 
                         : `Stolik <strong>${user.table_number}</strong>`;
