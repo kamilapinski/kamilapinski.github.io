@@ -142,6 +142,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginPasswordSubmitBtn = document.getElementById('login-password-submit-btn');
     const loginPasswordBackBtn = document.getElementById('login-password-back-btn');
 
+    const loginPhoneForm = document.getElementById('login-phone-form');
+    const loginPhoneInput = document.getElementById('login-phone-input');
+    const loginPhoneSubmitBtn = document.getElementById('login-phone-submit-btn');
+    const loginPhoneBackBtn = document.getElementById('login-phone-back-btn');
+
     // Check if URL has ?code=ABC123
     const urlParams = new URLSearchParams(window.location.search);
     const codeFromUrl = urlParams.get('code');
@@ -149,12 +154,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentLoginCode = '';
     let selectedGuest = null;
 
-    async function authenticate(code, guestId = null, firstName = null, lastName = null, password = null) {
+    async function authenticate(code, guestId = null, firstName = null, lastName = null, password = null, phone = null) {
         try {
             loginBtn.textContent = 'Ładowanie...';
             loginBtn.disabled = true;
             loginPlusOneSubmitBtn.disabled = true;
             if (loginPasswordSubmitBtn) loginPasswordSubmitBtn.disabled = true;
+            if (loginPhoneSubmitBtn) loginPhoneSubmitBtn.disabled = true;
             loginError.textContent = '';
 
             const payload = { login_code: code };
@@ -162,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (firstName) payload.first_name = firstName;
             if (lastName) payload.last_name = lastName;
             if (password) payload.password = password;
+            if (phone) payload.phone = phone;
 
             const response = await fetch(`${API_URL}/login/`, {
                 method: 'POST',
@@ -173,6 +180,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
 
+            // Intercept phone_required error code to show phone form
+            if (response.status === 400 && data.error === 'phone_required') {
+                loginCodeForm.style.display = 'none';
+                loginGuestSelection.style.display = 'none';
+                loginPlusOneForm.style.display = 'none';
+                if (loginPasswordForm) loginPasswordForm.style.display = 'none';
+                if (loginPhoneForm) {
+                    loginPhoneForm.style.display = 'block';
+                    loginPhoneInput.value = '';
+                    loginPhoneInput.focus();
+                }
+                return;
+            }
+
             if (response.ok) {
                 if (data.guests) {
                     currentLoginCode = code;
@@ -183,6 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         loginCodeForm.style.display = 'none';
                         loginPlusOneForm.style.display = 'none';
                         if (loginPasswordForm) loginPasswordForm.style.display = 'none';
+                        if (loginPhoneForm) loginPhoneForm.style.display = 'none';
                         loginGuestSelection.style.display = 'block';
                         
                         loginGuestList.innerHTML = '';
@@ -238,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loginBtn.disabled = false;
             loginPlusOneSubmitBtn.disabled = false;
             if (loginPasswordSubmitBtn) loginPasswordSubmitBtn.disabled = false;
+            if (loginPhoneSubmitBtn) loginPhoneSubmitBtn.disabled = false;
         }
     }
     
@@ -257,6 +280,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 loginPasswordInput.value = '';
                 loginPasswordInput.focus();
             }
+        } else if (!guest.is_plus_one && !guest.has_phone) {
+            loginCodeForm.style.display = 'none';
+            loginGuestSelection.style.display = 'none';
+            loginPlusOneForm.style.display = 'none';
+            if (loginPasswordForm) loginPasswordForm.style.display = 'none';
+            if (loginPhoneForm) {
+                loginPhoneForm.style.display = 'block';
+                loginPhoneInput.value = '';
+                loginPhoneInput.focus();
+            }
         } else {
             authenticate(currentLoginCode, guest.id);
         }
@@ -267,10 +300,12 @@ document.addEventListener('DOMContentLoaded', () => {
         loginGuestSelection.style.display = 'none';
         loginPlusOneForm.style.display = 'none';
         if (loginPasswordForm) loginPasswordForm.style.display = 'none';
+        if (loginPhoneForm) loginPhoneForm.style.display = 'none';
         currentLoginCode = '';
         selectedGuest = null;
         loginInput.value = '';
         if (loginPasswordInput) loginPasswordInput.value = '';
+        if (loginPhoneInput) loginPhoneInput.value = '';
         loginError.textContent = '';
     }
 
@@ -298,6 +333,29 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             resetLoginForm();
         }
+    });
+
+    if (loginPhoneBackBtn) loginPhoneBackBtn.addEventListener('click', () => {
+        if (loginPhoneForm) loginPhoneForm.style.display = 'none';
+        if (selectedGuest && selectedGuest.requires_password) {
+            if (loginPasswordForm) loginPasswordForm.style.display = 'block';
+        } else if (loginGuestList && loginGuestList.children.length > 1) {
+            loginGuestSelection.style.display = 'block';
+        } else {
+            resetLoginForm();
+        }
+    });
+
+    if (loginPhoneSubmitBtn) loginPhoneSubmitBtn.addEventListener('click', () => {
+        const phone = loginPhoneInput.value.trim();
+        if (!phone) {
+            loginError.textContent = 'Numer telefonu jest wymagany.';
+            return;
+        }
+        const pwd = loginPasswordInput ? loginPasswordInput.value.trim() : null;
+        const fname = loginFirstNameInput ? loginFirstNameInput.value.trim() : null;
+        const lname = loginLastNameInput ? loginLastNameInput.value.trim() : null;
+        authenticate(currentLoginCode, selectedGuest.id, fname, lname, pwd, phone);
     });
 
     if (loginPasswordSubmitBtn) loginPasswordSubmitBtn.addEventListener('click', () => {

@@ -418,6 +418,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     table_number: document.getElementById('admin-guest-table').value || null,
                     seat_number: document.getElementById('admin-guest-seat').value || null,
                     relationship: document.getElementById('admin-guest-relationship').value,
+                    phone: document.getElementById('admin-guest-phone').value,
                     how_we_met: document.getElementById('admin-guest-how-met').value
                 };
 
@@ -488,8 +489,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const roleField = document.getElementById('admin-guest-role');
         const parentField = document.getElementById('admin-guest-parent');
         const tableField = document.getElementById('admin-guest-table');
-        const seatField = document.getElementById('admin-guest-seat');
         const relationshipField = document.getElementById('admin-guest-relationship');
+        const phoneField = document.getElementById('admin-guest-phone');
         const howMetField = document.getElementById('admin-guest-how-met');
 
         // Reset form
@@ -503,6 +504,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         tableField.value = '';
         seatField.value = '';
         relationshipField.value = '';
+        phoneField.value = '';
         howMetField.value = '';
 
         if (id) {
@@ -518,6 +520,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 tableField.value = (guest.table_number !== null && guest.table_number !== undefined) ? guest.table_number : '';
                 seatField.value = (guest.seat_number !== null && guest.seat_number !== undefined) ? guest.seat_number : '';
                 relationshipField.value = guest.relationship || '';
+                phoneField.value = guest.phone || '';
                 howMetField.value = guest.how_we_met || '';
 
                 // Set parent selection if they share code with someone else who was created before them
