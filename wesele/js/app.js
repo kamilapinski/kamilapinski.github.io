@@ -227,6 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('access_token', data.access);
                     localStorage.setItem('refresh_token', data.refresh);
                     localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    enterFullscreen();
 
                     // Hide overlay
                     loginOverlay.classList.remove('active');
@@ -2741,6 +2743,8 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem('refresh_token');
             localStorage.removeItem('user');
             
+            exitFullscreen();
+
             // Wyczyść dane z pamięci i zresetuj UI
             backendPhotos = [];
             backendStories = [];
@@ -5012,6 +5016,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load configurations on initialization
     loadWeddingConfig();
+
+    // --- FULLSCREEN MANAGEMENT ---
+    function enterFullscreen() {
+        if (window.matchMedia('(display-mode: standalone)').matches) return;
+        const el = document.documentElement;
+        if (el.requestFullscreen) {
+            el.requestFullscreen().catch(() => {});
+        } else if (el.webkitRequestFullscreen) {
+            el.webkitRequestFullscreen();
+        } else if (el.msRequestFullscreen) {
+            el.msRequestFullscreen();
+        }
+    }
+
+    function exitFullscreen() {
+        if (window.matchMedia('(display-mode: standalone)').matches) return;
+        if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+    }
+
+    function initAutoFullscreen() {
+        const hasToken = localStorage.getItem('access_token');
+        if (hasToken) {
+            const enterFSOnce = () => {
+                enterFullscreen();
+                document.removeEventListener('click', enterFSOnce);
+                document.removeEventListener('touchstart', enterFSOnce);
+            };
+            document.addEventListener('click', enterFSOnce);
+            document.addEventListener('touchstart', enterFSOnce);
+        }
+    }
+
+    initAutoFullscreen();
 
     // --- DEVELOPER / DEV MODE HINTS ---
     function checkDevMode() {
