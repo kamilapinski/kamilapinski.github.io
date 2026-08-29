@@ -2838,7 +2838,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toast.textContent = message;
         Object.assign(toast.style, {
             position: 'fixed',
-            bottom: '100px',
+            top: 'calc(24px + env(safe-area-inset-top, 0px))',
             left: '50%',
             transform: 'translateX(-50%)',
             background: 'rgba(0, 0, 0, 0.85)',
@@ -2858,7 +2858,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(toast);
         setTimeout(() => {
             toast.style.opacity = '1';
-            toast.style.transform = 'translateX(-50%) translateY(-10px)';
+            toast.style.transform = 'translateX(-50%) translateY(10px)';
         }, 50);
         setTimeout(() => {
             toast.style.opacity = '0';
