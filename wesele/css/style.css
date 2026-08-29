@@ -19,7 +19,7 @@
 
 /* Zmienne kolorystyczne i konfiguracyjne */
 :root {
-    --color-bg: #FFFFFF;
+    --color-bg: #f7f3ee;
     --color-text: #111111;
     --color-graphite: #2E2E2E;
     --color-graphite-light: #424242;
@@ -27,7 +27,7 @@
     --color-beige-light: #F5F5DC;
     --color-border: #EFEFEF;
     --font-heading: 'The Seasons', 'Playfair Display', Georgia, serif;
-    --font-body: 'Inter', sans-serif;
+    --font-body: 'The Seasons', 'Playfair Display', Georgia, serif;
     --bottom-nav-height: 60px;
 }
 
@@ -753,14 +753,13 @@ button {
 }
 
 .couple-hero-content .couple-status-text {
-    font-family: 'Libre Baskerville', serif;
+    font-family: var(--font-heading);
     font-size: 1.6rem;
     font-weight: 700;
     color: #fffdf9;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
     line-height: 1.35;
     margin: 0;
-    font-style: italic;
     text-align: center;
 }
 
@@ -1667,6 +1666,10 @@ button {
 .login-logo {
     font-size: 2.5rem;
     margin-bottom: 10px;
+}
+
+img.login-logo {
+    height: 10rem;
 }
 
 .login-content h2 {
