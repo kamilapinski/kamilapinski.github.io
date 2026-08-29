@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Panel Pary Młodej — Zuzia & Kamil</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+    
+    <style>
+        body {
+            background: #faf8f6;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            height: 100dvh;
+            width: 100vw;
+        }
+
+        /* Adjusting the overlay to be the main layout page */
+        .admin-panel-overlay {
+            position: relative;
+            inset: auto;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            z-index: 1;
+            animation: none;
+            background: var(--color-bg);
+        }
+
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: #0f0d0b;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            color: #c9a84c;
+        }
+
+        #loading-overlay i {
+            font-size: 3rem;
+            animation: spin 1.2s linear infinite;
+        }
+
+        #auth-error {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #0f0d0b;
+            z-index: 9998;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            text-align: center;
+            padding: 24px;
+        }
+
+        #auth-error i {
+            font-size: 4rem;
+            color: #d4748a;
+        }
+
+        #auth-error h2 {
+            font-family: 'Playfair Display', serif;
+            color: #fda4af;
+            font-size: 1.4rem;
+            margin: 0;
+        }
+
+        #auth-error p {
+            color: #8a8074;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .auth-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            background: #c9a84c;
+            color: #000;
+            transition: background 0.2s;
+            margin-top: 8px;
+        }
+
+        .auth-btn:hover {
+            background: #e8cc80;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .admin-image-upload-box {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 24px;
+            border: 2px dashed #c9a84c;
+            border-radius: 16px;
+            align-items: center;
+            justify-content: center;
+            background: rgba(201, 168, 76, 0.03);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.15s;
+            position: relative;
+        }
+        .admin-image-upload-box:hover {
+            background: rgba(201, 168, 76, 0.08);
+            border-color: #e8cc80;
+        }
+        .admin-image-upload-box:active {
+            transform: scale(0.99);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loading-overlay">
+        <i class="ph ph-circle-notch"></i>
+        <div style="font-family: 'Playfair Display', serif; font-size: 1.1rem; font-style: italic;">Ładowanie panelu...</div>
+    </div>
+
+    <!-- AUTH ERROR SCREEN -->
+    <div id="auth-error">
+        <i class="ph ph-lock-key"></i>
+        <h2>Brak dostępu</h2>
+        <p>Ta strona jest dostępna tylko dla Pary Młodej.</p>
+        <a href="index.html" class="auth-btn">Wróć do strony głównej</a>
+        <p id="debug-auth-info" style="color: #555; font-size: 0.75rem; margin-top: 20px; font-family: monospace; max-width: 400px; word-break: break-all;"></p>
+    </div>
+
+    <!-- MAIN UI CONTAINER -->
+    <div id="main-ui" style="display: none; height: 100%; width: 100%;">
+        <div id="admin-panel-overlay" class="admin-panel-overlay">
+            <div class="admin-panel-header">
+                <button class="admin-panel-back-btn" id="admin-panel-close-btn" onclick="window.location.href='index.html'">
+                    <i class="ph ph-arrow-left"></i>
+                </button>
+                <h2>Panel Pary Młodej</h2>
+            </div>
+            
+            <div class="admin-tabs-nav">
+                <button class="admin-tab-nav-btn active" data-tab="admin-tab-guests" title="Goście"><i class="ph-fill ph-users"></i></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-seating" title="Sala"><i class="ph-fill ph-layout"></i></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-timeline" title="Plan Wesela"><i class="ph-fill ph-calendar"></i></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-info" title="Informacje"><i class="ph-fill ph-info"></i></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-couple-page" title="Para Młoda"><i class="ph-fill ph-heart"></i></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-header" title="Nagłówek"><i class="ph-fill ph-flag"></i></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-witness" title="Świadek"><i class="ph-fill ph-shield"></i></button>
+            </div>
+            
+            <div class="admin-panel-content">
+                <!-- TAB 1: GOŚCIE -->
+                <div id="admin-tab-guests" class="admin-tab-content active">
+                    <div class="admin-section-header">
+                        <h3>Lista Gości</h3>
+                        <div class="admin-guest-actions">
+                            <button id="admin-add-guest-btn" class="admin-btn-primary"><i class="ph ph-user-plus"></i> Dodaj</button>
+                            <label for="admin-csv-file" class="admin-btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; border: 1.5px solid #dcd1c4;"><i class="ph ph-file-csv"></i> Importuj CSV</label>
+                            <input type="file" id="admin-csv-file" accept=".csv" style="display: none;">
+                        </div>
+                    </div>
+                    
+                    <div class="admin-guest-search" style="margin-bottom: 12px;">
+                        <input type="text" id="admin-guest-search-input" placeholder="Wyszukaj gościa po imieniu, nazwisku lub kodzie...">
+                    </div>
+
+                    <div class="admin-filters-bar" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <select id="filter-role" class="admin-filter-select" style="padding: 10px 14px; border: 1.5px solid var(--color-border); border-radius: 12px; font-size: 0.85rem; background: var(--color-surface); color: var(--color-text); font-family: var(--font-body); outline: none;">
+                            <option value="">Rola: Wszystkie</option>
+                            <option value="para_mloda">Para Młoda</option>
+                            <option value="swiadek">Świadek</option>
+                            <option value="gosc">Gość</option>
+                        </select>
+                        
+                        <select id="filter-table" class="admin-filter-select" style="padding: 10px 14px; border: 1.5px solid var(--color-border); border-radius: 12px; font-size: 0.85rem; background: var(--color-surface); color: var(--color-text); font-family: var(--font-body); outline: none;">
+                            <option value="">Stolik: Wszystkie</option>
+                            <option value="assigned">Przypisany</option>
+                            <option value="unassigned">Brak stolika</option>
+                        </select>
+
+                        <select id="filter-tow" class="admin-filter-select" style="padding: 10px 14px; border: 1.5px solid var(--color-border); border-radius: 12px; font-size: 0.85rem; background: var(--color-surface); color: var(--color-text); font-family: var(--font-body); outline: none;">
+                            <option value="">Osoba tow.: Wszystkie</option>
+                            <option value="primary">Tylko główni goście</option>
+                            <option value="plus_one">Osoby towarzyszące (TOW)</option>
+                        </select>
+
+                        <select id="filter-missing" class="admin-filter-select" style="padding: 10px 14px; border: 1.5px solid var(--color-border); border-radius: 12px; font-size: 0.85rem; background: var(--color-surface); color: var(--color-text); font-family: var(--font-body); outline: none;">
+                            <option value="">Stan danych: Wszystkie</option>
+                            <option value="missing_relationship">Brak relacji</option>
+                            <option value="missing_how_met">Brak "Jak się poznaliśmy"</option>
+                            <option value="incomplete">Niekompletne (brak relacji/opisu/stolika)</option>
+                            <option value="complete">Wszystko uzupełnione</option>
+                        </select>
+                    </div>
+                    
+                    <div id="admin-guest-list" class="admin-guest-list-container">
+                        <!-- Guest rows generated dynamically by JS -->
+                    </div>
+                </div>
+
+                <!-- TAB 2: SALA (KREATOR STOŁÓW) -->
+                <div id="admin-tab-seating" class="admin-tab-content">
+                    <div class="admin-section-header">
+                        <h3>Kreator planu sali</h3>
+                        <p class="admin-section-desc">Możesz w tym miejscu przenieść się do projektowania stołów i gości.</p>
+                    </div>
+                    <div class="admin-center-box" style="display: flex; justify-content: center; padding: 40px 0;">
+                        <button id="admin-open-creator-btn" class="admin-btn-primary" style="padding: 14px 28px; font-size: 1.05rem;"><i class="ph ph-pencil"></i> Otwórz Kreator Stołów</button>
+                    </div>
+                </div>
+
+                <!-- TAB 3: PLAN WESELA -->
+                <div id="admin-tab-timeline" class="admin-tab-content">
+                    <div class="admin-section-header">
+                        <h3>Plan Wesela (Oś Czasu)</h3>
+                        <button id="admin-add-event-btn" class="admin-btn-primary"><i class="ph ph-plus"></i> Dodaj Wydarzenie</button>
+                    </div>
+                    <div id="admin-timeline-list" class="admin-list-container">
+                        <!-- Timeline items list -->
+                    </div>
+                    <button id="admin-save-timeline-btn" class="admin-btn-primary-big">Zapisz Plan Wesela</button>
+                </div>
+
+                <!-- TAB 4: SEKCOJA INFORMACJE -->
+                <div id="admin-tab-info" class="admin-tab-content">
+                    <div class="admin-section-header">
+                        <h3>Sekcja Informacje</h3>
+                        <button id="admin-add-place-btn" class="admin-btn-primary"><i class="ph ph-plus"></i> Dodaj Informację</button>
+                    </div>
+
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px dashed var(--color-border); padding-bottom: 20px;">
+                        <div class="admin-form-group" style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+                            <label for="admin-phone-groom-input" style="font-weight: 600;">Telefon Pana Młodego</label>
+                            <input type="text" id="admin-phone-groom-input" placeholder="Wpisz numer telefonu..." style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; background: var(--color-surface); color: var(--color-text);">
+                        </div>
+                        <div class="admin-form-group" style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+                            <label for="admin-phone-bride-input" style="font-weight: 600;">Telefon Panny Młodej</label>
+                            <input type="text" id="admin-phone-bride-input" placeholder="Wpisz numer telefonu..." style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; background: var(--color-surface); color: var(--color-text);">
+                        </div>
+                    </div>
+
+                    <div id="admin-places-list" class="admin-list-container">
+                        <!-- Places list -->
+                    </div>
+                    <button id="admin-save-info-btn" class="admin-btn-primary-big">Zapisz Informacje</button>
+                </div>
+
+                <!-- TAB 5: SEKCOJA PARA MŁODA -->
+                <div id="admin-tab-couple-page" class="admin-tab-content">
+                    <div class="admin-section-header">
+                        <h3>Ustawienia Sekcji Para Młoda</h3>
+                    </div>
+                    
+                    <div class="admin-form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Zdjęcie Główne Pary Młodej</label>
+                        <div class="admin-image-upload-box">
+                            <img id="admin-couple-image-preview" src="" style="max-height: 150px; border-radius: 12px; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15); margin-bottom: 8px; position: relative; z-index: 2;">
+                            <div id="admin-upload-placeholder" style="display: flex; flex-direction: column; align-items: center; gap: 8px; color: #8a8074; text-align: center; position: relative; z-index: 1;">
+                                <i class="ph-fill ph-image-square" style="font-size: 2.2rem; color: #c9a84c;"></i>
+                                <span style="font-weight: 600; font-size: 0.88rem; color: var(--color-text);">Wybierz zdjęcie pary młodej</span>
+                                <span style="font-size: 0.72rem; opacity: 0.7;">Kliknij lub przeciągnij tutaj plik</span>
+                            </div>
+                            <input type="file" id="admin-couple-image-input" accept="image/*" style="position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 3;">
+                        </div>
+                    </div>
+
+                    <div class="admin-section-subheader" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h4 style="font-weight: 700;">Zmieniające się Statusy</h4>
+                        <button id="admin-add-status-btn" class="admin-btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;"><i class="ph ph-plus"></i> Dodaj status</button>
+                    </div>
+                    <div id="admin-status-texts-list" class="admin-list-container">
+                        <!-- Status texts editable fields -->
+                    </div>
+
+                    <button id="admin-save-couple-btn" class="admin-btn-primary-big">Zapisz Ustawienia Pary Młodej</button>
+                </div>
+
+                <!-- TAB 6: USTAWIENIA NAGŁÓWKA -->
+                <div id="admin-tab-header" class="admin-tab-content">
+                    <div class="admin-section-header">
+                        <h3>Ustawienia Nagłówka (Timeline)</h3>
+                    </div>
+                    
+                    <div class="admin-form-group-checkbox" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                        <input type="checkbox" id="admin-header-enabled" style="width: 20px; height: 20px;">
+                        <label for="admin-header-enabled" style="font-weight: 600;">Włącz cały nagłówek na górze aplikacji</label>
+                    </div>
+
+                    <div class="admin-form-group" style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 6px;">
+                        <label for="admin-countdown-end" style="font-weight: 600;">Data Ślubu (koniec odliczania)</label>
+                        <input type="datetime-local" id="admin-countdown-end" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px;">
+                    </div>
+
+                    <div class="admin-form-group" style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 6px;">
+                        <label for="admin-schedule-start" style="font-weight: 600;">Data/Godzina rozpoczęcia harmonogramu</label>
+                        <input type="datetime-local" id="admin-schedule-start" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px;">
+                    </div>
+
+                    <div class="admin-form-group" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 6px;">
+                        <label for="admin-thank-you-start" style="font-weight: 600;">Data/Godzina rozpoczęcia podziękowań</label>
+                        <input type="datetime-local" id="admin-thank-you-start" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px;">
+                    </div>
+
+                    <button id="admin-save-header-btn" class="admin-btn-primary-big">Zapisz Ustawienia Nagłówka</button>
+                </div>
+
+                <!-- TAB 7: ROLA ŚWIADKA -->
+                <div id="admin-tab-witness" class="admin-tab-content">
+                    <div class="admin-section-header">
+                        <h3>Uprawnienia Świadka</h3>
+                    </div>
+
+                    <div class="admin-form-group-checkbox" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                        <input type="checkbox" id="admin-perm-delete-photos" style="width: 20px; height: 20px;">
+                        <label for="admin-perm-delete-photos" style="font-weight: 600;">Zezwól na usuwanie zdjęć z galerii</label>
+                    </div>
+
+                    <div class="admin-form-group-checkbox" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                        <input type="checkbox" id="admin-perm-delete-videos" style="width: 20px; height: 20px;">
+                        <label for="admin-perm-delete-videos" style="font-weight: 600;">Zezwól na usuwanie filmów z galerii</label>
+                    </div>
+
+                    <div class="admin-form-group-checkbox" style="display: flex; align-items: center; gap: 10px; margin-bottom: 25px;">
+                        <input type="checkbox" id="admin-perm-see-wishes" style="width: 20px; height: 20px;">
+                        <label for="admin-perm-see-wishes" style="font-weight: 600;">Zezwól na podgląd skrzynki życzeń</label>
+                    </div>
+
+                    <button id="admin-save-witness-btn" class="admin-btn-primary-big">Zapisz Uprawnienia Świadka</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORMULARZ DODAWANIA/EDYCJI GOŚCIA (MODAL) -->
+    <div id="admin-guest-modal" class="admin-modal" style="display: none;">
+        <div class="admin-modal-content" style="max-height: 90dvh; overflow-y: auto;">
+            <div class="admin-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e8e2dc; padding: 15px 20px;">
+                <h3 id="admin-guest-modal-title" style="font-weight: 700; margin: 0; font-size: 1.15rem;">Dodaj Gościa</h3>
+                <button class="admin-modal-close" id="admin-guest-modal-close" style="background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #71717a;">&times;</button>
+            </div>
+            <div class="admin-modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+                <input type="hidden" id="admin-guest-id">
+                
+                <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label for="admin-guest-prefix" style="font-weight: 600;">Tytuł / Prefiks (np. Sz. P., Ciocia)</label>
+                    <input type="text" id="admin-guest-prefix" placeholder="np. Sz. P." style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px;">
+                </div>
+                
+                <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label for="admin-guest-first-name" style="font-weight: 600;">Imię</label>
+                    <input type="text" id="admin-guest-first-name" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px;" required>
+                </div>
+                
+                <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label for="admin-guest-last-name" style="font-weight: 600;">Nazwisko</label>
+                    <input type="text" id="admin-guest-last-name" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px;" required>
+                </div>
+
+                <div class="admin-form-group-checkbox" style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" id="admin-guest-is-plus-one" style="width: 18px; height: 18px;">
+                    <label for="admin-guest-is-plus-one" style="font-weight: 600;">Osoba towarzysząca (TOW)</label>
+                </div>
+
+                <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label for="admin-guest-role" style="font-weight: 600;">Rola</label>
+                    <select id="admin-guest-role" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px;">
+                        <option value="gosc">Gość</option>
+                        <option value="swiadek">Świadek/Świadkowa</option>
+                        <option value="para_mloda">Para Młoda</option>
+                    </select>
+                </div>
+
+                <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label for="admin-guest-parent" style="font-weight: 600;">Powiąż z istniejącą grupą (wspólny kod i QR)</label>
+                    <select id="admin-guest-parent" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px;">
+                        <option value="">-- Nowa grupa (nowy kod) --</option>
+                        <!-- Dynamically populated -->
+                    </select>
+                </div>
+
+                <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label for="admin-guest-table" style="font-weight: 600;">Numer stolika</label>
+                    <input type="number" id="admin-guest-table" min="1" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px;">
+                </div>
+
+                <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label for="admin-guest-seat" style="font-weight: 600;">Numer krzesła</label>
+                    <input type="number" id="admin-guest-seat" min="1" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px;">
+                </div>
+
+                <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label for="admin-guest-relationship" style="font-weight: 600;">Relacja (np. Rodzina Zuzi)</label>
+                    <input type="text" id="admin-guest-relationship" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px;">
+                </div>
+
+                <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label for="admin-guest-how-met" style="font-weight: 600;">Jak się poznaliśmy</label>
+                    <textarea id="admin-guest-how-met" rows="2" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; font-family: var(--font-body); resize: none;"></textarea>
+                </div>
+            </div>
+            <div class="admin-modal-footer" style="border-top: 1px solid #e8e2dc; padding: 15px 20px; display: flex; justify-content: flex-end;">
+                <button id="admin-guest-save-btn" class="admin-btn-primary" style="padding: 10px 24px;">Zapisz</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Scripts -->
+    <script src="js/admin.js?v=2.2"></script>
+</body>
+</html>

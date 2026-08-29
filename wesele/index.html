@@ -1,222 +1,814 @@
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Wesele</title>
-    
+
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FAF9F6">
     <link rel="apple-touch-icon" href="img/icon-192x192.png">
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=2.1">
 </head>
-<body>
 
-    <!-- Header / Stories -->
-    <header class="top-header">
-        <h1 class="logo">A & B</h1>
-        <div class="stories-container">
-            <div class="story" data-story-index="0">
-                <div class="story-ring new">
-                    <img src="https://ui-avatars.com/api/?name=Anna&background=424242&color=fff" alt="User story">
+<body class="no-scroll">
+    <div id="app-container">
+        <!-- Login Screen Overlay -->
+        <div id="login-overlay" class="login-overlay active">
+            <div class="login-content">
+                <h1 class="logo login-logo"><span class="logo-letter">Z</span><span class="logo-amp">&</span><span class="logo-letter">K</span></h1>
+                <h2>Witaj!</h2>
+                <div class="login-form" id="login-code-form">
+                    <p style="margin-bottom: 20px;">Aby zobaczyć szczegóły, wpisz kod z zaproszenia lub wejdź
+                        z dedykowanego linku.</p>
+                    <input type="text" id="login-code-input" placeholder="Wpisz kod..." maxlength="15"
+                        autocomplete="off">
+                    <button id="login-submit-btn" class="modal-btn">Wejdź</button>
+                    <div id="demo-codes-container" style="display: none; margin-top: 14px; font-size: 0.78rem; color: #888;">
+                        Wypróbuj kod testowy:
+                        <div style="display: flex; justify-content: center; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
+                            <button type="button" class="demo-code-chip" onclick="document.getElementById('login-code-input').value='KAMIL'; document.getElementById('login-submit-btn').click();">KAMIL</button>
+                            <button type="button" class="demo-code-chip" onclick="document.getElementById('login-code-input').value='FRED'; document.getElementById('login-submit-btn').click();">FRED</button>
+                            <button type="button" class="demo-code-chip" onclick="document.getElementById('login-code-input').value='8VGP87'; document.getElementById('login-submit-btn').click();">8VGP87</button>
+                        </div>
+                    </div>
                 </div>
-                <span class="story-name">Anna</span>
-            </div>
-            <div class="story" data-story-index="1">
-                <div class="story-ring new">
-                    <img src="https://ui-avatars.com/api/?name=Piotr&background=EAE0D5&color=000" alt="User story">
+
+                <div class="login-guest-selection" id="login-guest-selection" style="display: none; width: 100%;">
+                    <p style="margin-bottom: 15px;">Kto się loguje?</p>
+                    <div id="login-guest-list" class="guest-list"
+                        style="display: flex; flex-direction: column; gap: 10px;"></div>
+                    <button id="login-back-btn" class="modal-btn"
+                        style="background: #999; margin-top: 15px;">Wróć</button>
                 </div>
-                <span class="story-name">Piotr</span>
-            </div>
-            <div class="story" data-story-index="2">
-                <div class="story-ring">
-                    <img src="https://ui-avatars.com/api/?name=Kasia&background=424242&color=fff" alt="User story">
+
+                <div class="login-plus-one-form" id="login-plus-one-form" style="display: none; width: 100%;">
+                    <p style="margin-bottom: 15px;">Wprowadź swoje dane</p>
+                    <input type="text" id="login-first-name-input" placeholder="Imię" autocomplete="off"
+                        style="margin-bottom: 10px; width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit;">
+                    <input type="text" id="login-last-name-input" placeholder="Nazwisko" autocomplete="off"
+                        style="margin-bottom: 15px; width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit;">
+                    <button id="login-plus-one-submit-btn" class="modal-btn">Dalej</button>
+                    <button id="login-plus-one-back-btn" class="modal-btn"
+                        style="background: #999; margin-top: 10px;">Wróć</button>
                 </div>
-                <span class="story-name">Kasia</span>
-            </div>
-            <div class="story" data-story-index="3">
-                <div class="story-ring">
-                    <img src="https://ui-avatars.com/api/?name=Michał&background=EAE0D5&color=000" alt="User story">
+
+                <div class="login-password-form" id="login-password-form" style="display: none; width: 100%;">
+                    <p style="margin-bottom: 15px;">Wprowadź hasło do konta</p>
+                    <input type="password" id="login-password-input" placeholder="Hasło" autocomplete="current-password"
+                        style="margin-bottom: 15px; width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit;">
+                    <button id="login-password-submit-btn" class="modal-btn">Wejdź</button>
+                    <button id="login-password-back-btn" class="modal-btn"
+                        style="background: #999; margin-top: 10px;">Wróć</button>
                 </div>
-                <span class="story-name">Michał</span>
-            </div>
-             <div class="story" data-story-index="4">
-                <div class="story-ring">
-                    <img src="https://ui-avatars.com/api/?name=Zosia&background=424242&color=fff" alt="User story">
-                </div>
-                <span class="story-name">Zosia</span>
+
+                <p id="login-error-msg" class="login-error"></p>
             </div>
         </div>
-    </header>
+        <!-- Header / Countdown Widget & Interactive Schedule -->
+        <header class="top-header">
+            <div class="top-header-brand">
+                <h1 class="logo"><span class="logo-letter">Z</span><span class="logo-amp">&</span><span class="logo-letter">K</span></h1>
+                <!-- Test Switcher Toggle -->
+                <button id="toggle-header-mode-btn" class="header-test-toggle-btn" title="Przełącz podgląd: Odliczanie / Harmonogram" style="display: none;">
+                    <i class="ph-fill ph-swap"></i> <span id="toggle-mode-text">Test: Harmonogram</span>
+                </button>
+            </div>
 
-    <!-- Main Content -->
-    <main class="content-area">
-        
-        <!-- Tab 1: Para młoda -->
-        <section id="tab-couple" class="tab-content active">
-            <div class="feed-post">
-                <div class="post-header">
-                    <img src="https://ui-avatars.com/api/?name=A&B&background=424242&color=fff" class="post-avatar" alt="Avatar">
-                    <div class="post-user-info">
-                        <strong>Para Młoda</strong>
-                        <span>Poznań, Polska</span>
+            <!-- 1. Header Countdown Box -->
+            <div class="header-countdown-box" id="header-countdown-box">
+                <div class="header-countdown-label">
+                    <strong>26 Czerwca 2027</strong>
+                </div>
+                <div class="header-countdown-timer">
+                    <div class="header-cd-unit"><span id="h-cd-days">00</span><label>dni</label></div>
+                    <span class="header-cd-colon">:</span>
+                    <div class="header-cd-unit"><span id="h-cd-hours">00</span><label>godz</label></div>
+                    <span class="header-cd-colon">:</span>
+                    <div class="header-cd-unit"><span id="h-cd-minutes">00</span><label>min</label></div>
+                    <span class="header-cd-colon">:</span>
+                    <div class="header-cd-unit"><span id="h-cd-seconds">00</span><label>sek</label></div>
+                </div>
+            </div>
+
+            <!-- 2. Header Interactive Timeline Schedule (Shown on Wedding Day or when toggled) -->
+            <div class="header-schedule-box" id="header-schedule-box" style="display: none;">
+                <div class="schedule-axis-line"></div>
+                <div class="schedule-items-container" id="schedule-items-container">
+                    <!-- Events injected via JS with rotated angled labels and auto-centering -->
+                </div>
+            </div>
+
+            <!-- 3. Header Post-Wedding Summary Box (Shown after Wedding) -->
+            <div class="header-post-wedding-box" id="header-post-wedding-box" style="display: none;">
+                <div class="post-wedding-title">
+                    <i class="ph-fill ph-heart"></i> Dziękujemy za wspaniałą zabawę!
+                </div>
+                <div class="post-wedding-stats">
+                    <div class="post-stat-item">
+                        <i class="ph-fill ph-image"></i>
+                        <strong id="post-stat-photos">0</strong> zdjęć
+                    </div>
+                    <div class="post-stat-item">
+                        <i class="ph-fill ph-video-camera"></i>
+                        <strong id="post-stat-videos">0</strong> filmów
+                    </div>
+                    <div class="post-stat-item highlight-stat">
+                        <i class="ph-fill ph-sparkles"></i>
+                        <strong>100%</strong> dobrej zabawy
                     </div>
                 </div>
-                <div class="post-image">
-                    <img src="img/couple.png" alt="Zdjęcie Pary Młodej" style="width: 100%; height: auto; display: block;">
-                </div>
-                <div class="post-actions">
-                    <i class="ph ph-heart"></i>
-                    <i class="ph ph-chat-circle"></i>
-                    <i class="ph ph-paper-plane-tilt"></i>
-                </div>
-                <div class="post-description">
-                    <strong>Para Młoda</strong> Poznaliśmy się 5 lat temu... 💍✨ Dziękujemy, że jesteście z nami!
-                </div>
             </div>
 
-            <div class="feed-post">
-                <div class="post-header">
-                    <img src="https://ui-avatars.com/api/?name=A&B&background=424242&color=fff" class="post-avatar" alt="Avatar">
-                    <div class="post-user-info">
-                        <strong>Para Młoda</strong>
-                        <span>Ciekawostki</span>
+            <!-- Stories container (Hidden from UI as requested) -->
+            <div class="stories-container" id="stories-container" style="display: none !important;">
+                <div class="story" id="add-story-btn">
+                    <div class="story-ring add-story-ring">
+                        <i class="ph ph-plus" style="font-size: 1.5rem; color: var(--color-text);"></i>
+                    </div>
+                    <span class="story-name">Twoja relacja</span>
+                </div>
+                <!-- Dynamic stories will be injected here -->
+            </div>
+        </header>
+
+        <!-- Event Details Popup Modal/Toast -->
+        <div id="schedule-event-modal" class="schedule-modal" style="display: none;">
+            <div class="schedule-modal-content">
+                <span id="schedule-modal-close" class="schedule-modal-close">&times;</span>
+                <div class="schedule-modal-badge" id="schedule-modal-badge">16:00</div>
+                <h3 id="schedule-modal-title">Ceremonia Ślubna</h3>
+                <p id="schedule-modal-desc"></p>
+                <div class="schedule-modal-location" id="schedule-modal-location"></div>
+            </div>
+        </div>
+
+        <!-- Direct Message to Couple Fullscreen Modal -->
+        <div id="direct-msg-modal" class="direct-modal" style="display: none;">
+            <div class="direct-modal-content">
+                <button id="direct-modal-close" class="direct-modal-close" title="Zamknij"><i class="ph ph-x"></i></button>
+
+                <div class="direct-modal-header">
+                    <div class="direct-avatar-stack">
+                        <span class="avatar-ring">Z</span>
+                        <span class="avatar-ring">K</span>
+                    </div>
+                    <h3>Wiadomość dla Pary Młodej</h3>
+                    <p>Napisz życzenia, nagraj wiadomość głosową lub film wideo</p>
+                </div>
+
+                <!-- Mode Switcher: Icons only (📝 / 🎙️ / 🎬 replaced with Phosphor Icons) -->
+                <div class="direct-tab-switcher">
+                    <button class="direct-tab-btn active" id="tab-direct-text" title="Życzenie tekstowe"><i class="ph-fill ph-note-pencil"></i></button>
+                    <button class="direct-tab-btn" id="tab-direct-voice" title="Życzenie głosowe"><i class="ph-fill ph-microphone"></i></button>
+                    <button class="direct-tab-btn" id="tab-direct-video" title="Życzenie wideo"><i class="ph-fill ph-video-camera"></i></button>
+                </div>
+
+                <!-- 1. Text Message Panel (Z limitem 1000 słów i ostrzeżeniem) -->
+                <div id="panel-direct-text" class="direct-panel active" style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+                    <textarea id="direct-text-input" placeholder="Napisz coś pięknego dla Zuzi i Kamila..." style="flex: 1; min-height: 200px; width: 100%; border-radius: 20px; border: 1.5px solid #e8decb; padding: 18px; font-size: 1rem; line-height: 1.5; font-family: var(--font-body); resize: none; box-sizing: border-box; outline: none;"></textarea>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 4px;">
+                        <div id="word-limit-warning" style="display: none; color: #e11d48; font-weight: 700; font-size: 0.85rem; align-items: center; gap: 6px;">
+                            <i class="ph-fill ph-warning-circle" style="font-size: 1.1rem;"></i> Przekroczono limit 1000 słów!
+                        </div>
+                        <div id="direct-word-count" style="margin-left: auto; font-size: 0.85rem; font-weight: 700; color: #71717a;">
+                            0 / 1000 słów
+                        </div>
                     </div>
                 </div>
-                <div class="post-image-placeholder alt-bg">
-                    <span>Ciekawostka o nas</span>
-                </div>
-                <div class="post-actions">
-                    <i class="ph ph-heart"></i>
-                    <i class="ph ph-chat-circle"></i>
-                    <i class="ph ph-paper-plane-tilt"></i>
-                </div>
-                <div class="post-description">
-                    <strong>Para Młoda</strong> Czy wiecie, że nasza pierwsza randka odbyła się w pizzerii? 🍕
-                </div>
-            </div>
-        </section>
 
-        <!-- Tab 2: Let's party -->
-        <section id="tab-party" class="tab-content">
-            <div class="party-header">
-                <h2>Let's Party</h2>
-                <button class="add-photo-btn"><i class="ph ph-camera-plus"></i> Dodaj zdjęcie</button>
-            </div>
-            
-            <div class="photo-grid">
-                <div class="grid-item"></div>
-                <div class="grid-item"></div>
-                <div class="grid-item"></div>
-                <div class="grid-item"></div>
-                <div class="grid-item"></div>
-                <div class="grid-item"></div>
-            </div>
-        </section>
+                <!-- 2. Voice Audio Note Panel -->
+                <div id="panel-direct-voice" class="direct-panel" style="display: none; flex: 1;">
+                    <div class="voice-recorder-box" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <div class="voice-timer" id="voice-timer">00:00</div>
+                        <div class="voice-pulse-ring" id="voice-pulse-ring">
+                            <button id="voice-record-btn" class="voice-record-btn">
+                                <i class="ph-fill ph-microphone"></i>
+                            </button>
+                        </div>
+                        <p class="voice-status-text" id="voice-status-text">Dotknij mikrofonu, aby zacząć nagrywać</p>
+                        <audio id="voice-audio-preview" controls style="display: none; width: 100%; max-width: 320px; margin-top: 16px;"></audio>
+                    </div>
+                </div>
 
-        <!-- Tab 3: Info -->
-        <section id="tab-info" class="tab-content">
-            <div class="info-container">
-                <h2 class="info-title">Informacje</h2>
+                <!-- 3. Video Note Panel -->
+                <div id="panel-direct-video" class="direct-panel" style="display: none; flex: 1;">
+                    <div class="video-recorder-box" style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px 0;">
+                        <video id="direct-video-preview" controls playsinline style="display: none; width: 100%; max-width: 320px; max-height: 240px; border-radius: 20px; background: #000; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.2);"></video>
+                        <div style="display: flex; justify-content: center; gap: 10px;">
+                            <button type="button" id="direct-video-open-camera-btn" style="background: linear-gradient(135deg, #e11d48, #be123c); color: #ffffff; padding: 14px 28px; border-radius: 28px; font-weight: 700; font-size: 0.95rem; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35); transition: transform 0.2s;">
+                                <i class="ph-fill ph-camera" style="font-size: 1.2rem;"></i> Nagraj film aparatem
+                            </button>
+                        </div>
+                        <p id="video-status-text" style="font-size: 0.85rem; color: #777; margin-top: 12px; text-align: center;">Aparat otworzy się automatycznie po wyborze zakładki</p>
+                    </div>
+                </div>
+
+                <button id="send-direct-submit-btn" class="send-direct-submit-btn" style="margin-top: 16px;">
+                    <i class="ph-fill ph-paper-plane-right"></i> Wyślij do Zuzi & Kamila
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="content-area">
+
+            <!-- Tab 1: Para Młoda -->
+            <section id="tab-couple" class="tab-content active">
+                <div class="couple-hero-card">
+                    <div class="couple-hero-bg" style="background-image: url('img/couple.png');"></div>
+                    <div class="couple-hero-overlay"></div>
+                    <div class="couple-hero-content">
+                        <div class="couple-status-emoji" id="couple-status-emoji" style="display: none; font-size: 3rem; margin-bottom: 8px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));"></div>
+                        <div class="couple-status-text" id="couple-status-text">Do zobaczenia na naszym weselu</div>
+                        <button id="open-direct-msg-btn" class="wishes-trigger-btn">
+                            <i class="ph-fill ph-chat-circle-dots"></i> Złóż życzenia
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 2: Let's party -->
+            <section id="tab-party" class="tab-content">
+                <div class="party-header">
+                    <h2>Let's Party</h2>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button class="filter-btn" id="sort-btn" title="Zmień kierunek sortowania">
+                            <i class="ph ph-sort-ascending"></i>
+                        </button>
+                        <button class="filter-btn" id="filter-btn" title="Pokaż osoby z Twojego stolika">
+                            <i class="ph ph-users-three"></i>
+                        </button>
+                        <button class="add-photo-btn" id="add-photo-label" style="border: none; cursor: pointer;">
+                            <i class="ph ph-camera-plus"></i> <span id="add-photo-text">Dodaj</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="active-filter-banner" class="active-filter-banner" style="display: none;">
+                    <span id="active-filter-text"></span>
+                    <button id="clear-filter-btn"><i class="ph ph-x"></i></button>
+                </div>
+
+                <div id="empty-gallery-message" class="empty-message" style="display: none;"></div>
+
+                <div class="photo-grid" id="photo-grid-unseen">
+                    <!-- Unseen Photos added via JS -->
+                </div>
+
+                <div id="seen-photos-separator" class="seen-separator" style="display: none;">
+                    <hr>
+                    <span>Wcześniej widziane</span>
+                    <hr>
+                </div>
+
+                <div class="photo-grid" id="photo-grid-seen">
+                    <!-- Seen Photos added via JS -->
+                </div>
+            </section>
+
+            <!-- Tab 3: Info -->
+            <section id="tab-info" class="tab-content">
+                <div class="info-premium-header">
+                    <h2><i class="ph-fill ph-info"></i> Informacje</h2>
+                </div>
+
+                <div class="places-container" id="info-places-container">
+                    <!-- Church Card -->
+                    <div class="place-card">
+                        <div class="place-card-main">
+                            <div class="place-icon-wrapper"><i class="ph-fill ph-church"></i></div>
+                            <div class="place-details">
+                                <h3>Ślub</h3>
+                                <p class="place-time"><i class="ph ph-clock"></i> 26 Czerwca 2027, 16:00</p>
+                                <p class="place-address"><i class="ph ph-map-pin"></i> Kościół św. Andrzeja Boboli, Białystok</p>
+                            </div>
+                        </div>
+                        <a href="https://maps.app.goo.gl/DiMgQBWfKNrzzuBC6" target="_blank"
+                            class="place-nav-btn"><i class="ph-bold ph-navigation-arrow"></i> Nawiguj do Miejsca</a>
+                    </div>
+
+                    <!-- Venue Card -->
+                    <div class="place-card">
+                        <div class="place-card-main">
+                            <div class="place-icon-wrapper"><i class="ph-fill ph-martini"></i></div>
+                            <div class="place-details">
+                                <h3>Wesele</h3>
+                                <p class="place-time"><i class="ph ph-clock"></i> Od 18:00 do białego rana</p>
+                                <p class="place-address"><i class="ph ph-map-pin"></i> Oranżeria Nowosiółki</p>
+                            </div>
+                        </div>
+                        <a href="https://maps.app.goo.gl/NQ9LhmRhB7jbRusZ9" target="_blank"
+                            class="place-nav-btn"><i class="ph-bold ph-navigation-arrow"></i> Nawiguj do Miejsca</a>
+                    </div>
+                </div>
+
+
+
+                <!-- Seating plan section wrapper (hidden by default, shown when layout is ready) -->
+                <div id="seating-plan-section-wrapper" style="display: none;">
+                    <div class="info-premium-header" id="plan-sali-header" style="margin-top: 28px;">
+                        <h2><i class="ph-fill ph-users-three"></i> Plan Stołów</h2>
+                        <p class="sub-text" style="text-align: center; margin-bottom: 16px;">Dotknij stolik, aby zobaczyć listę gości</p>
+                    </div>
+
+                    <div class="venue-map-wrapper">
+                        <div class="venue-map" id="venue-map">
+                            <!-- Tables will be generated by JS -->
+                            <div class="map-loading">Ładowanie układu sali...</div>
+                        </div>
+                    </div>
+
+                    <div class="guest-search-wrapper">
+                        <input type="text" id="guest-search-input" placeholder="Wyszukaj osobę przy stoliku..." autocomplete="off">
+                        <span id="guest-search-clear" class="guest-search-clear" style="display:none;">&times;</span>
+                        <div id="guest-search-results" class="guest-search-results"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 4: Ty -->
+            <section id="tab-you" class="tab-content">
+                <div class="profile-page-wrapper">
+                    <div class="profile-hero-card">
+                        <div class="profile-picture-container">
+                            <img id="user-profile-picture"
+                                src="https://ui-avatars.com/api/?name=Gość&background=EAE0D5&color=000"
+                                alt="Twoje zdjęcie profilowe">
+                            <button class="edit-profile-picture-btn" id="edit-profile-picture-label" title="Zmień zdjęcie">
+                                <i class="ph ph-camera"></i>
+                            </button>
+                        </div>
+                        <h2 id="user-profile-name" class="profile-name">Imię Nazwisko</h2>
+                        <div id="user-profile-relationship" class="user-relationship-text"></div>
+                        <div class="profile-code-badge">
+                            <i class="ph ph-key"></i> Kod: <span id="user-profile-code-value">------</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-details-grid">
+                        <!-- Table Info Card -->
+                        <div class="profile-info-card" id="user-table-card">
+                            <div class="info-card-icon"><i class="ph-fill ph-chair"></i></div>
+                            <div class="info-card-content">
+                                <span class="info-card-label">Miejsce przy stoliku</span>
+                                <strong id="user-table-info" class="info-card-value">Stolik: -</strong>
+                            </div>
+                            <div class="info-card-arrow"><i class="ph-bold ph-caret-right"></i></div>
+                        </div>
+
+                        <!-- Skrzynka Życzeń (Panel dla Pary Młodej) -->
+                        <div class="profile-info-card wishes-panel-card" id="wishes-panel-card" style="display: none; background: linear-gradient(135deg, #fff5f5 0%, #fff0f5 100%); border: 1.5px solid #f3d0d7; cursor: pointer;">
+                            <div class="info-card-icon" style="background: #ffe4e6; color: #e11d48;"><i class="ph-fill ph-envelope-heart"></i></div>
+                            <div class="info-card-content">
+                                <span class="info-card-label" style="color: #9f1239; font-weight: 700;">Skrzynka Życzeń</span>
+                                <strong id="wishes-card-subtitle" class="info-card-value" style="color: #be123c; font-size: 0.85rem;">Przeglądaj życzenia od gości</strong>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span id="wishes-card-count" style="background: #e11d48; color: white; border-radius: 12px; padding: 2px 9px; font-weight: bold; font-size: 0.8rem;">0</span>
+                                <div class="info-card-arrow" style="color: #e11d48;"><i class="ph-bold ph-caret-right"></i></div>
+                            </div>
+                        </div>
+
+                        <!-- Panel Pary Młodej (Admin Panel) -->
+                        <div class="profile-info-card admin-panel-card" id="admin-panel-card" style="display: none; background: linear-gradient(135deg, #fbf9f7 0%, #f5e9da 100%); border: 1.5px solid #dcd1c4; cursor: pointer;">
+                            <div class="info-card-icon" style="background: #e5dfd9; color: #5a5047;"><i class="ph-fill ph-gear"></i></div>
+                            <div class="info-card-content">
+                                <span class="info-card-label" style="color: #3d352e; font-weight: 700;">Panel Pary Młodej</span>
+                                <strong class="info-card-value" style="color: #5a5047; font-size: 0.85rem;">Zarządzaj ustawieniami wesela</strong>
+                            </div>
+                            <div class="info-card-arrow" style="color: #5a5047;"><i class="ph-bold ph-caret-right"></i></div>
+                        </div>
+
+                        <!-- Zmień Hasło Panel (Dla świadków i pary młodej) -->
+                        <div class="profile-info-card change-password-card" id="change-password-card" style="display: none; cursor: pointer;">
+                            <div class="info-card-icon"><i class="ph-fill ph-key"></i></div>
+                            <div class="info-card-content">
+                                <span class="info-card-label">Zmień hasło</span>
+                                <strong class="info-card-value" style="font-size: 0.85rem; font-weight: normal; color: #777;">Zabezpiecz swoje konto</strong>
+                            </div>
+                            <div class="info-card-arrow"><i class="ph-bold ph-caret-right"></i></div>
+                        </div>
+
+                        <!-- How We Met Card (hidden if empty) -->
+                        <div class="profile-info-card how-we-met-card" id="user-how-we-met-container" style="display: none;">
+                            <div class="info-card-icon"><i class="ph-fill ph-heart"></i></div>
+                            <div class="info-card-content">
+                                <span class="info-card-label">Jak się poznaliśmy?</span>
+                                <p id="user-how-we-met-text" class="how-we-met-text"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-actions">
+                        <button id="logout-btn" class="profile-logout-btn">
+                            <i class="ph ph-sign-out"></i> Wyloguj się
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dedykowana Strona: Skrzynka Życzeń (W stylu Let's Party) -->
+            <section id="tab-wishes" class="tab-content">
+                <div class="party-header wishes-party-header">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <h2 style="font-family: var(--font-heading); margin: 0; font-size: 1.4rem; font-weight: 700;">Skrzynka Życzeń</h2>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button class="filter-btn wishes-chip" id="wishes-toggle-filter-btn" title="Kliknij, aby zmienić typ (Wszystkie, Tekst, Głosowe, Wideo)">
+                            <span id="wishes-filter-emoji">📬</span> <span class="chip-count" id="wishes-filter-count">0</span>
+                        </button>
+                        <button class="filter-btn" id="wishes-sort-btn" title="Zmień kierunek sortowania">
+                            <i class="ph ph-sort-descending" id="wishes-sort-icon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Controls Bar: Search & Filter Chips -->
+                <div class="wishes-controls-wrapper">
+                    <!-- Search Row -->
+                    <div class="wishes-search-sort-row">
+                        <div class="wishes-search-wrapper">
+                            <i class="ph ph-magnifying-glass search-icon"></i>
+                            <input type="text" id="wishes-search-input" class="wishes-search-input" placeholder="Szukaj osoby, stolika lub treści życzeń...">
+                            <button id="wishes-clear-search-btn" class="wishes-clear-btn" style="display: none;"><i class="ph ph-x-circle"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty state when search or filter returns 0 -->
+                <div id="wishes-page-empty" class="wishes-empty-state" style="display: none;">
+                    <div class="empty-icon"><i class="ph-fill ph-envelope-open"></i></div>
+                    <h4>Brak życzeń spełniających kryteria</h4>
+                    <p>Spróbuj zmienić frazę w wyszukiwarce lub wyczyścić filtry.</p>
+                </div>
+
+                <!-- Wishes Feed Vertical List (Poziome elementy jeden pod drugim) -->
+                <div id="wishes-feed-container" class="wishes-feed-container" style="padding-bottom: 80px;">
+                    <!-- Unseen Wishes List -->
+                    <div id="wishes-list-unseen" class="wishes-vertical-list">
+                        <!-- Unseen Wishes added via JS -->
+                    </div>
+
+                    <!-- Separator for Seen Wishes -->
+                    <div id="wishes-seen-separator" class="seen-separator" style="display: none;">
+                        <hr>
+                        <span>Wcześniej widziane</span>
+                        <hr>
+                    </div>
+
+                    <!-- Seen Wishes List -->
+                    <div id="wishes-list-seen" class="wishes-vertical-list">
+                        <!-- Seen Wishes added via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <button id="fab-add-photo" class="fab-btn" title="Dodaj zdjęcie">
+                <i class="ph ph-camera"></i>
+            </button>
+        </main>
+
+        <!-- Table Details Bottom Sheet -->
+        <div id="table-details-overlay" class="sheet-overlay"></div>
+        <div id="table-details-sheet" class="bottom-sheet">
+            <div class="sheet-handle"></div>
+            <div class="sheet-content">
+                <div class="sheet-header">
+                    <h3 id="sheet-table-name">Stolik 1</h3>
+                    <button id="sheet-close-btn" class="sheet-close"><i class="ph ph-x"></i></button>
+                </div>
+                <div id="sheet-guest-list" class="sheet-guest-list">
+                    <!-- Guests will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Modal -->
+        <div id="info-modal" class="modal-overlay">
+            <div class="modal-content">
+                <button class="modal-close"><i class="ph ph-x"></i></button>
+                <div class="modal-image-placeholder">
+                    <i class="ph ph-image"></i>
+                    <span>Miejsce na zdjęcie</span>
+                </div>
+                <h3 id="modal-title">Tytuł</h3>
+                <div id="modal-body">
+                    <p>Informacje...</p>
+                </div>
+                <a href="#" class="modal-btn" id="modal-link" target="_blank">Więcej informacji / Link</a>
+            </div>
+        </div>
+
+        <!-- Fullscreen Photo Viewer Modal -->
+        <div id="photo-viewer-overlay" class="photo-viewer-overlay">
+            <div class="photo-viewer-info" id="photo-viewer-info">
+                <img id="photo-viewer-avatar" src="" alt="Avatar">
+                <div class="photo-viewer-details">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="photo-viewer-name" id="photo-viewer-name">Gość</span>
+                        <span class="photo-viewer-time" id="photo-viewer-time"></span>
+                    </div>
+                    <span id="photo-viewer-relationship" class="user-relationship-text"></span>
+                </div>
+            </div>
+            <button class="photo-viewer-close" id="photo-viewer-close"><i class="ph ph-x"></i></button>
+            <button id="photo-delete-btn"><i class="ph ph-trash"></i></button>
+            <button id="video-mute-btn"><i class="ph ph-speaker-slash"></i></button>
+            <img id="photo-viewer-image" src="" alt="Pełen ekran">
+            <video id="photo-viewer-video" src="" style="display: none;" playsinline loop muted></video>
+
+            <div id="custom-video-controls"
+                style="display: none; position: absolute; bottom: env(safe-area-inset-bottom, 30px); left: 20px; right: 20px; height: 40px; align-items: center; z-index: 4010;">
+                <div id="video-progress-container"
+                    style="flex: 1; height: 100%; display: flex; align-items: center; cursor: pointer; -webkit-tap-highlight-color: transparent;">
+                    <div id="video-progress-bar"
+                        style="width: 100%; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; position: relative; pointer-events: none;">
+                        <div id="video-progress-fill"
+                            style="width: 0%; height: 100%; background: #fff; border-radius: 2px; pointer-events: none; transition: width 0.1s linear;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="video-speed-indicator"
+                style="display: none; position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: white; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.95rem; z-index: 4020; align-items: center; gap: 6px;">
+                <i class="ph-fill ph-fast-forward"></i> <span>2x</span>
+            </div>
+        </div>
+
+        <!-- In-App Camera Modal -->
+        <div id="camera-overlay" class="camera-overlay">
+            <!-- Wideo lub wykonane zdjęcie -->
+            <video id="camera-video" autoplay playsinline muted></video>
+            <canvas id="camera-canvas" style="display: none;"></canvas>
+            <img id="camera-preview-img" src="" alt="Preview" style="display: none;">
+            <video id="camera-preview-video" src="" style="display: none;" playsinline loop></video>
+
+            <!-- Górne kontrolki -->
+            <div class="camera-top-controls">
+                <button class="camera-btn" id="camera-close-btn"><i class="ph ph-x"></i></button>
+                <div class="camera-top-right">
+                    <button class="camera-btn" id="camera-duration-btn" data-duration="null">
+                        <i class="ph ph-infinity"></i>
+                    </button>
+                    <button class="camera-btn" id="camera-switch-btn"><i class="ph ph-camera-rotate"></i></button>
+                </div>
+            </div>
+
+            <!-- Dolne kontrolki (Przed zrobieniem zdjęcia) -->
+            <div class="camera-bottom-controls" id="camera-capture-controls">
+                <label class="camera-gallery-btn"
+                    style="position: absolute; left: 30px; display: flex; flex-direction: column; align-items: center; color: white; cursor: pointer;">
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 8px; border: 2px solid white; display: flex; align-items: center; justify-content: center; overflow: hidden; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);">
+                        <i class="ph ph-image" style="font-size: 1.5rem;"></i>
+                    </div>
+                    <input type="file" id="camera-gallery-input"
+                        accept="image/*,video/*,video/quicktime,video/mp4,.mov,.MOV,.mp4,.MP4,.webm"
+                        style="display: none;">
+                </label>
+                <div class="shutter-wrapper">
+                    <button class="camera-shutter-btn" id="camera-shutter-btn">
+                        <div class="camera-shutter-inner"></div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dolne kontrolki (Po zrobieniu zdjęcia) -->
+            <div class="camera-bottom-controls" id="camera-action-controls"
+                style="display: none; justify-content: space-between; padding: 0 30px;">
+                <button class="camera-text-btn" id="camera-retake-btn"><i class="ph ph-arrow-u-up-left"></i>
+                    Powtórz</button>
+                <button class="camera-text-btn primary" id="camera-publish-btn">Opublikuj <i
+                        class="ph ph-paper-plane-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Story Viewer Modal -->
+        <div id="story-viewer" class="story-viewer-overlay">
+            <div class="story-viewer-content">
+                <!-- Progress bars -->
+                <div class="story-progress-container" id="story-progress-container">
+                    <!-- Progress segments added via JS -->
+                </div>
+
+                <!-- Header -->
+                <div class="story-header">
+                    <div class="story-user-info">
+                        <img id="story-viewer-avatar" src="" alt="Avatar">
+                        <div style="display: flex; flex-direction: column;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span id="story-viewer-name">Name</span>
+                                <span id="story-viewer-time" class="story-time">2h</span>
+                            </div>
+                            <span id="story-viewer-relationship" class="user-relationship-text"></span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <button class="story-close-btn" id="story-delete-btn"
+                            style="display: none; background: rgba(0,0,0,0.5); border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; font-size: 1.2rem;"><i
+                                class="ph ph-trash"></i></button>
+                        <button class="story-close-btn" id="story-close-btn"><i class="ph ph-x"></i></button>
+                    </div>
+                </div>
+
+                <!-- Story image -->
+                <img id="story-viewer-image" src="" alt="Story Image" class="story-main-image">
+                <video id="story-viewer-video" src="" style="display: none;" class="story-main-image" playsinline
+                    muted></video>
+                <div id="story-viewer-placeholder" class="story-main-placeholder">
+                    <span id="story-placeholder-text">Relacja</span>
+                </div>
+
+                <button id="story-video-mute-btn"
+                    style="display: none; position: absolute; top: 80px; right: 20px; font-size: 1.5rem; color: #fff; background: rgba(0,0,0,0.5); width: 40px; height: 40px; border-radius: 50%; border: none; z-index: 4020; cursor: pointer; align-items: center; justify-content: center;">
+                    <i class="ph ph-speaker-slash"></i>
+                </button>
+
+                <div id="story-video-speed-indicator"
+                    style="display: none; position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: white; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.95rem; z-index: 4020; align-items: center; gap: 6px;">
+                    <i class="ph-fill ph-fast-forward"></i> <span>2x</span>
+                </div>
+
+                <!-- Navigation Areas -->
+                <div class="story-nav-area story-nav-left" id="story-prev-area"></div>
+                <div class="story-nav-area story-nav-right" id="story-next-area"></div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" data-target="tab-couple">
+                <i class="ph ph-users"></i>
+                <span>Para młoda</span>
+            </a>
+            <a href="#" class="nav-item" data-target="tab-party">
+                <i class="ph ph-camera"></i>
+                <span>Let's party</span>
+            </a>
+            <a href="#" class="nav-item" data-target="tab-info">
+                <i class="ph ph-info"></i>
+                <span>Info</span>
+            </a>
+            <a href="#" class="nav-item" data-target="tab-you">
+                <i class="ph ph-user"></i>
+                <span>Ty</span>
+            </a>
+        </nav>
+        <!-- Confirm Popup Modal -->
+        <div id="confirm-popup-overlay" class="modal-overlay" style="z-index: 6000;">
+            <div class="modal-content"
+                style="text-align: center; max-width: 320px; padding: 24px; border-radius: 20px;">
+                <div
+                    style="width: 50px; height: 50px; border-radius: 50%; background: rgba(229, 115, 115, 0.1); color: #e57373; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 1.5rem;">
+                    <i class="ph ph-warning-circle"></i>
+                </div>
+                <h3
+                    style="margin-bottom: 12px; font-size: 1.2rem; font-family: var(--font-heading); color: var(--text-color);">
+                    Czy na pewno chcesz usunąć?</h3>
+                <p style="margin-bottom: 24px; color: #666; font-size: 0.95rem;">Tej operacji nie można cofnąć.</p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button id="confirm-popup-cancel" class="modal-btn"
+                        style="background: #f0f0f0; color: #333; flex: 1;">Anuluj</button>
+                    <button id="confirm-popup-ok" class="modal-btn" style="background: #e57373; flex: 1;">Usuń</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fullscreen Wishes Story Viewer Modal -->
+        <div id="wishes-fullscreen-overlay" class="story-viewer-overlay">
+            <div class="story-viewer-content" id="wishes-fs-card">
+                <!-- Progress Bar -->
+                <div class="story-progress-container">
+                    <div class="story-progress-segment">
+                        <div id="wishes-fs-progress-fill" class="story-progress-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+
+                <!-- Header -->
+                <div class="story-header">
+                    <div class="story-user-info">
+                        <img id="wishes-fs-avatar" src="" alt="Avatar">
+                        <div style="display: flex; flex-direction: column;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span id="wishes-fs-guest-name">Name</span>
+                                <span id="wishes-fs-time" class="story-time">2h</span>
+                            </div>
+                            <span id="wishes-fs-relationship" class="user-relationship-text"></span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <button class="story-close-btn" id="wishes-fs-mute-btn"
+                            style="display: none; background: rgba(0,0,0,0.5); border: none; border-radius: 50%; width: 38px; height: 38px; align-items: center; justify-content: center; cursor: pointer; color: #fff; font-size: 1.2rem;" title="Dźwięk">
+                            <i class="ph ph-speaker-slash" id="wishes-fs-mute-icon"></i>
+                        </button>
+                        <button class="story-close-btn" id="wishes-fs-delete-btn"
+                            style="display: none; background: rgba(0,0,0,0.5); border: none; border-radius: 50%; width: 38px; height: 38px; align-items: center; justify-content: center; cursor: pointer; color: #fff; font-size: 1.2rem;" title="Usuń życzenie"><i
+                                class="ph ph-trash"></i></button>
+                        <button class="story-close-btn" id="wishes-fs-close" title="Zamknij"><i class="ph ph-x"></i></button>
+                    </div>
+                </div>
+
+                <!-- Video Player -->
+                <video id="wishes-fs-video-player" src="" style="display: none;" class="story-main-image" playsinline></video>
+
+                <!-- Center Content for Text & Audio -->
+                <div id="wishes-fs-body-container" class="wishes-fs-body" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 80px 20px 90px 20px; box-sizing: border-box; position: relative; z-index: 1005;">
+                    <div id="wishes-fs-square-box" class="wishes-fs-square-box pastel-0">
+                        <div id="wishes-fs-text-box" class="wishes-fs-text-quote">
+                            <span id="wishes-fs-text-body">Treść...</span>
+                        </div>
+
+                        <div id="wishes-fs-audio-box" class="wishes-fs-audio-container" style="display: none;">
+                            <div class="wishes-fs-audio-icon-wrapper">
+                                <i class="ph-fill ph-microphone"></i>
+                            </div>
+                            <div class="wishes-fs-audio-title">Wiadomość Głosowa</div>
+                            <div class="wishes-fs-audio-player-box">
+                                <button id="wishes-fs-audio-play-btn" class="wishes-fs-play-button">
+                                    <i class="ph-fill ph-play" id="wishes-fs-play-icon"></i>
+                                </button>
+                                <div class="wishes-fs-progress-wrapper">
+                                    <audio id="wishes-fs-audio-player" style="display: none;"></audio>
+                                    <div class="wishes-fs-progress-bar">
+                                        <div id="wishes-fs-audio-progress" class="wishes-fs-progress-fill"></div>
+                                    </div>
+                                </div>
+                                <span id="wishes-fs-audio-timer" class="wishes-fs-timer">00:00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div id="wishes-fs-speed-indicator"
+                    style="display: none; position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: white; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 0.95rem; z-index: 4020; align-items: center; gap: 6px;">
+                    <i class="ph-fill ph-fast-forward"></i> <span>2x</span>
+                </div>
+
+                <div id="wishes-fs-pause-indicator" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.65); color: white; width: 64px; height: 64px; border-radius: 50%; z-index: 4020; align-items: center; justify-content: center; font-size: 2rem; backdrop-filter: blur(5px);">
+                    <i class="ph-fill ph-pause"></i>
+                </div>
+
+                <div class="wishes-fs-footer-bar" style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 15px 20px calc(env(safe-area-inset-bottom, 15px) + 15px) 20px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(to top, rgba(0,0,0,0.85), transparent); z-index: 2020;">
+                    <div id="wishes-fs-counter" style="color: rgba(255,255,255,0.8); font-size: 0.85rem; font-weight: 600;">
+                        1 z 1
+                    </div>
+                    <button id="wishes-fs-thank-btn" class="camera-text-btn primary" style="padding: 10px 22px; font-size: 0.92rem; font-weight: 600;">
+                        <i class="ph-fill ph-heart" style="color: #b8a89c;"></i> Podziękuj
+                    </button>
+                </div>
                 
-                <div class="info-card" data-type="slub">
-                    <i class="ph ph-church info-icon"></i>
-                    <h3>Ślub</h3>
-                </div>
-
-                <div class="info-card" data-type="wesele">
-                    <i class="ph ph-martini info-icon"></i>
-                    <h3>Wesele</h3>
-                </div>
-
-                <div class="info-card" data-type="transport">
-                    <i class="ph ph-bus info-icon"></i>
-                    <h3>Transport</h3>
-                </div>
-
-                <div class="info-card" data-type="nocleg">
-                    <i class="ph ph-bed info-icon"></i>
-                    <h3>Nocleg</h3>
-                </div>
+                <!-- Navigation Areas -->
+                <div class="story-nav-area story-nav-left" id="wishes-fs-prev-area"></div>
+                <div class="story-nav-area story-nav-right" id="wishes-fs-next-area"></div>
             </div>
-        </section>
-
-    </main>
-
-    <!-- Info Modal -->
-    <div id="info-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="modal-close"><i class="ph ph-x"></i></button>
-            <div class="modal-image-placeholder">
-                <i class="ph ph-image"></i>
-                <span>Miejsce na zdjęcie</span>
-            </div>
-            <h3 id="modal-title">Tytuł</h3>
-            <div id="modal-body">
-                <p>Informacje...</p>
-            </div>
-            <a href="#" class="modal-btn" id="modal-link" target="_blank">Więcej informacji / Link</a>
         </div>
-    </div>
 
-    <!-- Story Viewer Modal -->
-    <div id="story-viewer" class="story-viewer-overlay">
-        <div class="story-viewer-content">
-            <!-- Progress bars -->
-            <div class="story-progress-container" id="story-progress-container">
-                <!-- Progress segments added via JS -->
-            </div>
-            
-            <!-- Header -->
-            <div class="story-header">
-                <div class="story-user-info">
-                    <img id="story-viewer-avatar" src="" alt="Avatar">
-                    <span id="story-viewer-name">Name</span>
-                    <span class="story-time">2h</span>
+        <!-- Change Password Fullscreen Modal -->
+        <div id="change-password-modal" class="direct-modal" style="display: none;">
+            <div class="direct-modal-content" style="max-width: 400px; height: auto !important; min-height: auto !important; align-self: center; border-radius: 24px !important; padding: 28px 24px 24px 24px; margin: 20px; justify-content: flex-start !important;">
+                <button id="change-password-close" class="direct-modal-close" style="top: 12px; right: 12px;" title="Zamknij"><i class="ph ph-x"></i></button>
+
+                <div class="direct-modal-header" style="margin-bottom: 20px;">
+                    <div class="info-card-icon" style="background: #f5e9da; color: #5a5047; margin: 0 auto 12px auto; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 1.5rem;"><i class="ph-fill ph-key"></i></div>
+                    <h3>Zmień hasło</h3>
+                    <p>Wpisz nowe hasło do swojego konta</p>
                 </div>
-                <button class="story-close-btn" id="story-close-btn"><i class="ph ph-x"></i></button>
-            </div>
-            
-            <!-- Story image -->
-            <img id="story-viewer-image" src="" alt="Story Image" class="story-main-image">
-            <div id="story-viewer-placeholder" class="story-main-placeholder">
-                <span id="story-placeholder-text">Relacja</span>
-            </div>
 
-            <!-- Navigation Areas -->
-            <div class="story-nav-area story-nav-left" id="story-prev-area"></div>
-            <div class="story-nav-area story-nav-right" id="story-next-area"></div>
+                <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                    <input type="password" id="new-password-input" placeholder="Nowe hasło" autocomplete="new-password" style="width: 100%; padding: 12px; border: 1.5px solid #e8decb; border-radius: 8px; font-family: inherit; box-sizing: border-box; outline: none;">
+                    <input type="password" id="confirm-password-input" placeholder="Powtórz nowe hasło" autocomplete="new-password" style="width: 100%; padding: 12px; border: 1.5px solid #e8decb; border-radius: 8px; font-family: inherit; box-sizing: border-box; outline: none;">
+                    <p id="change-password-error" style="color: #e11d48; font-size: 0.85rem; margin: 0; font-weight: bold; text-align: center;"></p>
+                    <button id="change-password-submit-btn" class="modal-btn" style="background: linear-gradient(135deg, #b8a89c, #8a7a6e); margin-top: 10px;">Zmień hasło</button>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav">
-        <a href="#" class="nav-item active" data-target="tab-couple">
-            <i class="ph ph-users"></i>
-            <span>Para młoda</span>
-        </a>
-        <a href="#" class="nav-item" data-target="tab-party">
-            <i class="ph ph-camera"></i>
-            <span>Let's party</span>
-        </a>
-        <a href="#" class="nav-item" data-target="tab-info">
-            <i class="ph ph-info"></i>
-            <span>Info</span>
-        </a>
-    </nav>
+        <!-- Note: Panel Pary Młodej (Admin Panel) has been moved to admin.html as a separate page -->
 
-    <!-- JS -->
-    <script src="js/app.js"></script>
+        <!-- GSAP & ScrollTrigger -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+        <!-- JS -->
+        <script src="js/app.js?v=2.4"></script>
 </body>
+
 </html>

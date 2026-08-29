@@ -1,0 +1,3115 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kreator Planu Sali — Zuzia & Kamil</title>
+    <meta name="description" content="Interaktywny kreator rozkładu stołów weselnych">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        /* ====== RESET & ROOT ====== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --color-bg: #0f0d0b;
+            --color-surface: #1a1612;
+            --color-surface2: #221e19;
+            --color-border: rgba(255,255,255,0.08);
+            --color-border2: rgba(255,255,255,0.14);
+            --color-gold: #c9a84c;
+            --color-gold2: #e8cc80;
+            --color-rose: #d4748a;
+            --color-text: #f0ece4;
+            --color-muted: #8a8074;
+            --color-danger: #e05555;
+            --color-success: #5eb87a;
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Inter', sans-serif;
+            --canvas-bg: #16120f;
+            --panel-w: 280px;
+            --topbar-h: 56px;
+            --radius: 14px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--color-bg);
+            color: var(--color-text);
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ====== TOP BAR ====== */
+        .topbar {
+            height: var(--topbar-h);
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 16px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+        .topbar-logo {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            color: var(--color-gold);
+            letter-spacing: 0.04em;
+            font-style: italic;
+            flex-shrink: 0;
+        }
+        .topbar-title {
+            font-size: 0.85rem;
+            color: var(--color-muted);
+            font-weight: 500;
+        }
+        .topbar-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-family: var(--font-body);
+            font-size: 0.82rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--color-muted);
+            border: 1px solid var(--color-border2);
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.06); color: var(--color-text); }
+        .btn-gold {
+            background: linear-gradient(135deg, var(--color-gold), #a8883a);
+            color: #1a1208;
+        }
+        .btn-gold:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-danger { background: var(--color-danger); color: #fff; }
+        .btn-danger:hover { filter: brightness(1.1); }
+        .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+        .btn i { font-size: 1rem; }
+
+        /* ====== LAYOUT ====== */
+        .workspace {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* ====== LEFT PANEL ====== */
+        .left-panel {
+            width: var(--panel-w);
+            background: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .panel-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--color-border);
+            flex-shrink: 0;
+        }
+        .panel-tab {
+            flex: 1;
+            padding: 10px 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-muted);
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--color-muted);
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            font-family: var(--font-body);
+        }
+        .panel-tab.active {
+            color: var(--color-gold);
+            border-bottom-color: var(--color-gold);
+        }
+        .panel-section {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+        .panel-section.active { display: flex; }
+
+        /* ====== ADD TABLE SECTION ====== */
+        .add-table-section {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .add-table-section h3 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .shape-picker {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .shape-btn {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            border: 1.5px solid var(--color-border2);
+            border-radius: 10px;
+            cursor: pointer;
+            background: var(--color-surface2);
+            color: var(--color-muted);
+            transition: all 0.2s;
+            font-size: 0.68rem;
+            font-weight: 600;
+            font-family: var(--font-body);
+        }
+        .shape-btn:hover, .shape-btn.selected {
+            border-color: var(--color-gold);
+            color: var(--color-gold);
+            background: rgba(201,168,76,0.08);
+        }
+        .shape-btn svg { width: 26px; height: 26px; fill: currentColor; }
+        .add-table-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .form-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-row label {
+            font-size: 0.75rem;
+            color: var(--color-muted);
+            min-width: 60px;
+        }
+        .form-input {
+            flex: 1;
+            background: var(--color-surface2);
+            border: 1px solid var(--color-border2);
+            border-radius: 8px;
+            padding: 6px 10px;
+            color: var(--color-text);
+            font-size: 0.82rem;
+            font-family: var(--font-body);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: var(--color-gold); }
+
+        /* ====== GUEST LIST IN PANEL ====== */
+        .guests-search-box {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--color-border);
+            flex-shrink: 0;
+        }
+        .guests-search-box .form-input { width: 100%; }
+        .guests-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .guests-list::-webkit-scrollbar { width: 4px; }
+        .guests-list::-webkit-scrollbar-track { background: transparent; }
+        .guests-list::-webkit-scrollbar-thumb { background: var(--color-border2); border-radius: 2px; }
+        .guest-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: grab;
+            border: 1.5px solid transparent;
+            transition: all 0.15s;
+            user-select: none;
+            background: var(--color-surface2);
+        }
+        .guest-item:hover { border-color: var(--color-border2); }
+        .guest-item.assigned { opacity: 0.45; cursor: default; }
+        .guest-item.dragging-guest { opacity: 0.3; }
+        .guest-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-gold), var(--color-rose));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .guest-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .guest-info { flex: 1; min-width: 0; }
+        .guest-name { font-size: 0.8rem; font-weight: 600; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .guest-meta { font-size: 0.68rem; color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .guest-drag-handle { color: var(--color-muted); font-size: 0.85rem; flex-shrink: 0; }
+
+        /* ====== CANVAS AREA ====== */
+        .canvas-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: var(--canvas-bg);
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(201,168,76,0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(212,116,138,0.03) 0%, transparent 50%);
+        }
+        .canvas-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+        #canvas {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+        }
+        #canvas-inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-origin: 0 0;
+        }
+
+        /* ====== CANVAS HINT ====== */
+        .canvas-hint {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.4s;
+        }
+        .canvas-hint.hidden { opacity: 0; }
+        .canvas-hint-icon { font-size: 3rem; color: rgba(201,168,76,0.2); }
+        .canvas-hint p { font-size: 0.9rem; color: rgba(255,255,255,0.15); text-align: center; line-height: 1.6; }
+
+        /* ====== ZOOM CONTROLS ====== */
+        .zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 50;
+        }
+        .zoom-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--color-muted);
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+        .zoom-btn:hover { color: var(--color-text); background: var(--color-surface2); }
+        .zoom-label {
+            width: 36px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--color-muted);
+            font-weight: 600;
+        }
+
+        /* ====== SYMMETRY AXIS OVERLAY ====== */
+        .sym-axis {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+            transition: opacity 0.2s;
+        }
+        .sym-axis.vertical {
+            width: 1px;
+            top: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(201,168,76,0.5) 0px, rgba(201,168,76,0.5) 6px,
+                transparent 6px, transparent 12px
+            );
+        }
+        .sym-axis.horizontal {
+            height: 1px;
+            left: 0; right: 0;
+            background: repeating-linear-gradient(
+                to right,
+                rgba(201,168,76,0.5) 0px, rgba(201,168,76,0.5) 6px,
+                transparent 6px, transparent 12px
+            );
+        }
+        /* Symmetry ghost (mirror preview) */
+        .table-ghost {
+            position: absolute;
+            pointer-events: none;
+            z-index: 8;
+            opacity: 0.35;
+            border: 2px dashed var(--color-gold);
+            border-radius: 10px;
+            background: rgba(201,168,76,0.06);
+            transition: none;
+        }
+
+        /* ====== CANVAS TOOLBAR ====== */
+        .canvas-toolbar {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(26,22,18,0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--color-border2);
+            border-radius: 24px;
+            padding: 5px 10px;
+            z-index: 50;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .canvas-toolbar-sep {
+            width: 1px;
+            height: 20px;
+            background: var(--color-border2);
+            margin: 0 2px;
+        }
+        .ctbtn {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--color-muted);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+        .ctbtn:hover { background: rgba(255,255,255,0.07); color: var(--color-text); }
+        .ctbtn.active { background: rgba(201,168,76,0.15); color: var(--color-gold); }
+        .ctbtn[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            top: 36px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-surface);
+            border: 1px solid var(--color-border2);
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 0.68rem;
+            white-space: nowrap;
+            color: var(--color-text);
+            pointer-events: none;
+            z-index: 200;
+            font-family: var(--font-body);
+        }
+        .snap-badge {
+            font-size: 0.58rem;
+            font-weight: 700;
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            line-height: 1;
+        }
+
+        /* ====== TABLE NODES ====== */
+        .table-node {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            z-index: 10;
+            transition: filter 0.2s;
+        }
+        .table-node:hover .table-shell { filter: brightness(1.15); }
+        .table-node.selected .table-shell { box-shadow: 0 0 0 3px var(--color-gold), 0 8px 32px rgba(0,0,0,0.5); }
+
+        .table-shell {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 2px;
+            background: linear-gradient(160deg, #2a2218 0%, #1e1a14 100%);
+            border: 2px solid rgba(201,168,76,0.35);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+            transition: all 0.2s;
+        }
+        .table-shell.shape-round { border-radius: 50%; }
+        .table-shell.shape-oval { border-radius: 40%; }
+        .table-shell.shape-rect { border-radius: 12px; }
+        .table-shell.shape-long { border-radius: 8px; }
+
+        .table-name {
+            font-family: var(--font-heading);
+            font-size: 0.72rem;
+            font-style: italic;
+            color: var(--color-gold2);
+            text-align: center;
+            padding: 0 4px;
+            line-height: 1.2;
+        }
+        .table-capacity {
+            font-size: 0.6rem;
+            color: var(--color-muted);
+            font-weight: 600;
+        }
+
+        /* Seats around table */
+        .seat-dot {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--color-surface2);
+            border: 1.5px solid rgba(201,168,76,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            font-weight: 700;
+            color: var(--color-muted);
+            transition: all 0.2s;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .seat-dot.occupied {
+            background: linear-gradient(135deg, #2c2010, #1e1a10);
+            border-color: var(--color-gold);
+            color: var(--color-gold2);
+        }
+        .seat-dot.occupied img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .seat-dot:hover { border-color: var(--color-gold2); transform: scale(1.15); }
+        .seat-dot.drop-target-active { border-color: var(--color-success) !important; background: rgba(94,184,122,0.15) !important; transform: scale(1.2); }
+
+        /* Edge label above seat dot */
+        .seat-edge-label {
+            position: absolute;
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: var(--color-muted);
+            pointer-events: none;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        /* Table resize handle */
+        .table-resize-handle {
+            position: absolute;
+            bottom: -6px;
+            right: -6px;
+            width: 14px;
+            height: 14px;
+            background: var(--color-gold);
+            border-radius: 50%;
+            cursor: nwse-resize;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 20;
+        }
+        .table-node.selected .table-resize-handle { opacity: 1; }
+
+        /* Table delete button */
+        .table-delete-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 18px;
+            height: 18px;
+            background: var(--color-danger);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            cursor: pointer;
+            color: #fff;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 20;
+            border: none;
+        }
+        .table-node.selected .table-delete-btn { opacity: 1; }
+        .table-delete-btn:hover { background: #ff3333; }
+
+        /* ====== RIGHT INSPECTOR PANEL ====== */
+        .right-panel {
+            width: 240px;
+            background: var(--color-surface);
+            border-left: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+            transition: width 0.25s;
+        }
+        .right-panel.collapsed { width: 0; border-left: none; }
+        .inspector-header {
+            padding: 14px 14px 10px;
+            border-bottom: 1px solid var(--color-border);
+            flex-shrink: 0;
+        }
+        .inspector-header h3 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--color-text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .inspector-header h3 i { color: var(--color-gold); }
+        .inspector-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .inspector-body::-webkit-scrollbar { width: 3px; }
+        .inspector-body::-webkit-scrollbar-thumb { background: var(--color-border2); border-radius: 2px; }
+        .inspector-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            gap: 8px;
+            color: var(--color-muted);
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 20px;
+        }
+        .inspector-empty i { font-size: 2rem; opacity: 0.3; }
+        .inspector-group label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--color-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .inspector-seats-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .inspector-seat-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            background: var(--color-surface2);
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+        }
+        .inspector-seat-num {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(201,168,76,0.12);
+            border: 1px solid rgba(201,168,76,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--color-gold);
+            flex-shrink: 0;
+        }
+        .inspector-seat-name {
+            flex: 1;
+            font-size: 0.75rem;
+            color: var(--color-text);
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .inspector-seat-name.empty { color: var(--color-muted); font-style: italic; }
+        .inspector-seat-remove {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--color-muted);
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: color 0.2s;
+        }
+        .inspector-seat-remove:hover { color: var(--color-danger); }
+
+        /* ====== SEAT TOOLTIP ====== */
+        .seat-tooltip {
+            position: fixed;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border2);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            color: var(--color-text);
+            pointer-events: none;
+            z-index: 1000;
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: all 0.15s;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+        }
+        .seat-tooltip.visible { opacity: 1; transform: translateY(0); }
+
+        /* ====== STATUS BAR ====== */
+        .status-bar {
+            height: 28px;
+            background: var(--color-surface);
+            border-top: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 0 16px;
+            flex-shrink: 0;
+        }
+        .status-item {
+            font-size: 0.72rem;
+            color: var(--color-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .status-item strong { color: var(--color-text); }
+        .status-saved { color: var(--color-success); display: flex; align-items: center; gap: 4px; font-size: 0.72rem; }
+        .status-saving { color: var(--color-gold); display: flex; align-items: center; gap: 4px; font-size: 0.72rem; }
+        .status-unsaved { color: var(--color-rose); display: flex; align-items: center; gap: 4px; font-size: 0.72rem; }
+
+        /* ====== TOAST ====== */
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: var(--color-surface);
+            border: 1px solid var(--color-border2);
+            color: var(--color-text);
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* ====== DRAG GHOST ====== */
+        .drag-ghost {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9000;
+            background: var(--color-surface);
+            border: 1.5px solid var(--color-gold);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            color: var(--color-gold2);
+            font-weight: 600;
+            opacity: 0.9;
+            display: none;
+        }
+
+        /* ====== MOBILE NOTE ====== */
+        @media (max-width: 700px) {
+            .left-panel { display: none; }
+            .right-panel { display: none; }
+        }
+
+        /* ====== BACK LINK ====== */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--color-muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .back-btn:hover { color: var(--color-text); }
+
+        /* Spinner */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin { animation: spin 0.8s linear infinite; display: inline-block; }
+
+        /* Auth error overlay */
+        #auth-error {
+            position: fixed;
+            inset: 0;
+            background: var(--color-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            z-index: 9999;
+        }
+        #auth-error h2 { font-family: var(--font-heading); color: var(--color-rose); font-size: 1.4rem; }
+        #auth-error p { color: var(--color-muted); font-size: 0.9rem; }
+
+        /* Loading overlay */
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--color-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            flex-direction: column;
+            gap: 12px;
+        }
+        #loading-overlay p { color: var(--color-muted); font-size: 0.85rem; }
+
+        /* multi-select highlight */
+        .table-node.multi-selected .table-shell {
+            box-shadow: 0 0 0 3px rgba(212,116,138,0.7), 0 8px 32px rgba(0,0,0,0.5);
+        }
+
+        /* ====== SEAT PICKER MODAL ====== */
+        .seat-picker-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(4px);
+            z-index: 8000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .seat-picker-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .seat-picker-modal {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border2);
+            border-radius: 20px;
+            width: 360px;
+            max-width: 95vw;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+            transform: translateY(12px) scale(0.97);
+            transition: transform 0.2s;
+            overflow: hidden;
+        }
+        .seat-picker-overlay.open .seat-picker-modal {
+            transform: translateY(0) scale(1);
+        }
+        .seat-picker-header {
+            padding: 16px 18px 12px;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .seat-picker-header-info {
+            flex: 1;
+        }
+        .seat-picker-header h3 {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            color: var(--color-gold);
+            font-style: italic;
+            margin-bottom: 2px;
+        }
+        .seat-picker-header p {
+            font-size: 0.72rem;
+            color: var(--color-muted);
+        }
+        .seat-picker-close {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--color-border2);
+            color: var(--color-muted);
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .seat-picker-close:hover { background: rgba(224,85,85,0.2); color: var(--color-danger); }
+        .seat-picker-current {
+            padding: 10px 18px;
+            background: rgba(201,168,76,0.07);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .seat-picker-current-label {
+            font-size: 0.7rem;
+            color: var(--color-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .seat-picker-current-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-gold2);
+            flex: 1;
+        }
+        .seat-picker-unassign {
+            background: transparent;
+            border: 1px solid rgba(224,85,85,0.4);
+            color: var(--color-danger);
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: var(--font-body);
+            transition: all 0.15s;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .seat-picker-unassign:hover { background: rgba(224,85,85,0.12); }
+        .seat-picker-search {
+            padding: 10px 14px;
+            flex-shrink: 0;
+        }
+        .seat-picker-search input {
+            width: 100%;
+            background: var(--color-surface2);
+            border: 1px solid var(--color-border2);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 0.82rem;
+            color: var(--color-text);
+            font-family: var(--font-body);
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .seat-picker-search input:focus { border-color: rgba(201,168,76,0.5); }
+        .seat-picker-search input::placeholder { color: var(--color-muted); }
+        .seat-picker-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .seat-picker-list::-webkit-scrollbar { width: 4px; }
+        .seat-picker-list::-webkit-scrollbar-thumb { background: var(--color-border2); border-radius: 2px; }
+        .seat-picker-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.12s;
+            border: 1px solid transparent;
+        }
+        .seat-picker-item:hover { background: rgba(255,255,255,0.06); border-color: var(--color-border2); }
+        .seat-picker-item.sp-current { background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.25); }
+        .seat-picker-avatar {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: var(--color-surface2);
+            border: 1.5px solid var(--color-border2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--color-gold);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .seat-picker-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .seat-picker-item-info { flex: 1; min-width: 0; }
+        .seat-picker-item-name { font-size: 0.82rem; font-weight: 600; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .seat-picker-item-meta { font-size: 0.68rem; color: var(--color-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .seat-picker-empty { text-align: center; color: var(--color-muted); font-size: 0.8rem; padding: 24px 0; }
+
+        /* ====== ZONE ELEMENTS ====== */
+        .zone-node {
+            position: absolute;
+            pointer-events: none; /* non-interactive by default */
+            z-index: 2; /* below tables (z:10) */
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            user-select: none;
+            transition: box-shadow 0.2s;
+        }
+        .zone-node.zone-editable {
+            pointer-events: all;
+            cursor: move;
+        }
+        .zone-node.zone-editable:hover { box-shadow: 0 0 0 2px rgba(255,255,255,0.2) inset; }
+        .zone-node.zone-selected { box-shadow: 0 0 0 2px rgba(255,255,255,0.35) inset !important; }
+        .zone-icon {
+            font-size: 2rem;
+            line-height: 1;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+        }
+        .zone-label {
+            font-family: var(--font-heading);
+            font-size: 0.78rem;
+            font-style: italic;
+            font-weight: 600;
+            text-align: center;
+            padding: 0 8px;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+            opacity: 0.85;
+            line-height: 1.3;
+        }
+        .zone-delete-btn {
+            position: absolute;
+            top: -8px; right: -8px;
+            width: 18px; height: 18px;
+            background: var(--color-danger);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem;
+            cursor: pointer;
+            color: #fff;
+            border: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 20;
+        }
+        .zone-node.zone-selected .zone-delete-btn { opacity: 1; }
+        .zone-resize-handle {
+            position: absolute;
+            bottom: -6px; right: -6px;
+            width: 14px; height: 14px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            cursor: nwse-resize;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 20;
+        }
+        .zone-node.zone-selected .zone-resize-handle { opacity: 1; }
+
+        /* Zone presets panel */
+        .zone-presets-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .zone-preset-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 8px;
+            background: rgba(255,255,255,0.04);
+            border: 1.5px solid rgba(255,255,255,0.09);
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--color-muted);
+            font-size: 0.72rem;
+            font-weight: 600;
+            font-family: var(--font-body);
+            transition: all 0.15s;
+            text-align: left;
+        }
+        .zone-preset-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--color-text); background: rgba(255,255,255,0.07); }
+        .zone-edit-toggle {
+            width: 100%;
+            margin-bottom: 8px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Auth error -->
+<div id="auth-error" style="display:none;">
+    <h2>Brak dostępu</h2>
+    <p>Ta strona jest dostępna tylko dla Pary Młodej.</p>
+    <a href="index.html" class="btn btn-gold"><i class="ph ph-arrow-left"></i> Wróć</a>
+</div>
+
+<!-- Loading overlay -->
+<div id="loading-overlay">
+    <i class="ph-fill ph-sparkle spin" style="font-size:2rem; color: var(--color-gold);"></i>
+    <p>Ładowanie kreatora...</p>
+</div>
+
+<!-- TOP BAR -->
+<header class="topbar" id="main-ui" style="display:none;">
+    <a href="admin.html" class="back-btn" title="Wróć do aplikacji">
+        <i class="ph ph-arrow-left"></i>
+    </a>
+    <div class="topbar-logo">Z & K</div>
+    <div class="topbar-title">Kreator Planu Sali</div>
+    <div class="topbar-actions">
+        <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; color: var(--color-muted); cursor: pointer; user-select: none;">
+            <input type="checkbox" id="chk-layout-ready" style="accent-color: var(--color-gold); cursor: pointer;">
+            Gotowy plan
+        </label>
+        <button class="btn btn-ghost btn-sm" id="btn-clear-all" title="Wyczyść całą salę">
+            <i class="ph ph-trash"></i> Wyczyść
+        </button>
+        <button class="btn btn-ghost btn-sm" id="btn-toggle-inspector" title="Inspektor">
+            <i class="ph ph-sidebar-simple"></i>
+        </button>
+        <button class="btn btn-gold btn-sm" id="btn-save">
+            <i class="ph ph-floppy-disk"></i> Zapisz
+        </button>
+    </div>
+</header>
+
+<!-- WORKSPACE -->
+<div class="workspace" id="workspace" style="display:none;">
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+        <div class="panel-tabs">
+            <button class="panel-tab active" id="tab-btn-tables">Stoły</button>
+            <button class="panel-tab" id="tab-btn-guests">Goście</button>
+        </div>
+
+        <!-- TAB: TABLES -->
+        <div class="panel-section active" id="tab-tables">
+            <div class="add-table-section">
+                <h3>Kształt stołu</h3>
+                <div class="shape-picker">
+                    <button class="shape-btn selected" data-shape="round" id="shape-round">
+                        <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16"/></svg>
+                        Okrągły
+                    </button>
+                    <button class="shape-btn" data-shape="oval" id="shape-oval">
+                        <svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="18" ry="12"/></svg>
+                        Owalny
+                    </button>
+                    <button class="shape-btn" data-shape="rect" id="shape-rect">
+                        <svg viewBox="0 0 40 40"><rect x="4" y="8" width="32" height="24" rx="4"/></svg>
+                        Kwadrat
+                    </button>
+                    <button class="shape-btn" data-shape="long" id="shape-long">
+                        <svg viewBox="0 0 40 40"><rect x="2" y="12" width="36" height="16" rx="3"/></svg>
+                        Długi
+                    </button>
+                    <button class="shape-btn" data-shape="head" id="shape-head">
+                        <svg viewBox="0 0 40 40"><rect x="2" y="14" width="36" height="12" rx="2"/><rect x="8" y="10" width="24" height="20" rx="3"/></svg>
+                        Główny
+                    </button>
+                </div>
+                <div class="add-table-controls">
+                    <div class="form-row">
+                        <label>Nazwa</label>
+                        <input type="text" class="form-input" id="new-table-name" placeholder="Stolik 1" maxlength="30">
+                    </div>
+                    <div class="form-row">
+                        <label>Miejsc</label>
+                        <input type="number" class="form-input" id="new-table-seats" min="1" max="30" value="8">
+                    </div>
+                    <button class="btn btn-gold" id="btn-add-table" style="width:100%; justify-content: center;">
+                        <i class="ph ph-plus"></i> Dodaj stół
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table list -->
+            <div style="padding: 10px 14px 6px; flex-shrink:0;">
+                <h3 style="font-size:0.72rem; font-weight:600; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.08em;">Stoły na sali</h3>
+            </div>
+            <div id="table-list" style="flex:1; overflow-y:auto; padding:4px 8px; display:flex; flex-direction:column; gap:4px;">
+                <!-- populated by JS -->
+            </div>
+
+            <!-- ZONES SECTION -->
+            <div style="padding: 10px 14px 6px; flex-shrink:0; border-top: 1px solid var(--color-border); margin-top:4px;">
+                <h3 style="font-size:0.72rem; font-weight:600; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;">Strefy</h3>
+                <div class="zone-presets-grid" id="zone-presets">
+                    <!-- filled by JS -->
+                </div>
+                <button class="btn btn-ghost btn-sm zone-edit-toggle" id="btn-zone-edit">
+                    <i class="ph ph-pencil"></i> Edytuj strefy
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB: GUESTS -->
+        <div class="panel-section" id="tab-guests">
+            <div class="guests-search-box">
+                <input type="text" class="form-input" id="guest-search" placeholder="🔍  Szukaj gościa...">
+            </div>
+            <div class="guests-list" id="guests-list">
+                <!-- populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- CANVAS AREA -->
+    <div class="canvas-area" id="canvas-area">
+        <div class="canvas-grid" id="canvas-grid"></div>
+        <div id="canvas">
+            <div id="canvas-inner">
+                <!-- Symmetry axes (rendered by JS) -->
+            </div>
+        </div>
+
+        <!-- Canvas top toolbar -->
+        <div class="canvas-toolbar" id="canvas-toolbar">
+            <!-- Snap to grid -->
+            <button class="ctbtn" id="btn-snap" title="Przyciągaj do siatki">
+                <i class="ph ph-grid-four"></i>
+                <span class="snap-badge" id="snap-badge" style="color:var(--color-muted);display:none;">ON</span>
+            </button>
+            <div class="canvas-toolbar-sep"></div>
+            <!-- Symmetry axis -->
+            <button class="ctbtn" id="btn-sym-v" title="Oś symetrii pionowej">
+                <i class="ph ph-arrows-left-right"></i>
+            </button>
+            <button class="ctbtn" id="btn-sym-h" title="Oś symetrii poziomej">
+                <i class="ph ph-arrows-down-up"></i>
+            </button>
+            <button class="ctbtn" id="btn-sym-mirror" title="Odbij lustrzanie zaznaczony stół">
+                <i class="ph ph-copy"></i>
+            </button>
+            <div class="canvas-toolbar-sep"></div>
+            <!-- Align -->
+            <button class="ctbtn" id="btn-align-left" title="Wyrównaj do lewej">
+                <i class="ph ph-align-left"></i>
+            </button>
+            <button class="ctbtn" id="btn-align-center-v" title="Wyśrodkuj poziomo">
+                <i class="ph ph-align-center-horizontal"></i>
+            </button>
+            <button class="ctbtn" id="btn-align-right" title="Wyrównaj do prawej">
+                <i class="ph ph-align-right"></i>
+            </button>
+            <button class="ctbtn" id="btn-align-top" title="Wyrównaj do góry">
+                <i class="ph ph-align-top"></i>
+            </button>
+            <button class="ctbtn" id="btn-align-center-h" title="Wyśrodkuj pionowo">
+                <i class="ph ph-align-center-vertical"></i>
+            </button>
+            <button class="ctbtn" id="btn-align-bottom" title="Wyrównaj do dołu">
+                <i class="ph ph-align-bottom"></i>
+            </button>
+            <div class="canvas-toolbar-sep"></div>
+            <button class="ctbtn" id="btn-distribute-h" title="Rozmieść równomiernie poziomo">
+                <i class="ph ph-distribute-horizontal"></i>
+            </button>
+            <button class="ctbtn" id="btn-distribute-v" title="Rozmieść równomiernie pionowo">
+                <i class="ph ph-distribute-vertical"></i>
+            </button>
+        </div>
+
+        <!-- Canvas hint -->
+        <div class="canvas-hint" id="canvas-hint">
+            <i class="ph ph-table canvas-hint-icon"></i>
+            <p>Dodaj stoły z panelu po lewej,<br>a następnie przypisz gości<br>przeciągając ich na miejsca.</p>
+        </div>
+
+        <!-- Zoom controls -->
+        <div class="zoom-controls">
+            <button class="zoom-btn" id="zoom-in" title="Przybliż"><i class="ph ph-plus"></i></button>
+            <span class="zoom-label" id="zoom-label">100%</span>
+            <button class="zoom-btn" id="zoom-out" title="Oddal"><i class="ph ph-minus"></i></button>
+            <button class="zoom-btn" id="zoom-fit" title="Dopasuj widok"><i class="ph ph-arrows-out"></i></button>
+        </div>
+    </div>
+
+    <!-- RIGHT INSPECTOR PANEL -->
+    <div class="right-panel" id="right-panel">
+        <div class="inspector-header">
+            <h3><i class="ph-fill ph-info"></i> Inspektor</h3>
+        </div>
+        <div class="inspector-body" id="inspector-body">
+            <div class="inspector-empty">
+                <i class="ph ph-cursor-click"></i>
+                <span>Kliknij na stół,<br>aby zobaczyć szczegóły</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar" id="status-bar" style="display:none;">
+    <div class="status-item">Stoły: <strong id="stat-tables">0</strong></div>
+    <div class="status-item">Gości przypisanych: <strong id="stat-guests">0</strong></div>
+    <div class="status-item">Wolnych miejsc: <strong id="stat-free">0</strong></div>
+    <div style="margin-left:auto;" id="save-status">
+        <span class="status-saved"><i class="ph ph-check-circle"></i> Zapisano</span>
+    </div>
+</div>
+
+<!-- Seat Tooltip -->
+<div class="seat-tooltip" id="seat-tooltip"></div>
+
+<!-- Drag Ghost (for guest list dragging) -->
+<div class="drag-ghost" id="drag-ghost"></div>
+
+<!-- Seat Picker Modal -->
+<div class="seat-picker-overlay" id="seat-picker-overlay">
+    <div class="seat-picker-modal" id="seat-picker-modal">
+        <div class="seat-picker-header">
+            <div class="seat-picker-header-info">
+                <h3 id="sp-title">Miejsce 1</h3>
+                <p id="sp-subtitle">Wybierz gościa</p>
+            </div>
+            <button class="seat-picker-close" id="sp-close"><i class="ph ph-x"></i></button>
+        </div>
+        <div class="seat-picker-current" id="sp-current" style="display:none;">
+            <span class="seat-picker-current-label">Zajmuje:</span>
+            <span class="seat-picker-current-name" id="sp-current-name"></span>
+            <button class="seat-picker-unassign" id="sp-unassign"><i class="ph ph-user-minus"></i> Usuń</button>
+        </div>
+        <div class="seat-picker-search">
+            <input type="text" id="sp-search" placeholder="🔍  Szukaj gościa..." autocomplete="off">
+        </div>
+        <div class="seat-picker-list" id="sp-list"></div>
+    </div>
+</div>
+
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+(async () => {
+
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const API_URL = (() => {
+    const host = window.location.hostname || '127.0.0.1';
+    return `http://${host}:8000/api`;
+})();
+
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+const token = localStorage.getItem('access_token');
+const userRaw = localStorage.getItem('user');
+let currentUser = null;
+try { currentUser = JSON.parse(userRaw); } catch(e){}
+
+const loadingEl = document.getElementById('loading-overlay');
+const authErrorEl = document.getElementById('auth-error');
+const mainUI = document.getElementById('main-ui');
+const workspaceEl = document.getElementById('workspace');
+const statusBarEl = document.getElementById('status-bar');
+
+function showUI() {
+    loadingEl.style.display = 'none';
+    mainUI.style.display = 'flex';
+    workspaceEl.style.display = 'flex';
+    statusBarEl.style.display = 'flex';
+}
+
+if (!token || !currentUser) {
+    loadingEl.style.display = 'none';
+    authErrorEl.style.display = 'flex';
+} else {
+    // Verify token + role
+    try {
+        const res = await fetch(`${API_URL}/me/`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) throw new Error('unauth');
+        const me = await res.json();
+        if (me.role !== 'para_mloda' && !me.is_staff) {
+            loadingEl.style.display = 'none';
+            authErrorEl.style.display = 'flex';
+        } else {
+            currentUser = me;
+            showUI();
+            initApp();
+        }
+    } catch(e) {
+        loadingEl.style.display = 'none';
+        authErrorEl.style.display = 'flex';
+    }
+}
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let tables = [];         // [{id, name, shape, seats, x, y, w, h, assignments: {seatIdx: guestId}, edgeSeats?: {top,bottom,left,right}}]
+let allGuests = [];      // from API
+let selectedTableId = null;
+let isDirty = false;
+let saveTimeout = null;
+let tableCounter = 0;
+let layoutReady = false;
+
+let scale = 1;
+let panX = 0, panY = 0;
+let isPanning = false;
+let panStartX = 0, panStartY = 0;
+
+// Drag state for table moving
+let draggingTable = null;
+let dragOffX = 0, dragOffY = 0;
+
+// Drag state for guest assignment
+let draggingGuest = null; // {guestId, el}
+let dropTarget = null;    // {tableId, seatIdx}
+
+// Resize state
+let resizingTable = null;
+let resizeStartX = 0, resizeStartY = 0, resizeStartW = 0, resizeStartH = 0;
+
+// (no seat drag state)
+
+// ── DOM REFS ─────────────────────────────────────────────────────────────────
+const canvasInner   = document.getElementById('canvas-inner');
+const canvasArea    = document.getElementById('canvas-area');
+const canvasHint    = document.getElementById('canvas-hint');
+const tableListEl   = document.getElementById('table-list');
+const guestsListEl  = document.getElementById('guests-list');
+const guestSearch   = document.getElementById('guest-search');
+const inspectorBody = document.getElementById('inspector-body');
+const rightPanel    = document.getElementById('right-panel');
+const zoomLabel     = document.getElementById('zoom-label');
+const saveStatus    = document.getElementById('save-status');
+const tooltip       = document.getElementById('seat-tooltip');
+const dragGhost     = document.getElementById('drag-ghost');
+
+// ── ZONE STATE ────────────────────────────────────────────────────────────────
+let zones = []; // [{id, label, icon, color, x, y, w, h, shape}]
+let zoneEditMode = false;
+let selectedZoneId = null;
+let draggingZone = null;
+let zoneDragOffX = 0, zoneDragOffY = 0;
+let resizingZone = null;
+let zoneResizeStartX = 0, zoneResizeStartY = 0, zoneResizeStartW = 0, zoneResizeStartH = 0;
+
+// ── SYMMETRY & SNAP CONFIG ───────────────────────────────────────────────────
+let snapEnabled = false;
+const SNAP_SIZE = 40;
+let symMode = null; // null | 'vertical' | 'horizontal'
+let symAxisPos = null; // world-space coordinate of the axis
+let multiSelected = new Set(); // set of table ids for multi-select (align/distribute)
+let ghostEl = null; // mirror ghost element
+const symAxisElV = null; // will be created by JS
+const symAxisElH = null;
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ── SHAPE SELECTION ──────────────────────────────────────────────────────────
+let selectedShape = 'round';
+document.querySelectorAll('.shape-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedShape = btn.dataset.shape;
+    });
+});
+
+// ── PANEL TABS ───────────────────────────────────────────────────────────────
+document.getElementById('tab-btn-tables').addEventListener('click', () => {
+    document.getElementById('tab-btn-tables').classList.add('active');
+    document.getElementById('tab-btn-guests').classList.remove('active');
+    document.getElementById('tab-tables').classList.add('active');
+    document.getElementById('tab-guests').classList.remove('active');
+});
+document.getElementById('tab-btn-guests').addEventListener('click', () => {
+    document.getElementById('tab-btn-guests').classList.add('active');
+    document.getElementById('tab-btn-tables').classList.remove('active');
+    document.getElementById('tab-guests').classList.add('active');
+    document.getElementById('tab-tables').classList.remove('active');
+});
+
+// ── ZONES ─────────────────────────────────────────────────────────────────────
+const ZONE_PRESETS = [
+    { label: 'Parkiet',    icon: '🎵', color: 'rgba(140,100,220,0.18)', border: 'rgba(160,120,240,0.45)', w: 300, h: 220 },
+    { label: 'Bar',        icon: '🍾', color: 'rgba(201,168,76,0.15)',  border: 'rgba(201,168,76,0.5)',   w: 200, h: 120 },
+    { label: 'Wejście',    icon: '🚪', color: 'rgba(94,184,122,0.15)', border: 'rgba(94,184,122,0.45)',  w: 120, h: 80  },
+    { label: 'Scena',      icon: '🎤', color: 'rgba(212,116,138,0.15)', border: 'rgba(212,116,138,0.45)', w: 320, h: 140 },
+    { label: 'DJ',         icon: '🎧', color: 'rgba(80,160,230,0.15)',  border: 'rgba(80,160,230,0.45)',  w: 160, h: 120 },
+    { label: 'Toalety',    icon: '🚻', color: 'rgba(120,180,180,0.15)', border: 'rgba(120,180,180,0.4)',  w: 100, h: 80  },
+    { label: 'Tort',       icon: '🎂', color: 'rgba(230,150,100,0.15)', border: 'rgba(230,150,100,0.45)', w: 120, h: 100 },
+    { label: 'Foto-budka', icon: '📷', color: 'rgba(220,100,180,0.15)', border: 'rgba(220,100,180,0.45)', w: 160, h: 140 },
+];
+
+let _zoneCounter = 0;
+
+function buildZonePresets() {
+    const grid = document.getElementById('zone-presets');
+    grid.innerHTML = '';
+    ZONE_PRESETS.forEach(preset => {
+        const btn = document.createElement('button');
+        btn.className = 'zone-preset-btn';
+        btn.innerHTML = `<span style="font-size:1.1rem">${preset.icon}</span> ${preset.label}`;
+        btn.title = `Dodaj strefę: ${preset.label}`;
+        btn.addEventListener('click', () => addZone(preset));
+        grid.appendChild(btn);
+    });
+}
+buildZonePresets();
+
+function addZone(preset) {
+    _zoneCounter++;
+    const cx = (canvasArea.clientWidth  / 2 - panX) / scale;
+    const cy = (canvasArea.clientHeight / 2 - panY) / scale;
+    const zone = {
+        id: `z_${Date.now()}_${_zoneCounter}`,
+        label:  preset.label,
+        icon:   preset.icon,
+        color:  preset.color,
+        border: preset.border,
+        x: cx - preset.w / 2 + (Math.random() - 0.5) * 40,
+        y: cy - preset.h / 2 + (Math.random() - 0.5) * 40,
+        w: preset.w,
+        h: preset.h,
+    };
+    zones.push(zone);
+    renderZone(zone);
+    markDirty();
+    showToast(`Dodano strefę: ${preset.icon} ${preset.label}`);
+}
+
+function renderZone(zone) {
+    const old = document.getElementById(`zone_${zone.id}`);
+    if (old) old.remove();
+
+    const el = document.createElement('div');
+    el.className = 'zone-node' + (zoneEditMode ? ' zone-editable' : '');
+    el.id = `zone_${zone.id}`;
+    el.style.cssText = `
+        left: ${zone.x}px; top: ${zone.y}px;
+        width: ${zone.w}px; height: ${zone.h}px;
+        background: ${zone.color};
+        border: 2px dashed ${zone.border};
+    `;
+
+    const iconEl = document.createElement('div');
+    iconEl.className = 'zone-icon';
+    iconEl.textContent = zone.icon;
+
+    const labelEl = document.createElement('div');
+    labelEl.className = 'zone-label';
+    labelEl.style.color = zone.border.replace(/[\d.]+\)$/, '1)'); // full opacity for text
+    labelEl.textContent = zone.label;
+
+    el.appendChild(iconEl);
+    el.appendChild(labelEl);
+
+    if (zoneEditMode) {
+        // Delete button
+        const delBtn = document.createElement('button');
+        delBtn.className = 'zone-delete-btn';
+        delBtn.innerHTML = '<i class="ph ph-x"></i>';
+        delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteZone(zone.id); });
+        el.appendChild(delBtn);
+
+        // Resize handle
+        const rzHandle = document.createElement('div');
+        rzHandle.className = 'zone-resize-handle';
+        rzHandle.addEventListener('mousedown', (e) => onZoneResizeMouseDown(e, zone.id));
+        el.appendChild(rzHandle);
+
+        el.addEventListener('mousedown', (e) => onZoneDragMouseDown(e, zone.id));
+        el.addEventListener('click', (e) => { e.stopPropagation(); selectZone(zone.id); });
+    }
+
+    // Zones go behind tables — insert at start of canvas-inner
+    canvasInner.insertBefore(el, canvasInner.firstChild);
+}
+
+function renderAllZones() {
+    canvasInner.querySelectorAll('.zone-node').forEach(n => n.remove());
+    zones.forEach(z => renderZone(z));
+}
+
+function selectZone(id) {
+    selectedZoneId = id;
+    canvasInner.querySelectorAll('.zone-node').forEach(n => n.classList.remove('zone-selected'));
+    const el = document.getElementById(`zone_${id}`);
+    if (el) el.classList.add('zone-selected');
+}
+
+function deleteZone(id) {
+    zones = zones.filter(z => z.id !== id);
+    const el = document.getElementById(`zone_${id}`);
+    if (el) el.remove();
+    if (selectedZoneId === id) selectedZoneId = null;
+    markDirty();
+}
+
+// Zone drag
+function onZoneDragMouseDown(e, id) {
+    if (e.button !== 0) return;
+    if (e.target.classList.contains('zone-delete-btn') || e.target.closest('.zone-delete-btn')) return;
+    if (e.target.classList.contains('zone-resize-handle')) return;
+    e.stopPropagation();
+    e.preventDefault();
+    selectZone(id);
+    draggingZone = id;
+    const zone = zones.find(z => z.id === id);
+    if (!zone) return;
+    const canvasRect = canvasArea.getBoundingClientRect();
+    const mx = (e.clientX - canvasRect.left - panX) / scale;
+    const my = (e.clientY - canvasRect.top  - panY) / scale;
+    zoneDragOffX = mx - zone.x;
+    zoneDragOffY = my - zone.y;
+}
+
+function onZoneResizeMouseDown(e, id) {
+    e.stopPropagation(); e.preventDefault();
+    selectZone(id);
+    resizingZone = id;
+    const zone = zones.find(z => z.id === id);
+    zoneResizeStartX = e.clientX; zoneResizeStartY = e.clientY;
+    zoneResizeStartW = zone.w;    zoneResizeStartH = zone.h;
+}
+
+// Edit mode toggle
+const btnZoneEdit = document.getElementById('btn-zone-edit');
+btnZoneEdit.addEventListener('click', () => {
+    zoneEditMode = !zoneEditMode;
+    btnZoneEdit.classList.toggle('active', zoneEditMode);
+    btnZoneEdit.innerHTML = zoneEditMode
+        ? '<i class="ph ph-check"></i> Zatwierdź'
+        : '<i class="ph ph-pencil"></i> Edytuj strefy';
+    renderAllZones();
+    if (!zoneEditMode) selectedZoneId = null;
+    showToast(zoneEditMode ? '✏️ Tryb edycji stref' : '✅ Strefy zablokowane');
+});
+
+// ── SNAP TO GRID ─────────────────────────────────────────────────────────────
+
+const btnSnap = document.getElementById('btn-snap');
+const snapBadge = document.getElementById('snap-badge');
+btnSnap.addEventListener('click', () => {
+    snapEnabled = !snapEnabled;
+    btnSnap.classList.toggle('active', snapEnabled);
+    snapBadge.style.display = snapEnabled ? 'block' : 'none';
+    snapBadge.style.color = snapEnabled ? 'var(--color-gold)' : 'var(--color-muted)';
+    showToast(snapEnabled ? '🔲 Przyciąganie do siatki: ON' : '🔲 Przyciąganie: OFF');
+});
+
+function snapVal(v) {
+    return snapEnabled ? Math.round(v / SNAP_SIZE) * SNAP_SIZE : v;
+}
+
+// ── SYMMETRY AXIS ─────────────────────────────────────────────────────────────
+let _symAxisV = null; // DOM element for vertical axis
+let _symAxisH = null; // DOM element for horizontal axis
+
+function ensureAxisEl(cls) {
+    let el = canvasInner.querySelector('.sym-axis.' + cls);
+    if (!el) {
+        el = document.createElement('div');
+        el.className = 'sym-axis ' + cls;
+        canvasInner.appendChild(el);
+    }
+    return el;
+}
+
+function updateSymAxisDisplay() {
+    // Vertical axis
+    const axV = canvasInner.querySelector('.sym-axis.vertical');
+    if (axV) axV.remove();
+    const axH = canvasInner.querySelector('.sym-axis.horizontal');
+    if (axH) axH.remove();
+
+    if (symMode === 'vertical' && symAxisPos !== null) {
+        const el = document.createElement('div');
+        el.className = 'sym-axis vertical';
+        el.style.left = symAxisPos + 'px';
+        el.style.top = '-5000px';
+        el.style.height = '10000px';
+        canvasInner.appendChild(el);
+    }
+    if (symMode === 'horizontal' && symAxisPos !== null) {
+        const el = document.createElement('div');
+        el.className = 'sym-axis horizontal';
+        el.style.top = symAxisPos + 'px';
+        el.style.left = '-5000px';
+        el.style.width = '10000px';
+        canvasInner.appendChild(el);
+    }
+}
+
+function computeDefaultAxisPos() {
+    if (tables.length === 0) {
+        // Center of viewport in world space
+        return (canvasArea.clientWidth / 2 - panX) / scale;
+    }
+    const vals = symMode === 'vertical'
+        ? tables.map(t => t.x + t.w / 2)
+        : tables.map(t => t.y + t.h / 2);
+    return (Math.min(...vals) + Math.max(...vals)) / 2;
+}
+
+document.getElementById('btn-sym-v').addEventListener('click', () => {
+    if (symMode === 'vertical') {
+        symMode = null; symAxisPos = null;
+        document.getElementById('btn-sym-v').classList.remove('active');
+    } else {
+        symMode = 'vertical';
+        symAxisPos = computeDefaultAxisPos();
+        document.getElementById('btn-sym-v').classList.add('active');
+        document.getElementById('btn-sym-h').classList.remove('active');
+    }
+    updateSymAxisDisplay();
+    showToast(symMode === 'vertical' ? '↕ Oś symetrii pionowej aktywna' : 'Oś symetrii wyłączona');
+});
+
+document.getElementById('btn-sym-h').addEventListener('click', () => {
+    if (symMode === 'horizontal') {
+        symMode = null; symAxisPos = null;
+        document.getElementById('btn-sym-h').classList.remove('active');
+    } else {
+        symMode = 'horizontal';
+        symAxisPos = computeDefaultAxisPos();
+        document.getElementById('btn-sym-h').classList.add('active');
+        document.getElementById('btn-sym-v').classList.remove('active');
+    }
+    updateSymAxisDisplay();
+    showToast(symMode === 'horizontal' ? '↔ Oś symetrii poziomej aktywna' : 'Oś symetrii wyłączona');
+});
+
+// Mirror: create a mirrored copy of selected table across the axis
+document.getElementById('btn-sym-mirror').addEventListener('click', () => {
+    if (!selectedTableId) { showToast('Zaznacz stół do odbicia lustrzanego'); return; }
+    if (!symMode || symAxisPos === null) { showToast('Aktywuj najpierw oś symetrii'); return; }
+    const src = tables.find(t => t.id === selectedTableId);
+    if (!src) return;
+
+    let mx = src.x, my = src.y;
+    if (symMode === 'vertical') {
+        // Mirror across vertical axis (x = symAxisPos)
+        mx = 2 * symAxisPos - src.x - src.w;
+    } else {
+        // Mirror across horizontal axis (y = symAxisPos)
+        my = 2 * symAxisPos - src.y - src.h;
+    }
+    tableCounter++;
+    const mirrored = {
+        ...JSON.parse(JSON.stringify(src)),
+        id: `t_${Date.now()}_${tableCounter}`,
+        name: src.name + ' (L)',
+        x: snapVal(mx),
+        y: snapVal(my),
+        assignments: {},
+    };
+    tables.push(mirrored);
+    renderTable(mirrored);
+    renderTableList();
+    updateHint();
+    updateStats();
+    markDirty();
+    showToast(`Odbito: ${mirrored.name}`);
+});
+
+// Ghost element to show mirror preview while dragging
+function updateGhost(tbl) {
+    if (!symMode || symAxisPos === null || !tbl) {
+        if (ghostEl) { ghostEl.style.display = 'none'; }
+        return;
+    }
+    if (!ghostEl) {
+        ghostEl = document.createElement('div');
+        ghostEl.className = 'table-ghost';
+        canvasInner.appendChild(ghostEl);
+    }
+    let gx = tbl.x, gy = tbl.y;
+    if (symMode === 'vertical') {
+        gx = 2 * symAxisPos - tbl.x - tbl.w;
+    } else {
+        gy = 2 * symAxisPos - tbl.y - tbl.h;
+    }
+    ghostEl.style.left = gx + 'px';
+    ghostEl.style.top = gy + 'px';
+    ghostEl.style.width = tbl.w + 'px';
+    ghostEl.style.height = tbl.h + 'px';
+    ghostEl.style.display = 'block';
+}
+
+function hideGhost() {
+    if (ghostEl) ghostEl.style.display = 'none';
+}
+
+// ── ALIGN & DISTRIBUTE ────────────────────────────────────────────────────────
+function getAlignTargets() {
+    // If multi-selected, use those. Otherwise fall back to selected table only.
+    let ids = [...multiSelected];
+    if (ids.length === 0 && selectedTableId) ids = [selectedTableId];
+    return ids.map(id => tables.find(t => t.id === id)).filter(Boolean);
+}
+
+function alignTables(axis) {
+    const tbls = getAlignTargets();
+    if (tbls.length < 1) { showToast('Zaznacz co najmniej 2 stoły (Shift+klik)'); return; }
+    if (tbls.length === 1) { showToast('Zaznacz co najmniej 2 stoły (Shift+klik) do wyrównania'); return; }
+    let ref;
+    switch(axis) {
+        case 'left':   ref = Math.min(...tbls.map(t => t.x)); tbls.forEach(t => { t.x = ref; renderTablePos(t); }); break;
+        case 'right':  ref = Math.max(...tbls.map(t => t.x + t.w)); tbls.forEach(t => { t.x = ref - t.w; renderTablePos(t); }); break;
+        case 'top':    ref = Math.min(...tbls.map(t => t.y)); tbls.forEach(t => { t.y = ref; renderTablePos(t); }); break;
+        case 'bottom': ref = Math.max(...tbls.map(t => t.y + t.h)); tbls.forEach(t => { t.y = ref - t.h; renderTablePos(t); }); break;
+        case 'centerV': ref = tbls.reduce((s,t) => s + (t.x + t.w/2), 0) / tbls.length; tbls.forEach(t => { t.x = ref - t.w/2; renderTablePos(t); }); break;
+        case 'centerH': ref = tbls.reduce((s,t) => s + (t.y + t.h/2), 0) / tbls.length; tbls.forEach(t => { t.y = ref - t.h/2; renderTablePos(t); }); break;
+    }
+    markDirty();
+    showToast('Wyrównano!');
+}
+
+function distributeTables(dir) {
+    const tbls = getAlignTargets();
+    if (tbls.length < 3) { showToast('Potrzebujesz co najmniej 3 stoły do rozmieszczenia (Shift+klik)'); return; }
+    if (dir === 'h') {
+        tbls.sort((a,b) => a.x - b.x);
+        const totalW = tbls.reduce((s,t) => s+t.w, 0);
+        const span = tbls[tbls.length-1].x + tbls[tbls.length-1].w - tbls[0].x;
+        const gap = (span - totalW) / (tbls.length - 1);
+        let cx = tbls[0].x;
+        tbls.forEach(t => { t.x = cx; renderTablePos(t); cx += t.w + gap; });
+    } else {
+        tbls.sort((a,b) => a.y - b.y);
+        const totalH = tbls.reduce((s,t) => s+t.h, 0);
+        const span = tbls[tbls.length-1].y + tbls[tbls.length-1].h - tbls[0].y;
+        const gap = (span - totalH) / (tbls.length - 1);
+        let cy = tbls[0].y;
+        tbls.forEach(t => { t.y = cy; renderTablePos(t); cy += t.h + gap; });
+    }
+    markDirty();
+    showToast('Rozmieszczono równomiernie!');
+}
+
+function renderTablePos(tbl) {
+    const node = document.getElementById(`node_${tbl.id}`);
+    if (node) { node.style.left = tbl.x + 'px'; node.style.top = tbl.y + 'px'; }
+}
+
+document.getElementById('btn-align-left').addEventListener('click', () => alignTables('left'));
+document.getElementById('btn-align-right').addEventListener('click', () => alignTables('right'));
+document.getElementById('btn-align-top').addEventListener('click', () => alignTables('top'));
+document.getElementById('btn-align-bottom').addEventListener('click', () => alignTables('bottom'));
+document.getElementById('btn-align-center-v').addEventListener('click', () => alignTables('centerV'));
+document.getElementById('btn-align-center-h').addEventListener('click', () => alignTables('centerH'));
+document.getElementById('btn-distribute-h').addEventListener('click', () => distributeTables('h'));
+document.getElementById('btn-distribute-v').addEventListener('click', () => distributeTables('v'));
+
+// ── ADD TABLE ────────────────────────────────────────────────────────────────
+document.getElementById('btn-add-table').addEventListener('click', () => {
+    const nameInput = document.getElementById('new-table-name');
+    const seatsInput = document.getElementById('new-table-seats');
+    const seats = Math.min(30, Math.max(1, parseInt(seatsInput.value) || 8));
+    const name = nameInput.value.trim() || `Stolik ${tableCounter + 1}`;
+
+    // Default dimensions per shape
+    const dims = {
+        round: { w: 120, h: 120 },
+        oval:  { w: 160, h: 100 },
+        rect:  { w: 130, h: 130 },
+        long:  { w: 240, h: 90 },
+        head:  { w: 280, h: 100 },
+    };
+    const d = dims[selectedShape] || { w: 130, h: 130 };
+
+    // Place in visible canvas area
+    const cx = (canvasArea.clientWidth / 2 - panX) / scale;
+    const cy = (canvasArea.clientHeight / 2 - panY) / scale;
+
+    tableCounter++;
+    const tbl = {
+        id: `t_${Date.now()}_${tableCounter}`,
+        name,
+        shape: selectedShape,
+        seats,
+        x: cx - d.w / 2 + (Math.random() - 0.5) * 60,
+        y: cy - d.h / 2 + (Math.random() - 0.5) * 60,
+        w: d.w,
+        h: d.h,
+        assignments: {},
+        ...(isRect(selectedShape) ? { edgeSeats: defaultEdgeSeats(seats) } : {}),
+    };
+    tables.push(tbl);
+    renderTable(tbl);
+    renderTableList();
+    updateHint();
+    updateStats();
+    markDirty();
+    nameInput.value = '';
+});
+
+// ── RENDER ALL TABLES ────────────────────────────────────────────────────────
+function getDefaultName() {
+    tableCounter++;
+    return `Stolik ${tableCounter}`;
+}
+
+function renderTable(tbl) {
+    // Remove old node if exists
+    const old = document.getElementById(`node_${tbl.id}`);
+    if (old) old.remove();
+
+    const node = document.createElement('div');
+    node.className = 'table-node';
+    node.id = `node_${tbl.id}`;
+    node.style.left = tbl.x + 'px';
+    node.style.top = tbl.y + 'px';
+    node.style.width = tbl.w + 'px';
+    node.style.height = tbl.h + 'px';
+
+    // Shell
+    const shell = document.createElement('div');
+    shell.className = `table-shell shape-${tbl.shape}`;
+    shell.style.width = tbl.w + 'px';
+    shell.style.height = tbl.h + 'px';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'table-name';
+    nameEl.textContent = tbl.name;
+
+    const capEl = document.createElement('div');
+    capEl.className = 'table-capacity';
+    const assigned = Object.keys(tbl.assignments).length;
+    capEl.textContent = `${assigned}/${tbl.seats}`;
+
+    shell.appendChild(nameEl);
+    shell.appendChild(capEl);
+    node.appendChild(shell);
+
+    // Seats
+    placeSeatDots(node, tbl);
+
+    // Delete btn
+    const delBtn = document.createElement('button');
+    delBtn.className = 'table-delete-btn';
+    delBtn.title = 'Usuń stół';
+    delBtn.innerHTML = '<i class="ph ph-x"></i>';
+    delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteTable(tbl.id);
+    });
+    node.appendChild(delBtn);
+
+    // Resize handle
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'table-resize-handle';
+    node.appendChild(resizeHandle);
+
+    // Events
+    node.addEventListener('mousedown', (e) => onTableMouseDown(e, tbl.id));
+    resizeHandle.addEventListener('mousedown', (e) => onResizeMouseDown(e, tbl.id));
+
+    node.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (e.shiftKey) {
+            // Multi-select with Shift
+            if (multiSelected.has(tbl.id)) {
+                multiSelected.delete(tbl.id);
+                node.classList.remove('multi-selected');
+            } else {
+                multiSelected.add(tbl.id);
+                node.classList.add('multi-selected');
+                // Also add previously selected to multi
+                if (selectedTableId && selectedTableId !== tbl.id) {
+                    multiSelected.add(selectedTableId);
+                    const prevNode = document.getElementById(`node_${selectedTableId}`);
+                    if (prevNode) prevNode.classList.add('multi-selected');
+                }
+            }
+        } else {
+            // Clear multi-select on normal click
+            multiSelected.clear();
+            document.querySelectorAll('.table-node').forEach(n => n.classList.remove('multi-selected'));
+            selectTable(tbl.id);
+        }
+    });
+
+    canvasInner.appendChild(node);
+}
+// ── SEAT PLACEMENT ──────────────────────────────────────────────────────────
+const RECT_SHAPES = ['rect', 'long', 'head'];
+function isRect(shape) { return RECT_SHAPES.includes(shape); }
+
+function defaultEdgeSeats(total) {
+    // Distribute total seats across 4 edges
+    const base   = Math.floor(total / 4);
+    const extra  = total % 4;
+    return {
+        top:    base + (extra > 0 ? 1 : 0),
+        bottom: base + (extra > 1 ? 1 : 0),
+        left:   base + (extra > 2 ? 1 : 0),
+        right:  base,
+    };
+}
+
+function edgeSeatsTotal(tbl) {
+    const e = tbl.edgeSeats || { top:0, bottom:0, left:0, right:0 };
+    return (e.top || 0) + (e.bottom || 0) + (e.left || 0) + (e.right || 0);
+}
+
+function placeSeatDots(node, tbl) {
+    node.querySelectorAll('.seat-dot').forEach(s => s.remove());
+
+    if (isRect(tbl.shape)) {
+        placeSeatDotsRect(node, tbl);
+    } else {
+        placeSeatDotsRound(node, tbl);
+    }
+}
+
+function makeSeatDot(tbl, seatIdx, label) {
+    const dot = document.createElement('div');
+    dot.className = 'seat-dot';
+    dot.dataset.seatIdx = seatIdx;
+    dot.dataset.tableId = tbl.id;
+
+    const guestId = tbl.assignments[seatIdx];
+    const guest   = guestId ? allGuests.find(g => g.id == guestId) : null;
+    if (guest) {
+        dot.classList.add('occupied');
+        dot.title = guest.name;
+        if (guest.avatar) {
+            const img = document.createElement('img');
+            img.src = guest.avatar; img.alt = guest.name;
+            dot.appendChild(img);
+        } else {
+            dot.textContent = getInitials(guest.name);
+        }
+    } else {
+        dot.textContent = label;
+    }
+
+    dot.addEventListener('dragover',  (e) => { e.preventDefault(); dot.classList.add('drop-target-active'); });
+    dot.addEventListener('dragleave', ()  => dot.classList.remove('drop-target-active'));
+    dot.addEventListener('drop',      (e) => {
+        e.preventDefault(); dot.classList.remove('drop-target-active');
+        const gId = e.dataTransfer.getData('guest_id');
+        if (gId) assignGuest(tbl.id, seatIdx, parseInt(gId));
+    });
+    dot.addEventListener('mouseenter', (e) => showTooltip(e, guest ? guest.name : `Miejsce ${seatIdx + 1}`));
+    dot.addEventListener('mouseleave', hideTooltip);
+    dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hideTooltip();
+        openSeatPicker(tbl.id, seatIdx);
+    });
+    return { dot, guest };
+}
+
+function placeSeatDotsRect(node, tbl) {
+    const e = tbl.edgeSeats || defaultEdgeSeats(tbl.seats);
+    const W = tbl.w, H = tbl.h;
+    const gap  = 14;
+    const dotR = 11;
+    let seatIdx = 0;
+
+    function placeEdge(count, positions) {
+        for (let i = 0; i < count; i++) {
+            const { x, y } = positions(i, count);
+            const { dot } = makeSeatDot(tbl, seatIdx, seatIdx + 1);
+            dot.style.left = (x - dotR) + 'px';
+            dot.style.top  = (y - dotR) + 'px';
+            node.appendChild(dot);
+            seatIdx++;
+        }
+    }
+
+    // Top edge: left → right
+    placeEdge(e.top || 0,    (i, n) => ({ x: (i + 1) / (n + 1) * W,       y: -gap }));
+    // Bottom edge: left → right
+    placeEdge(e.bottom || 0, (i, n) => ({ x: (i + 1) / (n + 1) * W,       y: H + gap }));
+    // Left edge: top → bottom
+    placeEdge(e.left || 0,   (i, n) => ({ x: -gap,                          y: (i + 1) / (n + 1) * H }));
+    // Right edge: top → bottom
+    placeEdge(e.right || 0,  (i, n) => ({ x: W + gap,                       y: (i + 1) / (n + 1) * H }));
+}
+
+function placeSeatDotsRound(node, tbl) {
+    const W = tbl.w, H = tbl.h;
+    const cx = W / 2, cy = H / 2;
+    const gap  = 16;
+    const dotR = 11;
+
+    for (let i = 0; i < tbl.seats; i++) {
+        const angle = (2 * Math.PI * i / tbl.seats) - Math.PI / 2;
+        const rx = (W / 2 + gap) * Math.cos(angle);
+        const ry = (H / 2 + gap) * Math.sin(angle);
+        const { dot } = makeSeatDot(tbl, i, i + 1);
+        dot.style.left = (cx + rx - dotR) + 'px';
+        dot.style.top  = (cy + ry - dotR) + 'px';
+        node.appendChild(dot);
+    }
+}
+
+function getInitials(name) {
+    if (!name) return '?';
+    const parts = name.trim().split(' ').filter(Boolean);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+    return parts[0][0].toUpperCase();
+}
+
+// ── TABLE SELECTION ──────────────────────────────────────────────────────────
+function selectTable(id) {
+    selectedTableId = id;
+    document.querySelectorAll('.table-node').forEach(n => n.classList.remove('selected'));
+    const node = document.getElementById(`node_${id}`);
+    if (node) node.classList.add('selected');
+    renderInspector();
+}
+
+canvasArea.addEventListener('click', (e) => {
+    if (e.target === canvasArea || e.target.id === 'canvas' || e.target.id === 'canvas-inner'
+        || e.target.classList.contains('canvas-grid')) {
+        selectedTableId = null;
+        multiSelected.clear();
+        document.querySelectorAll('.table-node').forEach(n => {
+            n.classList.remove('selected');
+            n.classList.remove('multi-selected');
+        });
+        renderInspector();
+    }
+});
+
+// ── TABLE DRAGGING ───────────────────────────────────────────────────────────
+function onTableMouseDown(e, id) {
+    if (e.button !== 0) return;
+    if (e.target.classList.contains('table-resize-handle') ||
+        e.target.classList.contains('table-delete-btn') ||
+        e.target.closest('.table-delete-btn') ||
+        e.target.classList.contains('seat-dot') ||
+        e.target.closest('.seat-dot')) return;
+
+    selectTable(id);
+    e.stopPropagation();
+    e.preventDefault();
+
+    draggingTable = id;
+    const tbl = tables.find(t => t.id === id);
+    if (!tbl) return;
+
+    const canvasRect = canvasArea.getBoundingClientRect();
+    const mx = (e.clientX - canvasRect.left - panX) / scale;
+    const my = (e.clientY - canvasRect.top - panY) / scale;
+    dragOffX = mx - tbl.x;
+    dragOffY = my - tbl.y;
+}
+
+// ── RESIZE ───────────────────────────────────────────────────────────────────
+function onResizeMouseDown(e, id) {
+    e.stopPropagation();
+    e.preventDefault();
+    resizingTable = id;
+    const tbl = tables.find(t => t.id === id);
+    resizeStartX = e.clientX;
+    resizeStartY = e.clientY;
+    resizeStartW = tbl.w;
+    resizeStartH = tbl.h;
+}
+
+// ── CANVAS PAN ───────────────────────────────────────────────────────────────
+canvasArea.addEventListener('mousedown', (e) => {
+    if (e.button === 1 || (e.button === 0 && !draggingTable && !resizingTable)) {
+        if (e.target === canvasArea || e.target.id === 'canvas' || e.target.id === 'canvas-inner'
+            || e.target.classList.contains('canvas-grid') || e.target.classList.contains('room-boundary')
+            || e.target.classList.contains('room-label')) {
+            isPanning = true;
+            panStartX = e.clientX - panX;
+            panStartY = e.clientY - panY;
+            canvasArea.style.cursor = 'grabbing';
+            e.preventDefault();
+        }
+    }
+});
+
+// ── GLOBAL MOUSE MOVE ────────────────────────────────────────────────────────
+window.addEventListener('mousemove', (e) => {
+    if (draggingTable) {
+        const tbl = tables.find(t => t.id === draggingTable);
+        if (!tbl) return;
+        const canvasRect = canvasArea.getBoundingClientRect();
+        const mx = (e.clientX - canvasRect.left - panX) / scale;
+        const my = (e.clientY - canvasRect.top - panY) / scale;
+        tbl.x = snapVal(mx - dragOffX);
+        tbl.y = snapVal(my - dragOffY);
+        const node = document.getElementById(`node_${tbl.id}`);
+        if (node) { node.style.left = tbl.x + 'px'; node.style.top = tbl.y + 'px'; }
+        updateGhost(tbl);
+    }
+
+    if (resizingTable) {
+        const tbl = tables.find(t => t.id === resizingTable);
+        if (!tbl) return;
+        const dx = (e.clientX - resizeStartX) / scale;
+        const dy = (e.clientY - resizeStartY) / scale;
+        tbl.w = Math.max(80, resizeStartW + dx);
+        tbl.h = Math.max(60, resizeStartH + dy);
+        const node = document.getElementById(`node_${tbl.id}`);
+        if (node) {
+            node.style.width = tbl.w + 'px';
+            node.style.height = tbl.h + 'px';
+            const shell = node.querySelector('.table-shell');
+            shell.style.width = tbl.w + 'px';
+            shell.style.height = tbl.h + 'px';
+            placeSeatDots(node, tbl);
+        }
+    }
+
+    if (draggingZone) {
+        const zone = zones.find(z => z.id === draggingZone);
+        if (!zone) return;
+        const canvasRect = canvasArea.getBoundingClientRect();
+        const mx = (e.clientX - canvasRect.left - panX) / scale;
+        const my = (e.clientY - canvasRect.top  - panY) / scale;
+        zone.x = snapVal(mx - zoneDragOffX);
+        zone.y = snapVal(my - zoneDragOffY);
+        const el = document.getElementById(`zone_${zone.id}`);
+        if (el) { el.style.left = zone.x + 'px'; el.style.top = zone.y + 'px'; }
+    }
+
+    if (resizingZone) {
+        const zone = zones.find(z => z.id === resizingZone);
+        if (!zone) return;
+        const dx = (e.clientX - zoneResizeStartX) / scale;
+        const dy = (e.clientY - zoneResizeStartY) / scale;
+        zone.w = Math.max(60, zoneResizeStartW + dx);
+        zone.h = Math.max(40, zoneResizeStartH + dy);
+        const el = document.getElementById(`zone_${zone.id}`);
+        if (el) { el.style.width = zone.w + 'px'; el.style.height = zone.h + 'px'; }
+    }
+
+    if (isPanning) {
+        panX = e.clientX - panStartX;
+        panY = e.clientY - panStartY;
+        applyTransform();
+    }
+});
+
+window.addEventListener('mouseup', () => {
+    if (draggingTable) {
+        markDirty();
+        draggingTable = null;
+        hideGhost();
+    }
+    if (resizingTable) {
+        const tbl = tables.find(t => t.id === resizingTable);
+        if (tbl) {
+            renderTable(tbl);
+            if (selectedTableId === tbl.id) {
+                const node = document.getElementById(`node_${tbl.id}`);
+                if (node) node.classList.add('selected');
+            }
+        }
+        markDirty();
+        resizingTable = null;
+    }
+    if (draggingZone) { markDirty(); draggingZone = null; }
+    if (resizingZone) { markDirty(); resizingZone = null; }
+    if (isPanning) {
+        isPanning = false;
+        canvasArea.style.cursor = '';
+    }
+});
+
+// ── ZOOM ──────────────────────────────────────────────────────────────────────
+function applyTransform() {
+    canvasInner.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+    zoomLabel.textContent = Math.round(scale * 100) + '%';
+}
+
+function setZoom(newScale, pivotX, pivotY) {
+    const rect = canvasArea.getBoundingClientRect();
+    const px = pivotX ?? rect.width / 2;
+    const py = pivotY ?? rect.height / 2;
+    const worldX = (px - panX) / scale;
+    const worldY = (py - panY) / scale;
+    scale = Math.max(0.2, Math.min(3, newScale));
+    panX = px - worldX * scale;
+    panY = py - worldY * scale;
+    applyTransform();
+}
+
+document.getElementById('zoom-in').addEventListener('click', () => setZoom(scale * 1.25));
+document.getElementById('zoom-out').addEventListener('click', () => setZoom(scale * 0.8));
+document.getElementById('zoom-fit').addEventListener('click', fitView);
+
+canvasArea.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const rect = canvasArea.getBoundingClientRect();
+    const pivotX = e.clientX - rect.left;
+    const pivotY = e.clientY - rect.top;
+    const factor = e.deltaY < 0 ? 1.1 : 0.9;
+    setZoom(scale * factor, pivotX, pivotY);
+}, { passive: false });
+
+function fitView() {
+    if (tables.length === 0) { scale = 1; panX = 40; panY = 40; applyTransform(); return; }
+    const xs = tables.map(t => t.x); const ys = tables.map(t => t.y);
+    const x2s = tables.map(t => t.x + t.w); const y2s = tables.map(t => t.y + t.h);
+    const minX = Math.min(...xs), minY = Math.min(...ys);
+    const maxX = Math.max(...x2s), maxY = Math.max(...y2s);
+    const W = canvasArea.clientWidth - 80, H = canvasArea.clientHeight - 80;
+    const scaleX = W / (maxX - minX || 1), scaleY = H / (maxY - minY || 1);
+    scale = Math.min(scaleX, scaleY, 1.5);
+    panX = (canvasArea.clientWidth - (maxX - minX) * scale) / 2 - minX * scale;
+    panY = (canvasArea.clientHeight - (maxY - minY) * scale) / 2 - minY * scale;
+    applyTransform();
+}
+
+// (room boundary removed — open space mode)
+
+// ── DELETE TABLE ─────────────────────────────────────────────────────────────
+function deleteTable(id) {
+    // Unassign all guests
+    const tbl = tables.find(t => t.id === id);
+    if (tbl) {
+        Object.values(tbl.assignments).forEach(gId => {
+            const g = allGuests.find(g => g.id == gId);
+            if (g) g._assignedTo = null;
+        });
+    }
+    tables = tables.filter(t => t.id !== id);
+    const node = document.getElementById(`node_${id}`);
+    if (node) node.remove();
+    if (selectedTableId === id) { selectedTableId = null; renderInspector(); }
+    renderTableList();
+    renderGuestList();
+    updateHint();
+    updateStats();
+    markDirty();
+}
+
+// ── ASSIGN / UNASSIGN GUESTS ─────────────────────────────────────────────────
+function assignGuest(tableId, seatIdx, guestId) {
+    // Remove from previous assignment
+    tables.forEach(t => {
+        Object.entries(t.assignments).forEach(([si, gId]) => {
+            if (gId == guestId) delete t.assignments[si];
+        });
+    });
+    const tbl = tables.find(t => t.id === tableId);
+    if (!tbl) return;
+    if (seatIdx >= tbl.seats) return;
+    // Check if seat already occupied
+    if (tbl.assignments[seatIdx]) {
+        // Swap: move the current occupant to unassigned
+        delete tbl.assignments[seatIdx];
+    }
+    tbl.assignments[seatIdx] = guestId;
+    const g = allGuests.find(g => g.id == guestId);
+    if (g) g._assignedTo = tableId;
+
+    renderTable(tbl);
+    if (selectedTableId === tbl.id) { const n = document.getElementById(`node_${tbl.id}`); if (n) n.classList.add('selected'); }
+    renderGuestList();
+    renderTableList();
+    renderInspector();
+    updateStats();
+    markDirty();
+    showToast(`${g?.name || 'Gość'} → ${tbl.name}`);
+}
+
+function removeAssignment(tableId, seatIdx) {
+    const tbl = tables.find(t => t.id === tableId);
+    if (!tbl) return;
+    const gId = tbl.assignments[seatIdx];
+    if (gId) {
+        const g = allGuests.find(g => g.id == gId);
+        if (g) g._assignedTo = null;
+        delete tbl.assignments[seatIdx];
+    }
+    renderTable(tbl);
+    if (selectedTableId === tbl.id) { const n = document.getElementById(`node_${tbl.id}`); if (n) n.classList.add('selected'); }
+    renderGuestList();
+    renderTableList();
+    renderInspector();
+    updateStats();
+    markDirty();
+}
+
+// ── GUEST LIST ───────────────────────────────────────────────────────────────
+function getPrimaryName(g) {
+    if (!g.is_plus_one || !g.login_code) return null;
+    return (window._primaryByCode || {})[g.login_code] || null;
+}
+
+function guestMatchesQuery(g, q) {
+    if (!q) return true;
+    if (g.name.toLowerCase().includes(q)) return true;
+    // Also match by primary guest name for plus_ones
+    if (g.is_plus_one) {
+        const primary = getPrimaryName(g);
+        if (primary && primary.toLowerCase().includes(q)) return true;
+    }
+    return false;
+}
+
+function renderGuestList(filter = '') {
+    guestsListEl.innerHTML = '';
+    const q = filter.toLowerCase();
+    const filtered = allGuests.filter(g => guestMatchesQuery(g, q));
+
+    filtered.forEach(g => {
+        const assigned = isGuestAssigned(g.id);
+        const primaryName = getPrimaryName(g);
+        const el = document.createElement('div');
+        el.className = 'guest-item' + (assigned ? ' assigned' : '');
+        el.draggable = !assigned;
+        el.dataset.guestId = g.id;
+
+        const avatarEl = document.createElement('div');
+        avatarEl.className = 'guest-avatar';
+        if (g.is_plus_one) avatarEl.style.borderColor = 'rgba(212,116,138,0.35)';
+        if (g.avatar) {
+            const img = document.createElement('img');
+            img.src = g.avatar;
+            avatarEl.appendChild(img);
+        } else {
+            avatarEl.textContent = getInitials(g.name);
+        }
+
+        const info = document.createElement('div');
+        info.className = 'guest-info';
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'guest-name';
+        nameEl.style.display = 'flex';
+        nameEl.style.alignItems = 'center';
+        nameEl.style.gap = '5px';
+        nameEl.textContent = g.name;
+        if (g.is_plus_one) {
+            const badge = document.createElement('span');
+            badge.textContent = '+1';
+            badge.style.cssText = 'font-size:0.55rem;font-weight:700;background:rgba(212,116,138,0.18);color:var(--color-rose);border-radius:3px;padding:1px 4px;flex-shrink:0;';
+            nameEl.appendChild(badge);
+        }
+
+        const meta = document.createElement('div');
+        meta.className = 'guest-meta';
+        if (assigned) {
+            const tbl = tables.find(t => Object.values(t.assignments).includes(g.id));
+            meta.textContent = tbl ? `📍 ${tbl.name}` : 'Przypisany';
+        } else if (g.is_plus_one && primaryName) {
+            meta.textContent = `osoba tow. · ${primaryName}`;
+        } else {
+            meta.textContent = g.relationship || roleLabel(g.role);
+        }
+
+        info.appendChild(nameEl);
+        info.appendChild(meta);
+
+        const handle = document.createElement('div');
+        handle.className = 'guest-drag-handle';
+        handle.innerHTML = '<i class="ph ph-dots-six-vertical"></i>';
+
+        el.appendChild(avatarEl);
+        el.appendChild(info);
+        if (!assigned) el.appendChild(handle);
+
+        if (!assigned) {
+            el.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('guest_id', g.id);
+                dragGhost.textContent = g.name;
+                dragGhost.style.display = 'block';
+                el.classList.add('dragging-guest');
+            });
+            el.addEventListener('dragend', () => {
+                dragGhost.style.display = 'none';
+                el.classList.remove('dragging-guest');
+            });
+        }
+        guestsListEl.appendChild(el);
+    });
+}
+
+function isGuestAssigned(guestId) {
+    return tables.some(t => Object.values(t.assignments).includes(guestId));
+}
+
+function roleLabel(role) {
+    if (role === 'para_mloda') return 'Para Młoda';
+    if (role === 'swiadek') return 'Świadek';
+    return 'Gość';
+}
+
+guestSearch.addEventListener('input', () => renderGuestList(guestSearch.value));
+
+// Track drag ghost position
+document.addEventListener('dragover', (e) => {
+    if (dragGhost.style.display !== 'none') {
+        dragGhost.style.left = (e.clientX + 12) + 'px';
+        dragGhost.style.top  = (e.clientY + 12) + 'px';
+    }
+});
+
+// ── TABLE LIST (SIDEBAR) ─────────────────────────────────────────────────────
+function renderTableList() {
+    tableListEl.innerHTML = '';
+    tables.forEach(tbl => {
+        const assigned = Object.keys(tbl.assignments).length;
+        const el = document.createElement('div');
+        el.style.cssText = `display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;border:1.5px solid ${selectedTableId === tbl.id ? 'rgba(201,168,76,0.5)' : 'transparent'};background:${selectedTableId === tbl.id ? 'rgba(201,168,76,0.07)' : 'var(--color-surface2)'};transition:all 0.15s;`;
+        el.innerHTML = `
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:0.8rem;font-weight:600;color:var(--color-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${tbl.name}</div>
+                <div style="font-size:0.68rem;color:var(--color-muted);">${assigned}/${tbl.seats} miejsc · ${tbl.shape}</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="padding:4px 6px;font-size:0.7rem;" title="Skocz do stołu" data-tbl="${tbl.id}">
+                <i class="ph ph-crosshair-simple"></i>
+            </button>
+        `;
+        el.addEventListener('click', () => selectTable(tbl.id));
+        el.querySelector('button').addEventListener('click', (e) => {
+            e.stopPropagation();
+            panToTable(tbl.id);
+        });
+        tableListEl.appendChild(el);
+    });
+}
+
+function panToTable(id) {
+    const tbl = tables.find(t => t.id === id);
+    if (!tbl) return;
+    const cx = tbl.x + tbl.w / 2;
+    const cy = tbl.y + tbl.h / 2;
+    panX = canvasArea.clientWidth / 2 - cx * scale;
+    panY = canvasArea.clientHeight / 2 - cy * scale;
+    applyTransform();
+    selectTable(id);
+}
+
+// ── INSPECTOR ────────────────────────────────────────────────────────────────
+function renderInspector() {
+    if (!selectedTableId) {
+        inspectorBody.innerHTML = `<div class="inspector-empty"><i class="ph ph-cursor-click"></i><span>Kliknij na stół,<br>aby zobaczyć szczegóły</span></div>`;
+        return;
+    }
+    const tbl = tables.find(t => t.id === selectedTableId);
+    if (!tbl) return;
+
+    let seatsHTML = '';
+    for (let i = 0; i < tbl.seats; i++) {
+        const gId = tbl.assignments[i];
+        const g = gId ? allGuests.find(g => g.id == gId) : null;
+        seatsHTML += `
+        <div class="inspector-seat-row" data-seat="${i}" data-table="${tbl.id}">
+            <div class="inspector-seat-num">${i+1}</div>
+            <div class="inspector-seat-name ${g ? '' : 'empty'}">${g ? g.name : 'Wolne'}</div>
+            ${g ? `<button class="inspector-seat-remove" title="Usuń przypisanie" data-seat="${i}"><i class="ph ph-x"></i></button>` : ''}
+        </div>`;
+    }
+
+    const isRectShape = isRect(tbl.shape);
+    const edgeSeats   = tbl.edgeSeats || defaultEdgeSeats(tbl.seats);
+
+    // Seats section: 4 edge inputs for rect, single input for round/oval
+    const seatsControlHTML = isRectShape ? `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div>
+                <label style="font-size:0.7rem;color:var(--color-muted);">Góra</label>
+                <input type="number" class="form-input edge-input" data-edge="top"
+                    value="${edgeSeats.top || 0}" min="0" max="20" style="width:100%;">
+            </div>
+            <div>
+                <label style="font-size:0.7rem;color:var(--color-muted);">Dół</label>
+                <input type="number" class="form-input edge-input" data-edge="bottom"
+                    value="${edgeSeats.bottom || 0}" min="0" max="20" style="width:100%;">
+            </div>
+            <div>
+                <label style="font-size:0.7rem;color:var(--color-muted);">Lewa</label>
+                <input type="number" class="form-input edge-input" data-edge="left"
+                    value="${edgeSeats.left || 0}" min="0" max="20" style="width:100%;">
+            </div>
+            <div>
+                <label style="font-size:0.7rem;color:var(--color-muted);">Prawa</label>
+                <input type="number" class="form-input edge-input" data-edge="right"
+                    value="${edgeSeats.right || 0}" min="0" max="20" style="width:100%;">
+            </div>
+        </div>
+        <div style="font-size:0.68rem;color:var(--color-muted);margin-top:6px;">
+            Razem: <strong id="edge-total">${edgeSeatsTotal(tbl)}</strong> miejsc
+        </div>
+    ` : `
+        <input type="number" class="form-input" id="inspector-seats"
+            value="${tbl.seats}" min="1" max="50" style="width:100%;">
+    `;
+
+    inspectorBody.innerHTML = `
+        <div class="inspector-group">
+            <label>Nazwa stołu</label>
+            <input type="text" class="form-input" id="inspector-name" value="${tbl.name}" maxlength="30" style="width:100%;">
+        </div>
+        <div class="inspector-group">
+            <label>Kształt</label>
+            <select class="form-input" id="inspector-shape" style="width:100%;">
+                <option value="round" ${tbl.shape==='round'?'selected':''}>Okrągły</option>
+                <option value="oval"  ${tbl.shape==='oval' ?'selected':''}>Owalny</option>
+                <option value="rect"  ${tbl.shape==='rect' ?'selected':''}>Kwadratowy</option>
+                <option value="long"  ${tbl.shape==='long' ?'selected':''}>Długi</option>
+                <option value="head"  ${tbl.shape==='head' ?'selected':''}>Główny</option>
+            </select>
+        </div>
+        <div class="inspector-group">
+            <label>Miejsca ${isRectShape ? 'na krawędziach' : '(razem)'}</label>
+            ${seatsControlHTML}
+        </div>
+        <div class="inspector-group">
+            <label>Miejsca (${Object.keys(tbl.assignments).length}/${tbl.seats})</label>
+            <div class="inspector-seats-grid">${seatsHTML}</div>
+        </div>
+    `;
+
+    document.getElementById('inspector-name').addEventListener('change', (e) => {
+        tbl.name = e.target.value.trim() || tbl.name;
+        renderTable(tbl); renderTableList(); markDirty();
+        if (selectedTableId === tbl.id) { const n = document.getElementById(`node_${tbl.id}`); if(n) n.classList.add('selected'); }
+    });
+    document.getElementById('inspector-shape').addEventListener('change', (e) => {
+        const newShape = e.target.value;
+        if (isRect(newShape) && !isRect(tbl.shape)) {
+            // Switching to rect: init edgeSeats from current seats
+            tbl.edgeSeats = defaultEdgeSeats(tbl.seats);
+        } else if (!isRect(newShape) && isRect(tbl.shape)) {
+            // Switching away from rect: derive total seats
+            tbl.seats = edgeSeatsTotal(tbl);
+            delete tbl.edgeSeats;
+        }
+        tbl.shape = newShape;
+        renderTable(tbl); renderInspector(); markDirty();
+        if (selectedTableId === tbl.id) { const n = document.getElementById(`node_${tbl.id}`); if(n) n.classList.add('selected'); }
+    });
+
+    if (isRectShape) {
+        // Edge inputs
+        inspectorBody.querySelectorAll('.edge-input').forEach(input => {
+            input.addEventListener('change', () => {
+                const edge = input.dataset.edge;
+                const val  = Math.max(0, Math.min(20, parseInt(input.value) || 0));
+                input.value = val;
+                if (!tbl.edgeSeats) tbl.edgeSeats = defaultEdgeSeats(tbl.seats);
+                tbl.edgeSeats[edge] = val;
+                // Remove assignments beyond new seat count
+                const total = edgeSeatsTotal(tbl);
+                Object.keys(tbl.assignments).forEach(si => { if (parseInt(si) >= total) delete tbl.assignments[si]; });
+                tbl.seats = total;
+                // Update live counter
+                const totalEl = document.getElementById('edge-total');
+                if (totalEl) totalEl.textContent = total;
+                renderTable(tbl); renderInspector(); renderTableList(); updateStats(); markDirty();
+                if (selectedTableId === tbl.id) { const n = document.getElementById(`node_${tbl.id}`); if(n) n.classList.add('selected'); }
+            });
+        });
+    } else {
+        document.getElementById('inspector-seats').addEventListener('change', (e) => {
+            const newSeats = Math.max(1, Math.min(50, parseInt(e.target.value) || tbl.seats));
+            Object.keys(tbl.assignments).forEach(si => { if (parseInt(si) >= newSeats) delete tbl.assignments[si]; });
+            tbl.seats = newSeats;
+            renderTable(tbl); renderInspector(); renderTableList(); updateStats(); markDirty();
+            if (selectedTableId === tbl.id) { const n = document.getElementById(`node_${tbl.id}`); if(n) n.classList.add('selected'); }
+        });
+    }
+
+    inspectorBody.querySelectorAll('.inspector-seat-remove').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const si = parseInt(btn.dataset.seat);
+            removeAssignment(tbl.id, si);
+        });
+    });
+
+    // Seat rows as drop targets
+    inspectorBody.querySelectorAll('.inspector-seat-row').forEach(row => {
+        row.addEventListener('dragover', (e) => { e.preventDefault(); row.style.background='rgba(94,184,122,0.12)'; });
+        row.addEventListener('dragleave', () => row.style.background='');
+        row.addEventListener('drop', (e) => {
+            e.preventDefault(); row.style.background='';
+            const gId = e.dataTransfer.getData('guest_id');
+            if (gId) assignGuest(tbl.id, parseInt(row.dataset.seat), parseInt(gId));
+        });
+    });
+}
+
+// ── STATS ────────────────────────────────────────────────────────────────────
+function updateStats() {
+    const totalSeats = tables.reduce((s, t) => s + t.seats, 0);
+    const assigned = tables.reduce((s, t) => s + Object.keys(t.assignments).length, 0);
+    document.getElementById('stat-tables').textContent = tables.length;
+    document.getElementById('stat-guests').textContent = assigned;
+    document.getElementById('stat-free').textContent = totalSeats - assigned;
+}
+
+function updateHint() {
+    if (tables.length > 0) canvasHint.classList.add('hidden');
+    else canvasHint.classList.remove('hidden');
+}
+
+// ── DIRTY / SAVE STATUS ──────────────────────────────────────────────────────
+function markDirty() {
+    isDirty = true;
+    saveStatus.innerHTML = `<span class="status-unsaved"><i class="ph ph-dot-outline"></i> Niezapisane</span>`;
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(autoSave, 3000);
+}
+
+async function autoSave() {
+    await saveLayout(false);
+}
+
+// ── SEAT PICKER MODAL ────────────────────────────────────────────────────────
+const spOverlay   = document.getElementById('seat-picker-overlay');
+const spTitle     = document.getElementById('sp-title');
+const spSubtitle  = document.getElementById('sp-subtitle');
+const spCurrent   = document.getElementById('sp-current');
+const spCurrentName = document.getElementById('sp-current-name');
+const spUnassign  = document.getElementById('sp-unassign');
+const spSearch    = document.getElementById('sp-search');
+const spList      = document.getElementById('sp-list');
+
+let _spTableId = null;
+let _spSeatIdx = null;
+
+function openSeatPicker(tableId, seatIdx) {
+    const tbl = tables.find(t => t.id === tableId);
+    if (!tbl) return;
+    _spTableId = tableId;
+    _spSeatIdx = seatIdx;
+
+    const currentGuestId = tbl.assignments[seatIdx];
+    const currentGuest   = currentGuestId ? allGuests.find(g => g.id == currentGuestId) : null;
+
+    spTitle.textContent    = `${tbl.name} — Miejsce ${seatIdx + 1}`;
+    spSubtitle.textContent = currentGuest ? 'Zmień gościa lub usuń przypisanie' : 'Wybierz gościa do przypisania';
+
+    if (currentGuest) {
+        spCurrent.style.display = 'flex';
+        spCurrentName.textContent = currentGuest.name;
+    } else {
+        spCurrent.style.display = 'none';
+    }
+
+    spSearch.value = '';
+    renderSpList('');
+    spOverlay.classList.add('open');
+    setTimeout(() => spSearch.focus(), 50);
+}
+
+function closeSeatPicker() {
+    spOverlay.classList.remove('open');
+    _spTableId = null;
+    _spSeatIdx = null;
+}
+
+function renderSpList(query) {
+    spList.innerHTML = '';
+    const q = query.toLowerCase().trim();
+    const tbl = _spTableId ? tables.find(t => t.id === _spTableId) : null;
+    const currentGuestId = tbl ? tbl.assignments[_spSeatIdx] : null;
+
+    function guestMeta(g, isCurrent) {
+        if (isCurrent) return '✓ Aktualnie przypisany/a';
+        if (g.is_plus_one) {
+            const primaryName = (window._primaryByCode || {})[g.login_code];
+            return primaryName
+                ? `+1 · osoba tow. ${primaryName}`
+                : `+1 · osoba towarzysząca`;
+        }
+        return g.relationship || roleLabel(g.role);
+    }
+
+    // Filter: match query by own name OR primary guest name (for plus_ones)
+    const candidates = allGuests.filter(g => {
+        if (!guestMatchesQuery(g, q)) return false;
+        const assignedElsewhere = isGuestAssigned(g.id) && g.id != currentGuestId;
+        return !assignedElsewhere || g.id == currentGuestId;
+    });
+
+    // Sort: current first, then regular guests, then plus_ones
+    candidates.sort((a, b) => {
+        const aCur = a.id == currentGuestId ? 0 : (a.is_plus_one ? 2 : 1);
+        const bCur = b.id == currentGuestId ? 0 : (b.is_plus_one ? 2 : 1);
+        if (aCur !== bCur) return aCur - bCur;
+        return a.name.localeCompare(b.name, 'pl');
+    });
+
+    if (candidates.length === 0) {
+        spList.innerHTML = `<div class="seat-picker-empty">Brak wyników${q ? ` dla „${q}"` : ''}</div>`;
+        return;
+    }
+
+    // Section headers
+    let lastSection = null;
+
+    candidates.forEach(g => {
+        const isCurrent = g.id == currentGuestId;
+
+        // Section divider
+        const section = isCurrent ? null : (g.is_plus_one ? 'plus' : 'guests');
+        if (section !== lastSection && !isCurrent) {
+            const sep = document.createElement('div');
+            sep.style.cssText = 'font-size:0.65rem;font-weight:700;color:var(--color-muted);text-transform:uppercase;letter-spacing:0.07em;padding:8px 10px 3px;';
+            sep.textContent = g.is_plus_one ? 'Osoby towarzyszące' : 'Goście';
+            spList.appendChild(sep);
+            lastSection = section;
+        }
+
+        const item = document.createElement('div');
+        item.className = 'seat-picker-item' + (isCurrent ? ' sp-current' : '');
+
+        const avatar = document.createElement('div');
+        avatar.className = 'seat-picker-avatar';
+        if (g.is_plus_one && !isCurrent) {
+            avatar.style.borderColor = 'rgba(212,116,138,0.4)';
+            avatar.style.color = 'var(--color-rose)';
+        }
+        if (g.avatar) {
+            const img = document.createElement('img');
+            img.src = g.avatar; img.alt = g.name;
+            avatar.appendChild(img);
+        } else {
+            avatar.textContent = getInitials(g.name);
+        }
+
+        const info = document.createElement('div');
+        info.className = 'seat-picker-item-info';
+
+        const nameRow = document.createElement('div');
+        nameRow.className = 'seat-picker-item-name';
+        nameRow.style.display = 'flex';
+        nameRow.style.alignItems = 'center';
+        nameRow.style.gap = '6px';
+        nameRow.textContent = g.name;
+        if (g.is_plus_one && !isCurrent) {
+            const badge = document.createElement('span');
+            badge.textContent = '+1';
+            badge.style.cssText = 'font-size:0.58rem;font-weight:700;background:rgba(212,116,138,0.2);color:var(--color-rose);border-radius:4px;padding:1px 5px;flex-shrink:0;';
+            nameRow.appendChild(badge);
+        }
+
+        const metaRow = document.createElement('div');
+        metaRow.className = 'seat-picker-item-meta';
+        metaRow.textContent = guestMeta(g, isCurrent);
+
+        info.appendChild(nameRow);
+        info.appendChild(metaRow);
+        item.appendChild(avatar);
+        item.appendChild(info);
+
+        if (isCurrent) {
+            item.addEventListener('click', () => closeSeatPicker());
+        } else {
+            item.addEventListener('click', () => {
+                assignGuest(_spTableId, _spSeatIdx, g.id);
+                closeSeatPicker();
+            });
+        }
+        spList.appendChild(item);
+    });
+}
+
+spSearch.addEventListener('input', () => renderSpList(spSearch.value));
+
+spUnassign.addEventListener('click', () => {
+    if (_spTableId !== null && _spSeatIdx !== null) {
+        removeAssignment(_spTableId, _spSeatIdx);
+        closeSeatPicker();
+    }
+});
+
+document.getElementById('sp-close').addEventListener('click', closeSeatPicker);
+spOverlay.addEventListener('click', (e) => { if (e.target === spOverlay) closeSeatPicker(); });
+
+// Close on Escape (add to existing keydown handler below)
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && spOverlay.classList.contains('open')) {
+        closeSeatPicker();
+    }
+});
+
+// ── TOOLTIP ──────────────────────────────────────────────────────────────────
+function showTooltip(e, text) {
+    tooltip.textContent = text;
+    tooltip.classList.add('visible');
+    moveTooltip(e);
+}
+function hideTooltip() { tooltip.classList.remove('visible'); }
+function moveTooltip(e) {
+    tooltip.style.left = (e.clientX + 12) + 'px';
+    tooltip.style.top  = (e.clientY - 36) + 'px';
+}
+
+// ── INSPECTOR TOGGLE ──────────────────────────────────────────────────────────
+document.getElementById('btn-toggle-inspector').addEventListener('click', () => {
+    rightPanel.classList.toggle('collapsed');
+});
+
+// ── CLEAR ALL ────────────────────────────────────────────────────────────────
+document.getElementById('btn-clear-all').addEventListener('click', () => {
+    if (!confirm('Czy na pewno chcesz usunąć wszystkie stoły i przypisania?')) return;
+    tables = [];
+    allGuests.forEach(g => g._assignedTo = null);
+    canvasInner.querySelectorAll('.table-node').forEach(n => n.remove());
+    selectedTableId = null;
+    // Also clear zones
+    zones = [];
+    canvasInner.querySelectorAll('.zone-node').forEach(n => n.remove());
+    selectedZoneId = null;
+    renderTableList();
+    renderGuestList();
+    renderInspector();
+    updateHint();
+    updateStats();
+    markDirty();
+});
+
+// ── SAVE ──────────────────────────────────────────────────────────────────────
+document.getElementById('btn-save').addEventListener('click', () => saveLayout(true));
+
+async function saveLayout(showMsg = true) {
+    saveStatus.innerHTML = `<span class="status-saving"><i class="ph ph-circle-notch spin"></i> Zapisuję...</span>`;
+    try {
+        // Build assignments list
+        const assignments = [];
+        allGuests.forEach(g => {
+            let found = false;
+            tables.forEach((t, idx) => {
+                Object.entries(t.assignments).forEach(([si, gId]) => {
+                    if (gId == g.id) {
+                        let tableNum = parseInt(t.name.replace(/\D/g, ''));
+                        if (isNaN(tableNum)) {
+                            if (t.name.toLowerCase().includes('młod')) {
+                                tableNum = 0;
+                            } else {
+                                tableNum = idx + 1;
+                            }
+                        }
+                        assignments.push({ guest_id: g.id, table_number: tableNum, seat_number: parseInt(si) + 1 });
+                        found = true;
+                    }
+                });
+            });
+            if (!found) assignments.push({ guest_id: g.id, table_number: null, seat_number: null });
+        });
+
+        const layoutPayload = {
+            tables: tables.map(t => ({
+                id: t.id,
+                name: t.name,
+                shape: t.shape,
+                seats: t.seats,
+                x: Math.round(t.x),
+                y: Math.round(t.y),
+                w: Math.round(t.w),
+                h: Math.round(t.h),
+                assignments: t.assignments,
+                ...(t.edgeSeats ? { edgeSeats: t.edgeSeats } : {}),
+            })),
+            tableCounter,
+            isReady: document.getElementById('chk-layout-ready').checked,
+            zones: zones.map(z => ({
+                id: z.id, label: z.label, icon: z.icon,
+                color: z.color, border: z.border,
+                x: Math.round(z.x), y: Math.round(z.y),
+                w: Math.round(z.w), h: Math.round(z.h),
+            })),
+            savedAt: new Date().toISOString(),
+        };
+
+        const [r1, r2] = await Promise.all([
+            fetch(`${API_URL}/seating/layout/`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ layout: layoutPayload }),
+            }),
+            fetch(`${API_URL}/seating/guests/`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ assignments }),
+            }),
+        ]);
+
+        if (r1.ok && r2.ok) {
+            isDirty = false;
+            saveStatus.innerHTML = `<span class="status-saved"><i class="ph ph-check-circle"></i> Zapisano ${new Date().toLocaleTimeString('pl')}</span>`;
+            if (showMsg) showToast('✅ Plan sali zapisany!');
+        } else {
+            throw new Error('save failed');
+        }
+    } catch(e) {
+        saveStatus.innerHTML = `<span class="status-unsaved"><i class="ph ph-warning"></i> Błąd zapisu</span>`;
+        if (showMsg) showToast('❌ Błąd podczas zapisywania!');
+    }
+}
+
+// ── LOAD LAYOUT ───────────────────────────────────────────────────────────────
+async function loadLayout() {
+    try {
+        const res = await fetch(`${API_URL}/seating/layout/`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.layout && data.layout.tables) {
+            tables = data.layout.tables;
+            tableCounter = data.layout.tableCounter || tables.length;
+            tables.forEach(tbl => {
+                if (!tbl.assignments) tbl.assignments = {};
+                // Ensure edgeSeats for rect tables
+                if (isRect(tbl.shape) && !tbl.edgeSeats) tbl.edgeSeats = defaultEdgeSeats(tbl.seats);
+                renderTable(tbl);
+            });
+            // Load zones
+            if (data.layout.zones && Array.isArray(data.layout.zones)) {
+                zones = data.layout.zones;
+                zones.forEach(z => renderZone(z));
+                _zoneCounter = zones.length;
+            }
+            // Update guest assigned state
+            allGuests.forEach(g => {
+                g._assignedTo = null;
+                tables.forEach(t => {
+                    if (Object.values(t.assignments).includes(g.id)) g._assignedTo = t.id;
+                });
+            });
+            layoutReady = data.layout.isReady || false;
+            document.getElementById('chk-layout-ready').checked = layoutReady;
+            if (tables.length > 0) fitView();
+        }
+    } catch(e) {
+        console.warn('Could not load layout', e);
+    }
+}
+
+// ── LOAD GUESTS ───────────────────────────────────────────────────────────────
+async function loadGuests() {
+    const res = await fetch(`${API_URL}/seating/guests/`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    allGuests = data.map(g => ({ ...g, _assignedTo: null }));
+
+    // Build map: login_code → primary guest name (is_plus_one=false)
+    window._primaryByCode = {};
+    allGuests.forEach(g => {
+        if (!g.is_plus_one && g.login_code) {
+            window._primaryByCode[g.login_code] = g.name;
+        }
+    });
+}
+
+// ── INIT APP ──────────────────────────────────────────────────────────────────
+async function initApp() {
+    try {
+        await loadGuests();
+        renderGuestList();
+        await loadLayout();
+        document.getElementById('chk-layout-ready').addEventListener('change', () => {
+            layoutReady = document.getElementById('chk-layout-ready').checked;
+            markDirty();
+        });
+        renderTableList();
+        renderGuestList(); // refresh with assignment info
+        updateHint();
+        updateStats();
+        applyTransform();
+    } catch(e) {
+        console.error('Init error', e);
+        showToast('Błąd ładowania danych');
+    }
+}
+
+// Keyboard shortcuts
+window.addEventListener('keydown', (e) => {
+    if ((e.key === 'Delete' || e.key === 'Backspace') && selectedTableId && !e.target.matches('input,textarea,select')) {
+        deleteTable(selectedTableId);
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveLayout(true);
+    }
+    if (e.key === 'Escape') {
+        selectedTableId = null;
+        document.querySelectorAll('.table-node').forEach(n => n.classList.remove('selected'));
+        renderInspector();
+    }
+});
+
+// Warn before leaving with unsaved changes
+window.addEventListener('beforeunload', (e) => {
+    if (isDirty) { e.preventDefault(); e.returnValue = ''; }
+});
+
+})();
+</script>
+</body>
+</html>

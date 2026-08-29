@@ -1,11 +1,11 @@
 {
-  "name": "A & B Wesele",
+  "name": "Z & K Wesele",
   "short_name": "Wesele",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#FAF9F6",
   "theme_color": "#FAF9F6",
-  "description": "Oficjalna aplikacja weselna A & B",
+  "description": "Oficjalna aplikacja weselna Z & K",
   "icons": [
     {
       "src": "img/icon-192x192.png",
