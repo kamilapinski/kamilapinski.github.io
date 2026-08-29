@@ -2047,7 +2047,7 @@ img.login-logo {
     bottom: 0;
     left: 0;
     width: 100%;
-    height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+    height: var(--bottom-nav-height);
     background-color: var(--color-bg);
     border-top: 1px solid var(--color-border);
     display: flex;
@@ -2056,7 +2056,7 @@ img.login-logo {
     z-index: 100;
     /* Bezpieczna strefa dla iPhone (Notch/Home bar) */
     padding-bottom: env(safe-area-inset-bottom);
-    box-sizing: border-box;
+    box-sizing: content-box;
 }
 
 .nav-item {
