@@ -1,7 +1,10 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const getApiUrl = () => {
         const host = window.location.hostname || '127.0.0.1';
-        return `http://${host}:8000/api`;
+        if (host === 'localhost' || host === '127.0.0.1') {
+            return `http://${host}:8000/api`;
+        }
+        return 'https://wedding-production-d4a1.up.railway.app/api';
     };
     const API_URL = getApiUrl();
 
