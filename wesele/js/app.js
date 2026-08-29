@@ -227,8 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('access_token', data.access);
                     localStorage.setItem('refresh_token', data.refresh);
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    
-                    enterFullscreen();
 
                     // Hide overlay
                     loginOverlay.classList.remove('active');
@@ -1827,10 +1825,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         cameraOverlay.classList.add('active');
         startCamera();
+        enterFullscreen();
     }
 
     function closeCamera() {
         cameraOverlay.classList.remove('active');
+        exitFullscreen();
         if (cameraStream) {
             cameraStream.getTracks().forEach(track => track.stop());
             cameraStream = null;
@@ -2743,8 +2743,6 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem('refresh_token');
             localStorage.removeItem('user');
             
-            exitFullscreen();
-
             // Wyczyść dane z pamięci i zresetuj UI
             backendPhotos = [];
             backendStories = [];
@@ -5043,20 +5041,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function initAutoFullscreen() {
-        const hasToken = localStorage.getItem('access_token');
-        if (hasToken) {
-            const enterFSOnce = () => {
-                enterFullscreen();
-                document.removeEventListener('click', enterFSOnce);
-                document.removeEventListener('touchstart', enterFSOnce);
-            };
-            document.addEventListener('click', enterFSOnce);
-            document.addEventListener('touchstart', enterFSOnce);
-        }
-    }
 
-    initAutoFullscreen();
 
     // --- DEVELOPER / DEV MODE HINTS ---
     function checkDevMode() {
