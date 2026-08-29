@@ -87,6 +87,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 btn.classList.add('active');
                 const tabId = btn.getAttribute('data-tab');
                 document.getElementById(tabId).classList.add('active');
+
+                if (tabId === 'admin-tab-notifications') {
+                    loadPushNotifications();
+                }
             });
         });
 
@@ -1476,39 +1480,157 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (sendPushBtn) {
             sendPushBtn.addEventListener('click', async () => {
                 const msgInput = document.getElementById('admin-push-message-input');
+                const scheduleInput = document.getElementById('admin-push-schedule-input');
                 const message = msgInput ? msgInput.value.trim() : '';
                 if (!message) {
                     alert('Wpisz treść powiadomienia przed wysłaniem.');
                     return;
                 }
 
+                let scheduledTime = null;
+                if (scheduleInput && scheduleInput.value) {
+                    scheduledTime = new Date(scheduleInput.value).toISOString();
+                }
+
                 sendPushBtn.disabled = true;
-                sendPushBtn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Wysyłanie...';
+                sendPushBtn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Zapisywanie...';
 
                 try {
+                    const payload = { message };
+                    if (scheduledTime) {
+                        payload.scheduled_time = scheduledTime;
+                    }
+
                     const res = await fetch(`${API_URL}/notifications/send/`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}`
                         },
-                        body: JSON.stringify({ message })
+                        body: JSON.stringify(payload)
                     });
                     const data = await res.json();
                     if (res.ok) {
-                        alert(data.message || 'Powiadomienie zostało wysłane!');
+                        alert(data.message || 'Operacja zakończona sukcesem!');
                         if (msgInput) msgInput.value = '';
+                        if (scheduleInput) scheduleInput.value = '';
+                        loadPushNotifications();
                     } else {
-                        alert(data.error || 'Nie udało się wysłać powiadomienia.');
+                        alert(data.error || 'Wystąpił błąd.');
                     }
                 } catch (e) {
                     console.error('Push send error:', e);
-                    alert('Wystąpił błąd sieci podczas wysyłania powiadomienia.');
+                    alert('Wystąpił błąd sieci podczas wysyłania.');
                 } finally {
                     sendPushBtn.disabled = false;
-                    sendPushBtn.innerHTML = '<i class="ph ph-paper-plane-tilt"></i> Wyślij Powiadomienie do Wszystkich';
+                    sendPushBtn.innerHTML = '<i class="ph ph-paper-plane-tilt"></i> Wyślij / Zaplanuj Powiadomienie';
                 }
             });
+        }
+    }
+
+    async function loadPushNotifications() {
+        const pushListContainer = document.getElementById('admin-push-list');
+        if (!pushListContainer) return;
+        pushListContainer.innerHTML = '<div style="text-align: center; padding: 20px;"><i class="ph ph-spinner-gap ph-spin" style="font-size: 1.5rem;"></i> Ładowanie...</div>';
+
+        try {
+            const res = await fetch(`${API_URL}/notifications/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const list = await res.json();
+                if (list.length === 0) {
+                    pushListContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #888;">Brak powiadomień w historii.</div>';
+                    return;
+                }
+                pushListContainer.innerHTML = '';
+                list.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'admin-list-item';
+                    div.style.display = 'flex';
+                    div.style.justifyContent = 'space-between';
+                    div.style.alignItems = 'center';
+                    div.style.padding = '12px 15px';
+                    div.style.border = '1.5px solid #e8e2dc';
+                    div.style.borderRadius = '10px';
+                    div.style.marginBottom = '10px';
+                    div.style.background = 'var(--color-surface)';
+
+                    const contentDiv = document.createElement('div');
+                    contentDiv.style.flex = '1';
+                    
+                    const msg = document.createElement('div');
+                    msg.style.fontWeight = '600';
+                    msg.style.fontSize = '0.92rem';
+                    msg.textContent = item.message;
+
+                    const meta = document.createElement('div');
+                    meta.style.fontSize = '0.75rem';
+                    meta.style.marginTop = '4px';
+                    meta.style.opacity = '0.7';
+
+                    let statusText = '';
+                    let statusColor = '';
+                    if (item.is_sent) {
+                        const dateStr = item.sent_at ? new Date(item.sent_at).toLocaleString('pl-PL') : new Date(item.created_at).toLocaleString('pl-PL');
+                        statusText = `Wysłano: ${dateStr}`;
+                        statusColor = 'green';
+                    } else {
+                        const dateStr = new Date(item.scheduled_time).toLocaleString('pl-PL');
+                        statusText = `Zaplanowane na: ${dateStr}`;
+                        statusColor = '#c9a84c';
+                    }
+                    meta.innerHTML = `<span style="color: ${statusColor}; font-weight: 700;">●</span> ${statusText}`;
+
+                    contentDiv.appendChild(msg);
+                    contentDiv.appendChild(meta);
+                    div.appendChild(contentDiv);
+
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.className = 'admin-btn-secondary';
+                    cancelBtn.style.padding = '6px 12px';
+                    cancelBtn.style.fontSize = '0.82rem';
+                    if (!item.is_sent) {
+                        cancelBtn.style.background = '#fee2e2';
+                        cancelBtn.style.color = '#ef4444';
+                        cancelBtn.style.border = '1px solid #fecaca';
+                        cancelBtn.innerHTML = '<i class="ph ph-trash"></i> Anuluj';
+                    } else {
+                        cancelBtn.innerHTML = '<i class="ph ph-trash"></i> Usuń';
+                    }
+                    
+                    cancelBtn.addEventListener('click', async () => {
+                        const confirmMsg = item.is_sent 
+                            ? 'Czy chcesz usunąć to powiadomienie z historii? (Nie cofnie to wysłanego już powiadomienia)'
+                            : 'Czy na pewno chcesz anulować i usunąć to zaplanowane powiadomienie?';
+                        if (confirm(confirmMsg)) {
+                            try {
+                                const delRes = await fetch(`${API_URL}/notifications/${item.id}/`, {
+                                    method: 'DELETE',
+                                    headers: { 'Authorization': `Bearer ${token}` }
+                                });
+                                if (delRes.ok) {
+                                    loadPushNotifications();
+                                } else {
+                                    alert('Nie udało się wykonać operacji.');
+                                }
+                            } catch (e) {
+                                console.error(e);
+                                alert('Błąd połączenia.');
+                            }
+                        }
+                    });
+                    div.appendChild(cancelBtn);
+
+                    pushListContainer.appendChild(div);
+                });
+            } else {
+                pushListContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: red;">Nie udało się załadować listy.</div>';
+            }
+        } catch (e) {
+            console.error(e);
+            pushListContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: red;">Błąd sieci.</div>';
         }
     }
 });
