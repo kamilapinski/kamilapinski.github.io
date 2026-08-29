@@ -1770,16 +1770,53 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cameraStream) {
             cameraStream.getTracks().forEach(track => track.stop());
         }
+
+        let videoConstraints = { facingMode: currentFacingMode };
+
+        try {
+            // Request quick temp stream to ensure permissions are granted (needed to read device labels)
+            const tempStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
+            tempStream.getTracks().forEach(track => track.stop());
+
+            if (currentFacingMode === 'environment') {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(d => d.kind === 'videoinput');
+                
+                const backCameras = videoDevices.filter(d => {
+                    const label = d.label.toLowerCase();
+                    return label.includes('back') || label.includes('rear') || label.includes('camera 0') || label.includes('environment');
+                });
+
+                if (backCameras.length > 0) {
+                    // Filter out ultra-wide, wide-angle (if others exist), and telephoto lenses to find standard 1x
+                    let mainCam = backCameras.find(d => {
+                        const label = d.label.toLowerCase();
+                        return !label.includes('ultra') && !label.includes('wide') && !label.includes('tele') && !label.includes('zoom');
+                    });
+                    
+                    if (!mainCam) {
+                        mainCam = backCameras[0];
+                    }
+
+                    if (mainCam && mainCam.deviceId) {
+                        videoConstraints = { deviceId: { exact: mainCam.deviceId } };
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn("Device enumeration or permission query failed, falling back to facingMode:", e);
+        }
+
         try {
             cameraStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: currentFacingMode },
+                video: videoConstraints,
                 audio: true
             });
         } catch (err) {
             console.warn("Audio access denied or unavailable, falling back to video only:", err);
             try {
                 cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: currentFacingMode },
+                    video: videoConstraints,
                     audio: false
                 });
             } catch (err2) {
