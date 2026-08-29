@@ -2834,6 +2834,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (openDirectMsgBtn) {
         openDirectMsgBtn.addEventListener('click', () => {
+            if (openDirectMsgBtn.disabled) return;
             if (directMsgModal) directMsgModal.style.display = 'flex';
         });
     }
