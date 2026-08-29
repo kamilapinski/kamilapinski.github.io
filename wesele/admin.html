@@ -314,6 +314,17 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Powiadomienia Push -->
+                    <div style="border-top: 1px dashed var(--color-border); padding-top: 20px; margin-top: 20px; margin-bottom: 20px;">
+                        <h4 style="font-weight: 700; margin-bottom: 12px;">Wyślij Powiadomienie do Gości (Push)</h4>
+                        <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;">
+                            <label for="admin-push-message-input" style="font-weight: 600;">Treść powiadomienia</label>
+                            <textarea id="admin-push-message-input" placeholder="Wpisz treść powiadomienia..." style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; background: var(--color-surface); color: var(--color-text); min-height: 80px; resize: vertical;"></textarea>
+                        </div>
+                        <button type="button" id="admin-send-push-btn" class="admin-btn-secondary" style="background: var(--color-primary); color: #fff; width: 100%; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                            <i class="ph ph-paper-plane-tilt"></i> Wyślij Powiadomienie do Wszystkich
+                        </button>
+                    </div>
 
                     <button id="admin-save-couple-btn" class="admin-btn-primary-big">Zapisz Ustawienia Pary Młodej</button>
                 </div>

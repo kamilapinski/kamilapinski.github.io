@@ -1466,6 +1466,44 @@ document.addEventListener('DOMContentLoaded', async () => {
                 };
                 patchWeddingConfig(payload);
             });
+        // --- Send Push Notifications ---
+        const sendPushBtn = document.getElementById('admin-send-push-btn');
+        if (sendPushBtn) {
+            sendPushBtn.addEventListener('click', async () => {
+                const msgInput = document.getElementById('admin-push-message-input');
+                const message = msgInput ? msgInput.value.trim() : '';
+                if (!message) {
+                    alert('Wpisz treść powiadomienia przed wysłaniem.');
+                    return;
+                }
+
+                sendPushBtn.disabled = true;
+                sendPushBtn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Wysyłanie...';
+
+                try {
+                    const res = await fetch(`${API_URL}/notifications/send/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ message })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        alert(data.message || 'Powiadomienie zostało wysłane!');
+                        if (msgInput) msgInput.value = '';
+                    } else {
+                        alert(data.error || 'Nie udało się wysłać powiadomienia.');
+                    }
+                } catch (e) {
+                    console.error('Push send error:', e);
+                    alert('Wystąpił błąd sieci podczas wysyłania powiadomienia.');
+                } finally {
+                    sendPushBtn.disabled = false;
+                    sendPushBtn.innerHTML = '<i class="ph ph-paper-plane-tilt"></i> Wyślij Powiadomienie do Wszystkich';
+                }
+            });
         }
     }
 });

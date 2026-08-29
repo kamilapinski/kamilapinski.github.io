@@ -219,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     loadTables();
                     updateProfileUI();
                     loadWeddingConfig();
+                    initPushNotifications();
 
                     // Remove code from URL
                     window.history.replaceState({}, document.title, window.location.pathname);
@@ -335,6 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     loadTables();
                     updateProfileUI();
                     loadWeddingConfig();
+                    initPushNotifications();
                 } else {
                     localStorage.removeItem('access_token');
                     localStorage.removeItem('user');
@@ -2422,6 +2424,69 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('ServiceWorker registration failed: ', err);
                 });
         });
+    }
+
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+            .replace(/\-/g, '+')
+            .replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
+    async function initPushNotifications() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            console.log('Push notifications are not supported on this device/browser.');
+            return;
+        }
+
+        try {
+            const registration = await navigator.serviceWorker.ready;
+
+            const res = await fetch(`${API_URL}/notifications/vapid-key/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch VAPID key');
+            const data = await res.json();
+            const publicVapidKey = data.public_key;
+
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                console.log('Notification permission denied.');
+                return;
+            }
+
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+            });
+
+            const p256dh = btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh'))));
+            const auth = btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth'))));
+
+            await fetch(`${API_URL}/notifications/subscribe/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    endpoint: subscription.endpoint,
+                    p256dh: p256dh,
+                    auth: auth
+                })
+            });
+            console.log('Push notification subscription successful.');
+        } catch (e) {
+            console.error('Error registering for push notifications:', e);
+        }
     }
 
     // --- User Profile Logic ("Ty" tab) ---
