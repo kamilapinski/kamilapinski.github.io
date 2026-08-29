@@ -1867,12 +1867,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         cameraOverlay.classList.add('active');
         startCamera();
-        enterFullscreen();
     }
 
     function closeCamera() {
         cameraOverlay.classList.remove('active');
-        exitFullscreen();
         if (cameraStream) {
             cameraStream.getTracks().forEach(track => track.stop());
             cameraStream = null;
@@ -5057,31 +5055,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load configurations on initialization
     loadWeddingConfig();
 
-    // --- FULLSCREEN MANAGEMENT ---
-    function enterFullscreen() {
-        if (window.matchMedia('(display-mode: standalone)').matches) return;
-        const el = document.documentElement;
-        if (el.requestFullscreen) {
-            el.requestFullscreen().catch(() => {});
-        } else if (el.webkitRequestFullscreen) {
-            el.webkitRequestFullscreen();
-        } else if (el.msRequestFullscreen) {
-            el.msRequestFullscreen();
-        }
-    }
 
-    function exitFullscreen() {
-        if (window.matchMedia('(display-mode: standalone)').matches) return;
-        if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
-            if (document.exitFullscreen) {
-                document.exitFullscreen().catch(() => {});
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            }
-        }
-    }
 
 
 
