@@ -31,6 +31,38 @@
     --bottom-nav-height: 60px;
 }
 
+html {
+    font-size: 15.5px;
+}
+
+@media (max-width: 480px) {
+    :root {
+        --bottom-nav-height: 52px;
+    }
+    
+    html {
+        font-size: 13.5px !important;
+    }
+    
+    .nav-item i {
+        font-size: 1.25rem !important;
+    }
+    
+    .story-bubble {
+        width: 60px !important;
+        height: 60px !important;
+    }
+    
+    .story-bubble-wrapper span {
+        font-size: 0.65rem !important;
+    }
+    
+    .header-schedule-box {
+        margin: 4px 10px 8px !important;
+        padding: 6px 10px !important;
+    }
+}
+
 /* Reset i podstawowe style */
 * {
     margin: 0;
