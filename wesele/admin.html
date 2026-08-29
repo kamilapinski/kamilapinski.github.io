@@ -300,6 +300,21 @@
                         <!-- Status texts editable fields -->
                     </div>
 
+                    <!-- Skrzynka Życzeń Settings -->
+                    <div style="border-top: 1px dashed var(--color-border); padding-top: 20px; margin-top: 20px; margin-bottom: 20px;">
+                        <h4 style="font-weight: 700; margin-bottom: 12px;">Skrzynka Życzeń</h4>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" id="admin-wishes-enabled-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
+                                <label for="admin-wishes-enabled-checkbox" style="font-weight: 600; cursor: pointer; user-select: none;">Włącz Skrzynkę Życzeń (funkcjonalność aktywna)</label>
+                            </div>
+                            <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" id="admin-wishes-locked-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
+                                <label for="admin-wishes-locked-checkbox" style="font-weight: 600; cursor: pointer; user-select: none;">Zablokuj składanie życzeń (funkcja zablokowana tymczasowo dla gości)</label>
+                            </div>
+                        </div>
+                    </div>
+
                     <button id="admin-save-couple-btn" class="admin-btn-primary-big">Zapisz Ustawienia Pary Młodej</button>
                 </div>
 

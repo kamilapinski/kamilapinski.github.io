@@ -2482,7 +2482,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Section "Skrzynka Życzeń" (wishes panel card for para_mloda / swiadek / staff)
             const wishesPanelCard = document.getElementById('wishes-panel-card');
             if (wishesPanelCard) {
-                if (user.role === 'para_mloda' || user.role === 'swiadek' || user.is_staff) {
+                if (weddingConfig.wishes_enabled !== false && (user.role === 'para_mloda' || user.role === 'swiadek' || user.is_staff)) {
                     wishesPanelCard.style.display = 'flex';
                     loadWishes();
                 } else {
@@ -4493,6 +4493,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let coupleStatusTexts = [
         { text: "Do zobaczenia na naszym weselu" }
     ];
+    let weddingConfig = {};
 
     async function loadWeddingConfig() {
         const token = localStorage.getItem('access_token');
@@ -4504,10 +4505,36 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (res.ok) {
                 const config = await res.json();
+                weddingConfig = config;
                 
                 // 1. Witness permissions
                 if (config.witness_permissions) {
                     witnessPermissions = { ...witnessPermissions, ...config.witness_permissions };
+                }
+
+                // Wishes enabled/locked UI handling
+                const openWishesBtn = document.getElementById('open-direct-msg-btn');
+                if (openWishesBtn) {
+                    if (config.wishes_enabled === false) {
+                        openWishesBtn.style.display = 'none';
+                    } else {
+                        openWishesBtn.style.display = 'inline-flex';
+                        if (config.wishes_locked === true) {
+                            openWishesBtn.disabled = true;
+                            openWishesBtn.classList.add('disabled');
+                            openWishesBtn.innerHTML = `<i class="ph ph-lock-key"></i> Na złożenie życzeń jeszcze poczekasz :P`;
+                            openWishesBtn.style.opacity = '0.6';
+                            openWishesBtn.style.cursor = 'not-allowed';
+                            openWishesBtn.style.background = '#888';
+                        } else {
+                            openWishesBtn.disabled = false;
+                            openWishesBtn.classList.remove('disabled');
+                            openWishesBtn.innerHTML = `<i class="ph-fill ph-chat-circle-dots"></i> Złóż życzenia`;
+                            openWishesBtn.style.opacity = '1';
+                            openWishesBtn.style.cursor = 'pointer';
+                            openWishesBtn.style.background = '';
+                        }
+                    }
                 }
 
                 // Update wishes panel card visibility for witness if they have permission
@@ -4516,7 +4543,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (user) {
                     const wishesCard = document.getElementById('wishes-panel-card');
                     if (wishesCard) {
-                        if (user.role === 'para_mloda' || (user.role === 'swiadek' && witnessPermissions.can_see_wishes) || user.is_staff) {
+                        if (config.wishes_enabled !== false && (user.role === 'para_mloda' || (user.role === 'swiadek' && witnessPermissions.can_see_wishes) || user.is_staff)) {
                             wishesCard.style.display = 'flex';
                         } else {
                             wishesCard.style.display = 'none';

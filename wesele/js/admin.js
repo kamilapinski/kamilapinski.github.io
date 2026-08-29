@@ -572,6 +572,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const phoneBrideInput = document.getElementById('admin-phone-bride-input');
                 if (phoneBrideInput) phoneBrideInput.value = weddingConfigRaw.phone_bride || '';
 
+                const wishesEnabledCheckbox = document.getElementById('admin-wishes-enabled-checkbox');
+                const wishesLockedCheckbox = document.getElementById('admin-wishes-locked-checkbox');
+                if (wishesEnabledCheckbox) wishesEnabledCheckbox.checked = weddingConfigRaw.wishes_enabled !== false;
+                if (wishesLockedCheckbox) wishesLockedCheckbox.checked = weddingConfigRaw.wishes_locked === true;
+
                 // 4. Header config
                 const hs = weddingConfigRaw.header_mode_settings || {};
                 document.getElementById('admin-header-enabled').checked = hs.header_enabled !== false;
@@ -1380,15 +1385,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                     });
                 });
                 
+                const wishesEnabledCheckbox = document.getElementById('admin-wishes-enabled-checkbox');
+                const wishesLockedCheckbox = document.getElementById('admin-wishes-locked-checkbox');
+                const wishesEnabled = wishesEnabledCheckbox ? wishesEnabledCheckbox.checked : true;
+                const wishesLocked = wishesLockedCheckbox ? wishesLockedCheckbox.checked : false;
+
                 // Read image upload separately if files are modified
                 const fileInput = document.getElementById('admin-couple-image-input');
                 if (fileInput && fileInput.files.length > 0) {
                     const formData = new FormData();
                     formData.append('couple_image', fileInput.files[0]);
                     formData.append('status_texts', JSON.stringify(list));
+                    formData.append('wishes_enabled', wishesEnabled);
+                    formData.append('wishes_locked', wishesLocked);
                     patchWeddingConfig(formData, false);
                 } else {
-                    patchWeddingConfig({ status_texts: list });
+                    patchWeddingConfig({ 
+                        status_texts: list,
+                        wishes_enabled: wishesEnabled,
+                        wishes_locked: wishesLocked
+                    });
                 }
             });
         }
