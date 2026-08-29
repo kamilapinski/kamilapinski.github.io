@@ -1776,22 +1776,32 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Request quick temp stream to ensure permissions are granted (needed to read device labels)
             const tempStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
+            const devices = await navigator.mediaDevices.enumerateDevices();
             tempStream.getTracks().forEach(track => track.stop());
 
             if (currentFacingMode === 'environment') {
-                const devices = await navigator.mediaDevices.enumerateDevices();
                 const videoDevices = devices.filter(d => d.kind === 'videoinput');
+                console.log("Dostępne urządzenia wideo:", videoDevices.map(d => `${d.label} (${d.deviceId})`));
                 
-                const backCameras = videoDevices.filter(d => {
+                let backCameras = videoDevices.filter(d => {
                     const label = d.label.toLowerCase();
-                    return label.includes('back') || label.includes('rear') || label.includes('camera 0') || label.includes('environment');
+                    return label.includes('back') || label.includes('rear') || label.includes('environment') || 
+                           label.includes('tył') || label.includes('tyl') || label.includes('camera 1') || 
+                           label.includes('camera 0') || label.includes('main') || label.includes('główn');
                 });
 
+                // Fallback if labels are empty due to browser privacy settings
+                if (backCameras.length === 0 && videoDevices.length > 1) {
+                    console.log("Puste etykiety lub brak dopasowania kamer tylnych. Wybieram drugie urządzenie jako domyślny aparat 1x.");
+                    backCameras = [videoDevices[1]];
+                }
+
                 if (backCameras.length > 0) {
-                    // Filter out ultra-wide, wide-angle (if others exist), and telephoto lenses to find standard 1x
+                    // Filter out ultra-wide, wide-angle, telephoto and zoom lenses (in English and Polish)
                     let mainCam = backCameras.find(d => {
                         const label = d.label.toLowerCase();
-                        return !label.includes('ultra') && !label.includes('wide') && !label.includes('tele') && !label.includes('zoom');
+                        return !label.includes('ultra') && !label.includes('wide') && !label.includes('tele') && 
+                               !label.includes('zoom') && !label.includes('szerok') && !label.includes('zbliż');
                     });
                     
                     if (!mainCam) {
@@ -1799,6 +1809,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (mainCam && mainCam.deviceId) {
+                        console.log("Wybrany aparat 1x:", mainCam.label || "Aparat domyślny");
                         videoConstraints = { deviceId: { exact: mainCam.deviceId } };
                     }
                 }
