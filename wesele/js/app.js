@@ -2830,25 +2830,22 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        try {
-            const registration = await navigator.serviceWorker.ready;
+        const overlay = document.getElementById('notification-overlay');
+        const explainText = document.getElementById('notification-explain-text');
+        const btnAllow = document.getElementById('notification-btn-allow');
+        const btnSkip = document.getElementById('notification-btn-skip');
 
-            const res = await fetch(`${API_URL}/notifications/vapid-key/`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!res.ok) throw new Error('Failed to fetch VAPID key');
-            const data = await res.json();
-            const publicVapidKey = data.public_key;
+        const showSettingsInstructions = () => {
+            explainText.innerHTML = 'Zablokowałeś powiadomienia w przeglądarce. Aby je włączyć, kliknij ikonę kłódki/ustawień obok adresu strony w przeglądarce i zmień uprawnienia powiadomień na <strong>Zezwalaj</strong>.';
+            btnAllow.textContent = 'Rozumiem';
+            btnAllow.onclick = () => {
+                overlay.style.display = 'none';
+                localStorage.setItem('notification_dismissed', 'true');
+            };
+        };
 
-            const permission = await Notification.requestPermission();
-            if (permission !== 'granted') {
-                console.log('Notification permission denied.');
-                return;
-            }
-
+        const setupSubscription = async (registration, convertedKey) => {
             let subscription = await registration.pushManager.getSubscription();
-            const convertedKey = urlBase64ToUint8Array(publicVapidKey);
-
             if (subscription) {
                 let keyMatches = false;
                 if (subscription.options && subscription.options.applicationServerKey) {
@@ -2886,6 +2883,61 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
             console.log('Push notification subscription successful.');
+        };
+
+        try {
+            const registration = await navigator.serviceWorker.ready;
+
+            const res = await fetch(`${API_URL}/notifications/vapid-key/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch VAPID key');
+            const data = await res.json();
+            const publicVapidKey = data.public_key;
+            const convertedKey = urlBase64ToUint8Array(publicVapidKey);
+
+            // Handle current permission state
+            if (Notification.permission === 'granted') {
+                await setupSubscription(registration, convertedKey);
+                return;
+            }
+
+            if (localStorage.getItem('notification_dismissed') === 'true') {
+                return;
+            }
+
+            // Show explanation overlay if denied or default
+            overlay.style.display = 'flex';
+
+            if (Notification.permission === 'denied') {
+                showSettingsInstructions();
+            } else {
+                btnAllow.onclick = async () => {
+                    btnAllow.disabled = true;
+                    btnAllow.textContent = 'Ładowanie...';
+                    try {
+                        const permission = await Notification.requestPermission();
+                        if (permission === 'granted') {
+                            overlay.style.display = 'none';
+                            await setupSubscription(registration, convertedKey);
+                        } else {
+                            // If they clicked Deny, show instructions on how to unblock
+                            btnAllow.disabled = false;
+                            showSettingsInstructions();
+                        }
+                    } catch (err) {
+                        console.error('Error requesting notification permission:', err);
+                        btnAllow.disabled = false;
+                        btnAllow.textContent = 'Włącz powiadomienia';
+                    }
+                };
+            }
+
+            btnSkip.onclick = () => {
+                overlay.style.display = 'none';
+                localStorage.setItem('notification_dismissed', 'true');
+            };
+
         } catch (e) {
             console.error('Error registering for push notifications:', e);
         }
@@ -3037,6 +3089,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
             localStorage.removeItem('user');
+            localStorage.removeItem('notification_dismissed');
             
             // Wyczyść dane z pamięci i zresetuj UI
             backendPhotos = [];
