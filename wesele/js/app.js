@@ -1790,12 +1790,6 @@ document.addEventListener('DOMContentLoaded', () => {
                            label.includes('camera 0') || label.includes('main') || label.includes('główn');
                 });
 
-                // Fallback if labels are empty due to browser privacy settings
-                if (backCameras.length === 0 && videoDevices.length > 1) {
-                    console.log("Puste etykiety lub brak dopasowania kamer tylnych. Wybieram drugie urządzenie jako domyślny aparat 1x.");
-                    backCameras = [videoDevices[1]];
-                }
-
                 if (backCameras.length > 0) {
                     // Filter out ultra-wide, wide-angle, telephoto and zoom lenses (in English and Polish)
                     let mainCam = backCameras.find(d => {
@@ -1810,7 +1804,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (mainCam && mainCam.deviceId) {
                         console.log("Wybrany aparat 1x:", mainCam.label || "Aparat domyślny");
-                        videoConstraints = { deviceId: { exact: mainCam.deviceId } };
+                        videoConstraints = { deviceId: mainCam.deviceId };
                     }
                 }
             }
