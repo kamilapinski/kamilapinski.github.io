@@ -2463,10 +2463,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
-            });
+            let subscription = await registration.pushManager.getSubscription();
+            const convertedKey = urlBase64ToUint8Array(publicVapidKey);
+
+            if (subscription) {
+                let keyMatches = false;
+                if (subscription.options && subscription.options.applicationServerKey) {
+                    const existingKey = new Uint8Array(subscription.options.applicationServerKey);
+                    if (existingKey.length === convertedKey.length) {
+                        keyMatches = existingKey.every((val, index) => val === convertedKey[index]);
+                    }
+                }
+                if (!keyMatches) {
+                    await subscription.unsubscribe();
+                    subscription = null;
+                }
+            }
+
+            if (!subscription) {
+                subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: convertedKey
+                });
+            }
 
             const p256dh = btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh'))));
             const auth = btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth'))));
