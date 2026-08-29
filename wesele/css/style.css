@@ -61,10 +61,6 @@ html {
         margin: 4px 10px 8px !important;
         padding: 6px 10px !important;
     }
-    
-    .couple-hero-card {
-        height: 60vh !important;
-    }
 }
 
 /* Reset i podstawowe style */
@@ -627,10 +623,6 @@ button {
     100% { transform: scale(1); box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
 }
 
-/* Główny kontener treści */
-.content-area {
-    padding-bottom: calc(var(--bottom-nav-height) + 20px);
-}
 
 .tab-content {
     display: none;
@@ -716,7 +708,7 @@ button {
 
 /* Couple Hero Card */
 .couple-hero-card {
-    height: 70vh;
+    height: 100%;
     position: relative;
     border-radius: 28px;
     overflow: hidden;

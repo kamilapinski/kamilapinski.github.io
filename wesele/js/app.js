@@ -475,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     fab.classList.remove('fab-visible');
                 }
             }
-            
+
             if (targetId === 'tab-couple' && typeof ScrollTrigger !== 'undefined') {
                 setTimeout(() => {
                     ScrollTrigger.refresh();
@@ -5286,7 +5286,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const bottomNav = document.getElementsByClassName('bottom-nav')[0];
 
     function calculateAndSetTabCoupleHeight() {
-        const tabCoupleHeight = tabCouple.offsetHeight;
         const topHeaderHeight = topHeader.offsetHeight;
         const bottomNavHeight = bottomNav.offsetHeight;
 
