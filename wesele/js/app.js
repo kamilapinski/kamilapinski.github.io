@@ -476,11 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            if (targetId === 'tab-couple') {
-                document.body.classList.add('no-scroll');
-            } else {
-                document.body.classList.remove('no-scroll');
-            }
+
 
             if (targetId === 'tab-couple' && typeof ScrollTrigger !== 'undefined') {
                 setTimeout(() => {
@@ -2075,7 +2071,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="background: var(--color-bg); padding: 25px; border-radius: 15px; width: 90%; max-width: 320px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border: 1px solid var(--color-border);">
                     <h3 style="font-family: var(--font-heading); font-size: 1.3rem; margin-bottom: 20px; color: var(--color-graphite);">Dodaj wspomnienie</h3>
                     <button id="gallery-opt-photo" class="modal-btn" style="background: var(--color-gold); color: #fff; margin-bottom: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                        <i class="ph ph-image" style="font-size: 1.4rem;"></i> Dodaj Zdjęcie (9:16)
+                        <i class="ph ph-image" style="font-size: 1.4rem;"></i> Dodaj Zdjęcie
                     </button>
                     <button id="gallery-opt-video" class="modal-btn" style="background: var(--color-graphite); color: #fff; margin-bottom: 15px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
                         <i class="ph ph-video-camera" style="font-size: 1.4rem;"></i> Dodaj Film
