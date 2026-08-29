@@ -61,6 +61,10 @@ html {
         margin: 4px 10px 8px !important;
         padding: 6px 10px !important;
     }
+    
+    .couple-hero-card {
+        height: 60vh !important;
+    }
 }
 
 /* Reset i podstawowe style */
