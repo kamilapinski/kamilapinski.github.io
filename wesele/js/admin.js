@@ -109,6 +109,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         initCoupleSettingsListeners();
         initHeaderSettingsListeners();
         initWitnessPermissionsListeners();
+        initPushNotificationsListeners();
 
         // Attach search and filter event listeners
         const guestSearchInput = document.getElementById('admin-guest-search-input');
@@ -1466,7 +1467,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 };
                 patchWeddingConfig(payload);
             });
-        // --- Send Push Notifications ---
+        }
+    }
+
+    // --- Send Push Notifications ---
+    function initPushNotificationsListeners() {
         const sendPushBtn = document.getElementById('admin-send-push-btn');
         if (sendPushBtn) {
             sendPushBtn.addEventListener('click', async () => {
