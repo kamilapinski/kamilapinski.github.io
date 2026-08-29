@@ -1250,7 +1250,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </button>
                         <span style="font-size: 1.1rem; opacity: 0.8; margin-top: 10px;">Dodaj odrobinę wspomnień</span>
                     `;
-                    document.getElementById('empty-state-camera-btn').addEventListener('click', () => openCamera('gallery'));
+                    document.getElementById('empty-state-camera-btn').addEventListener('click', showGalleryUploadOptions);
                     const fab = document.getElementById('fab-add-photo');
                     if (fab) fab.style.display = 'none';
                 } else {
@@ -1885,7 +1885,8 @@ document.addEventListener('DOMContentLoaded', () => {
             let finalBlob = file;
             if (mediaType === 'image') {
                 showUploadSpinner("Optymalizacja zdjęcia...");
-                finalBlob = await compressImageBlob(file, 1920, 0.8);
+                const shouldCropTo916 = (currentCameraContext === 'gallery' || currentCameraContext === 'story');
+                finalBlob = await compressImageBlob(file, 1920, 0.8, shouldCropTo916);
             }
 
             if (currentCameraContext === 'wish_video') {
@@ -2013,6 +2014,98 @@ document.addEventListener('DOMContentLoaded', () => {
 
         nativeInput.value = '';
         nativeInput.click();
+    }
+
+    function openCameraDirect(context = 'story', type = 'both') {
+        currentCameraContext = context;
+        
+        let nativeInput = document.getElementById('native-camera-input');
+        if (!nativeInput) {
+            nativeInput = document.createElement('input');
+            nativeInput.id = 'native-camera-input';
+            nativeInput.type = 'file';
+            nativeInput.style.display = 'none';
+            document.body.appendChild(nativeInput);
+            
+            nativeInput.addEventListener('change', handleNativeCameraCapture);
+        }
+
+        const directMsgModal = document.getElementById('direct-msg-modal');
+        if (directMsgModal) {
+            directMsgModal.style.display = 'none';
+        }
+
+        if (type === 'video') {
+            nativeInput.accept = 'video/*';
+            nativeInput.removeAttribute('multiple');
+            nativeInput.setAttribute('capture', 'environment');
+        } else if (type === 'image') {
+            nativeInput.accept = 'image/*';
+            nativeInput.removeAttribute('multiple');
+            nativeInput.setAttribute('capture', 'environment');
+        } else {
+            nativeInput.accept = 'image/*,video/*';
+            nativeInput.removeAttribute('multiple');
+            nativeInput.setAttribute('capture', 'environment');
+        }
+
+        nativeInput.value = '';
+        nativeInput.click();
+    }
+
+    function showGalleryUploadOptions() {
+        let overlay = document.getElementById('gallery-upload-modal');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'gallery-upload-modal';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.background = 'rgba(0,0,0,0.6)';
+            overlay.style.backdropFilter = 'blur(4px)';
+            overlay.style.webkitBackdropFilter = 'blur(4px)';
+            overlay.style.display = 'flex';
+            overlay.style.justifyContent = 'center';
+            overlay.style.alignItems = 'center';
+            overlay.style.zIndex = '9998';
+            
+            overlay.innerHTML = `
+                <div style="background: var(--color-bg); padding: 25px; border-radius: 15px; width: 90%; max-width: 320px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border: 1px solid var(--color-border);">
+                    <h3 style="font-family: var(--font-heading); font-size: 1.3rem; margin-bottom: 20px; color: var(--color-graphite);">Dodaj wspomnienie</h3>
+                    <button id="gallery-opt-photo" class="modal-btn" style="background: var(--color-gold); color: #fff; margin-bottom: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        <i class="ph ph-image" style="font-size: 1.4rem;"></i> Dodaj Zdjęcie (9:16)
+                    </button>
+                    <button id="gallery-opt-video" class="modal-btn" style="background: var(--color-graphite); color: #fff; margin-bottom: 15px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        <i class="ph ph-video-camera" style="font-size: 1.4rem;"></i> Dodaj Film
+                    </button>
+                    <button id="gallery-opt-cancel" class="modal-btn" style="background: #f0f0f0; color: #333; width: 100%; border: none; padding: 10px; border-radius: 8px; cursor: pointer;">
+                        Anuluj
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            document.getElementById('gallery-opt-photo').addEventListener('click', () => {
+                overlay.style.display = 'none';
+                openCameraDirect('gallery', 'image');
+            });
+
+            document.getElementById('gallery-opt-video').addEventListener('click', () => {
+                overlay.style.display = 'none';
+                openCameraDirect('gallery', 'video');
+            });
+
+            document.getElementById('gallery-opt-cancel').addEventListener('click', () => {
+                overlay.style.display = 'none';
+            });
+
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.style.display = 'none';
+            });
+        }
+        overlay.style.display = 'flex';
     }
 
     function closeCamera() {
@@ -2306,7 +2399,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function compressImageBlob(blob, maxDimension, quality) {
+    function compressImageBlob(blob, maxDimension, quality, cropTo916 = false) {
         return new Promise((resolve, reject) => {
             const url = URL.createObjectURL(blob);
             const img = new Image();
@@ -2314,25 +2407,47 @@ document.addEventListener('DOMContentLoaded', () => {
             img.onload = () => {
                 URL.revokeObjectURL(url);
                 const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
+                
+                let sourceX = 0;
+                let sourceY = 0;
+                let sourceWidth = img.width;
+                let sourceHeight = img.height;
 
-                if (width > height) {
-                    if (width > maxDimension) {
-                        height = Math.round((height *= maxDimension / width));
-                        width = maxDimension;
-                    }
-                } else {
-                    if (height > maxDimension) {
-                        width = Math.round((width *= maxDimension / height));
-                        height = maxDimension;
+                if (cropTo916) {
+                    const targetRatio = 9 / 16;
+                    const currentRatio = img.width / img.height;
+                    
+                    if (currentRatio > targetRatio) {
+                        // Image is wider than 9:16, crop sides
+                        sourceWidth = img.height * targetRatio;
+                        sourceX = (img.width - sourceWidth) / 2;
+                    } else if (currentRatio < targetRatio) {
+                        // Image is taller than 9:16, crop top/bottom
+                        sourceHeight = img.width / targetRatio;
+                        sourceY = (img.height - sourceHeight) / 2;
                     }
                 }
 
-                canvas.width = width;
-                canvas.height = height;
+                let destWidth = sourceWidth;
+                let destHeight = sourceHeight;
+
+                if (destWidth > destHeight) {
+                    if (destWidth > maxDimension) {
+                        destHeight = Math.round((destHeight * maxDimension) / destWidth);
+                        destWidth = maxDimension;
+                    }
+                } else {
+                    if (destHeight > maxDimension) {
+                        destWidth = Math.round((destWidth * maxDimension) / destHeight);
+                        destHeight = maxDimension;
+                    }
+                }
+
+                canvas.width = destWidth;
+                canvas.height = destHeight;
+                
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
+                ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, destWidth, destHeight);
 
                 canvas.toBlob(newBlob => {
                     resolve(newBlob);
@@ -2642,10 +2757,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const addPhotoLabel = document.getElementById('add-photo-label');
     const fabAddPhoto = document.getElementById('fab-add-photo');
     if (addPhotoLabel) {
-        addPhotoLabel.addEventListener('click', () => openCamera('gallery'));
+        addPhotoLabel.addEventListener('click', showGalleryUploadOptions);
     }
     if (fabAddPhoto) {
-        fabAddPhoto.addEventListener('click', () => openCamera('gallery'));
+        fabAddPhoto.addEventListener('click', showGalleryUploadOptions);
     }
 
     function compressImage(file, maxDimension, quality) {
