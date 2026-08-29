@@ -2070,7 +2070,7 @@ document.addEventListener('DOMContentLoaded', () => {
             overlay.innerHTML = `
                 <div style="background: var(--color-bg); padding: 25px; border-radius: 15px; width: 90%; max-width: 320px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border: 1px solid var(--color-border);">
                     <h3 style="font-family: var(--font-heading); font-size: 1.3rem; margin-bottom: 20px; color: var(--color-graphite);">Dodaj wspomnienie</h3>
-                    <button id="gallery-opt-photo" class="modal-btn" style="background: var(--color-gold); color: #fff; margin-bottom: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    <button id="gallery-opt-photo" class="modal-btn" style="background: var(--color-gold); color: #000000; margin-bottom: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
                         <i class="ph ph-image" style="font-size: 1.4rem;"></i> Dodaj Zdjęcie
                     </button>
                     <button id="gallery-opt-video" class="modal-btn" style="background: var(--color-graphite); color: #fff; margin-bottom: 15px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
@@ -5282,6 +5282,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (countdownTimer) countdownTimer.style.display = 'flex';
         }
     }
+
+    const tabCouple = document.getElementById('tab-couple');
+    const topHeader = document.getElementsByClassName('top-header')[0];
+    const bottomNav = document.getElementsByClassName('bottom-nav')[0];
+
+    function calculateAndSetTabCoupleHeight() {
+        const tabCoupleHeight = tabCouple.offsetHeight;
+        const topHeaderHeight = topHeader.offsetHeight;
+        const bottomNavHeight = bottomNav.offsetHeight;
+
+        const windowHeight = window.innerHeight;
+
+        const newTabCoupleHeight = windowHeight - topHeaderHeight - bottomNavHeight;
+        tabCouple.style.height = `${newTabCoupleHeight}px`;
+    }
+
+    calculateAndSetTabCoupleHeight();
+    window.addEventListener('resize', calculateAndSetTabCoupleHeight);
 
     // --- ADMIN PANEL EVENTS & CRUD IMPLEMENTATION ---
     const adminPanelCard = document.getElementById('admin-panel-card');
