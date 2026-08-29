@@ -1840,33 +1840,179 @@ document.addEventListener('DOMContentLoaded', () => {
         capturedBlob = null;
     }
 
+    function showUploadSpinner(msg = "Wgrywanie...") {
+        let spinner = document.getElementById('upload-spinner-overlay');
+        if (!spinner) {
+            spinner = document.createElement('div');
+            spinner.id = 'upload-spinner-overlay';
+            spinner.style.position = 'fixed';
+            spinner.style.top = '0';
+            spinner.style.left = '0';
+            spinner.style.width = '100vw';
+            spinner.style.height = '100vh';
+            spinner.style.background = 'rgba(0,0,0,0.85)';
+            spinner.style.display = 'flex';
+            spinner.style.flexDirection = 'column';
+            spinner.style.justifyContent = 'center';
+            spinner.style.alignItems = 'center';
+            spinner.style.zIndex = '9999';
+            spinner.style.color = '#fff';
+            spinner.style.fontFamily = 'var(--font-body)';
+            
+            spinner.innerHTML = `
+                <i class="ph ph-spinner ph-spin" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                <div id="upload-spinner-text" style="font-size: 1.2rem; font-weight: 500;">Wgrywanie...</div>
+            `;
+            document.body.appendChild(spinner);
+        }
+        document.getElementById('upload-spinner-text').textContent = msg;
+        spinner.style.display = 'flex';
+    }
+
+    function hideUploadSpinner() {
+        const spinner = document.getElementById('upload-spinner-overlay');
+        if (spinner) spinner.style.display = 'none';
+    }
+
+    async function handleNativeCameraCapture(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const mediaType = file.type.startsWith('video') ? 'video' : 'image';
+        showUploadSpinner("Przetwarzanie pliku...");
+
+        try {
+            let finalBlob = file;
+            if (mediaType === 'image') {
+                showUploadSpinner("Optymalizacja zdjęcia...");
+                finalBlob = await compressImageBlob(file, 1920, 0.8);
+            }
+
+            if (currentCameraContext === 'wish_video') {
+                if (mediaType !== 'video') {
+                    alert("Dla życzeń wideo wymagane jest nagranie filmu wideo!");
+                    hideUploadSpinner();
+                    return;
+                }
+                selectedVideoFile = finalBlob;
+                const videoUrl = URL.createObjectURL(finalBlob);
+
+                const directVideoPreview = document.getElementById('direct-video-preview');
+                const videoStatusText = document.getElementById('video-status-text');
+
+                if (directVideoPreview) {
+                    directVideoPreview.src = videoUrl;
+                    directVideoPreview.style.display = 'block';
+                }
+                if (videoStatusText) {
+                    videoStatusText.textContent = 'Film z aparatu gotowy! Kliknij "Wyślij do Zuzi & Kamila", aby przekazać życzenie.';
+                }
+                const directMsgModal = document.getElementById('direct-msg-modal');
+                if (directMsgModal) {
+                    directMsgModal.style.display = 'flex';
+                }
+                hideUploadSpinner();
+                return;
+            }
+
+            showUploadSpinner("Wgrywanie...");
+            const formData = new FormData();
+            const token = localStorage.getItem('access_token');
+            const ext = mediaType === 'video' ? 'mp4' : 'jpg';
+            formData.append('media_type', mediaType);
+
+            if (currentCameraContext === 'story') {
+                formData.append('image', finalBlob, `story_${Date.now()}.${ext}`);
+                const duration = durationOptions[0].val;
+                if (duration && duration !== 'null') {
+                    formData.append('duration_hours', duration);
+                }
+
+                const response = await fetch(`${API_URL}/gallery/stories/`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    loadStories();
+                } else {
+                    alert("Wystąpił błąd podczas wgrywania relacji.");
+                }
+            } else if (currentCameraContext === 'gallery') {
+                formData.append('image', finalBlob, `photo_${Date.now()}.${ext}`);
+                const response = await fetch(`${API_URL}/gallery/photos/`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    loadPhotos();
+                } else {
+                    alert("Wystąpił błąd podczas wgrywania zdjęcia.");
+                }
+            } else if (currentCameraContext === 'profile') {
+                formData.append('profile_picture', finalBlob, `profile_${Date.now()}.jpg`);
+                const response = await fetch(`${API_URL}/me/`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    let user = JSON.parse(localStorage.getItem('user')) || {};
+                    user.profile_picture = data.profile_picture;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    updateProfileUI();
+                } else {
+                    alert("Wystąpił błąd podczas zmiany zdjęcia profilowego.");
+                }
+            }
+        } catch (err) {
+            console.error("Camera upload failed:", err);
+            alert("Błąd podczas przetwarzania lub wgrywania pliku.");
+        } finally {
+            hideUploadSpinner();
+        }
+    }
+
     function openCamera(context = 'story') {
         currentCameraContext = context;
         
-        cameraOverlay.classList.remove('mode-story', 'mode-gallery', 'mode-profile', 'mode-wish_video');
-        cameraOverlay.classList.add(`mode-${context}`);
-        
+        let nativeInput = document.getElementById('native-camera-input');
+        if (!nativeInput) {
+            nativeInput = document.createElement('input');
+            nativeInput.id = 'native-camera-input';
+            nativeInput.type = 'file';
+            nativeInput.style.display = 'none';
+            document.body.appendChild(nativeInput);
+            
+            nativeInput.addEventListener('change', handleNativeCameraCapture);
+        }
+
         const directMsgModal = document.getElementById('direct-msg-modal');
         if (directMsgModal) {
             directMsgModal.style.display = 'none';
         }
 
-        if (currentCameraContext === 'story') {
-            cameraDurationBtn.style.display = 'block';
+        if (context === 'wish_video') {
+            nativeInput.accept = 'video/*';
+            nativeInput.removeAttribute('multiple');
+            nativeInput.setAttribute('capture', 'environment');
+        } else if (context === 'gallery' || context === 'profile') {
+            nativeInput.accept = 'image/*';
+            nativeInput.removeAttribute('multiple');
+            nativeInput.setAttribute('capture', 'environment');
         } else {
-            cameraDurationBtn.style.display = 'none';
-        }
-        
-        if (cameraPublishBtn) {
-            if (currentCameraContext === 'wish_video') {
-                cameraPublishBtn.innerHTML = 'Użyj wideo <i class="ph ph-check"></i>';
-            } else {
-                cameraPublishBtn.innerHTML = 'Opublikuj <i class="ph ph-paper-plane-right"></i>';
-            }
+            nativeInput.accept = 'image/*,video/*';
+            nativeInput.removeAttribute('multiple');
+            nativeInput.setAttribute('capture', 'environment');
         }
 
-        cameraOverlay.classList.add('active');
-        startCamera();
+        nativeInput.value = '';
+        nativeInput.click();
     }
 
     function closeCamera() {
