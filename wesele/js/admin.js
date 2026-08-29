@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ── ADMIN PANEL LOGIC VARIABLES ────────────────────────────────────────────
     let allGuestsData = [];
     let weddingConfigRaw = null;
+    let coupleImageFocusX = 50;
+    let coupleImageFocusY = 50;
 
     // ── AUTH CHECK ─────────────────────────────────────────────────────────────
     const token = localStorage.getItem('access_token');
@@ -579,13 +581,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // 3. Couple Page Tab
                 const previewImg = document.getElementById('admin-couple-image-preview');
+                const imageContainer = document.getElementById('admin-couple-image-container');
+                const imageHelp = document.getElementById('admin-couple-image-help');
                 const placeholder = document.getElementById('admin-upload-placeholder');
+                
+                coupleImageFocusX = (weddingConfigRaw.couple_image_position_x !== undefined && weddingConfigRaw.couple_image_position_x !== null) ? weddingConfigRaw.couple_image_position_x : 50;
+                coupleImageFocusY = (weddingConfigRaw.couple_image_position_y !== undefined && weddingConfigRaw.couple_image_position_y !== null) ? weddingConfigRaw.couple_image_position_y : 50;
+                
                 if (weddingConfigRaw.couple_image) {
-                    previewImg.src = weddingConfigRaw.couple_image;
-                    previewImg.style.display = 'block';
+                    if (previewImg) previewImg.src = weddingConfigRaw.couple_image;
+                    if (imageContainer) imageContainer.style.display = 'block';
+                    if (imageHelp) imageHelp.style.display = 'block';
                     if (placeholder) placeholder.style.display = 'none';
+                    updateFocusMarkerUI();
                 } else {
-                    previewImg.style.display = 'none';
+                    if (imageContainer) imageContainer.style.display = 'none';
+                    if (imageHelp) imageHelp.style.display = 'none';
                     if (placeholder) placeholder.style.display = 'flex';
                 }
                 renderAdminStatusTextsForm(weddingConfigRaw.status_texts || []);
@@ -1396,6 +1407,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
+        function updateFocusMarkerUI() {
+            const marker = document.getElementById('admin-couple-image-focus-marker');
+            if (marker) {
+                marker.style.left = `${coupleImageFocusX}%`;
+                marker.style.top = `${coupleImageFocusY}%`;
+                marker.style.display = 'block';
+            }
+        }
+
+        const imageContainer = document.getElementById('admin-couple-image-container');
+        if (imageContainer) {
+            imageContainer.addEventListener('click', (e) => {
+                const rect = imageContainer.getBoundingClientRect();
+                const x = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+                const y = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+                
+                // Boundaries check
+                coupleImageFocusX = Math.max(0, Math.min(100, x));
+                coupleImageFocusY = Math.max(0, Math.min(100, y));
+                
+                updateFocusMarkerUI();
+            });
+        }
+
         const saveCoupleBtn = document.getElementById('admin-save-couple-btn');
         if (saveCoupleBtn) {
             saveCoupleBtn.addEventListener('click', () => {
@@ -1421,12 +1456,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     formData.append('status_texts', JSON.stringify(list));
                     formData.append('wishes_enabled', wishesEnabled);
                     formData.append('wishes_locked', wishesLocked);
+                    formData.append('couple_image_position_x', coupleImageFocusX);
+                    formData.append('couple_image_position_y', coupleImageFocusY);
                     patchWeddingConfig(formData, false);
                 } else {
                     patchWeddingConfig({ 
                         status_texts: list,
                         wishes_enabled: wishesEnabled,
-                        wishes_locked: wishesLocked
+                        wishes_locked: wishesLocked,
+                        couple_image_position_x: coupleImageFocusX,
+                        couple_image_position_y: coupleImageFocusY
                     });
                 }
             });
@@ -1441,11 +1480,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         const preview = document.getElementById('admin-couple-image-preview');
+                        const imageContainer = document.getElementById('admin-couple-image-container');
+                        const imageHelp = document.getElementById('admin-couple-image-help');
                         const placeholder = document.getElementById('admin-upload-placeholder');
                         if (preview) {
                             preview.src = event.target.result;
-                            preview.style.display = 'block';
+                            if (imageContainer) imageContainer.style.display = 'block';
+                            if (imageHelp) imageHelp.style.display = 'block';
                             if (placeholder) placeholder.style.display = 'none';
+                            
+                            // Reset focus point for new image to center
+                            coupleImageFocusX = 50;
+                            coupleImageFocusY = 50;
+                            updateFocusMarkerUI();
                         }
                     };
                     reader.readAsDataURL(file);

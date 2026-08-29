@@ -5088,6 +5088,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const coupleHeroBg = document.querySelector('.couple-hero-bg');
                     if (coupleHeroBg) {
                         coupleHeroBg.style.backgroundImage = `url('${config.couple_image}')`;
+                        const x = config.couple_image_position_x !== undefined ? config.couple_image_position_x : 50;
+                        const y = config.couple_image_position_y !== undefined ? config.couple_image_position_y : 50;
+                        coupleHeroBg.style.backgroundPosition = `${x}% ${y}%`;
                     }
                 }
 
