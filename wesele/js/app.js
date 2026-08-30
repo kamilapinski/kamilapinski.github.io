@@ -2037,6 +2037,10 @@ document.addEventListener('DOMContentLoaded', () => {
             nativeInput.accept = 'image/*';
             nativeInput.removeAttribute('multiple');
             nativeInput.setAttribute('capture', 'environment');
+        } else if (type === 'gallery') {
+            nativeInput.accept = 'image/*,video/*';
+            nativeInput.removeAttribute('multiple');
+            nativeInput.removeAttribute('capture');
         } else {
             nativeInput.accept = 'image/*,video/*';
             nativeInput.removeAttribute('multiple');
@@ -2071,8 +2075,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button id="gallery-opt-photo" class="modal-btn" style="background: var(--color-gold); color: #000000; margin-bottom: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
                         <i class="ph ph-image" style="font-size: 1.4rem;"></i> Dodaj Zdjęcie
                     </button>
-                    <button id="gallery-opt-video" class="modal-btn" style="background: var(--color-graphite); color: #fff; margin-bottom: 15px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    <button id="gallery-opt-video" class="modal-btn" style="background: var(--color-graphite); color: #fff; margin-bottom: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
                         <i class="ph ph-video-camera" style="font-size: 1.4rem;"></i> Dodaj Film
+                    </button>
+                    <button id="gallery-opt-gallery" class="modal-btn" style="background: var(--color-gold); color: #000000; margin-bottom: 15px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        <i class="ph ph-images" style="font-size: 1.4rem;"></i> Wybierz z galerii
                     </button>
                     <button id="gallery-opt-cancel" class="modal-btn" style="background: #f0f0f0; color: #333; width: 100%; border: none; padding: 10px; border-radius: 8px; cursor: pointer;">
                         Anuluj
@@ -2089,6 +2096,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('gallery-opt-video').addEventListener('click', () => {
                 overlay.style.display = 'none';
                 openCameraDirect('gallery', 'video');
+            });
+
+            document.getElementById('gallery-opt-gallery').addEventListener('click', () => {
+                overlay.style.display = 'none';
+                openCameraDirect('gallery', 'gallery');
             });
 
             document.getElementById('gallery-opt-cancel').addEventListener('click', () => {
@@ -3052,6 +3064,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const userTableCard = document.getElementById('user-table-card');
     if (userTableCard) {
         userTableCard.addEventListener('click', async () => {
+            const isLayoutReady = window._activeLayout && window._activeLayout.isReady;
+            if (!isLayoutReady) return;
+
             let user = null;
             try {
                 user = JSON.parse(localStorage.getItem('user'));
