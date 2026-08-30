@@ -1873,13 +1873,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!file) return;
 
         const mediaType = file.type.startsWith('video') ? 'video' : 'image';
+
+        if (currentCameraContext === 'profile' && mediaType === 'image') {
+            loadCropperImage(file);
+            return;
+        }
+
         showUploadSpinner("Przetwarzanie pliku...");
 
         try {
             let finalBlob = file;
             if (mediaType === 'image') {
                 showUploadSpinner("Optymalizacja zdjęcia...");
-                const shouldCropTo916 = (currentCameraContext === 'gallery' || currentCameraContext === 'story');
+                const shouldCropTo916 = false;
                 finalBlob = await compressImageBlob(file, 1920, 0.8, shouldCropTo916);
             }
 
@@ -2038,7 +2044,7 @@ document.addEventListener('DOMContentLoaded', () => {
             nativeInput.removeAttribute('multiple');
             nativeInput.setAttribute('capture', 'environment');
         } else if (type === 'gallery') {
-            nativeInput.accept = 'image/*,video/*';
+            nativeInput.accept = (context === 'profile') ? 'image/*' : 'image/*,video/*';
             nativeInput.removeAttribute('multiple');
             nativeInput.removeAttribute('capture');
         } else {
@@ -2112,6 +2118,239 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         overlay.style.display = 'flex';
+    }
+
+    // --- Profile Picture Upload & Square Crop Logic ---
+    let cropperImgFile = null;
+    let cropperZoom = 1;
+    let imgX = 0;
+    let imgY = 0;
+    let baseScale = 1;
+    let naturalWidth = 0;
+    let naturalHeight = 0;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+
+    const cropperModal = document.getElementById('profile-crop-modal');
+    const cropperImage = document.getElementById('cropper-image');
+    const cropperZoomInput = document.getElementById('cropper-zoom');
+    const cropperContainer = document.getElementById('cropper-container');
+    const cropperCloseBtn = document.getElementById('profile-crop-close');
+    const cropperCancelBtn = document.getElementById('profile-crop-cancel');
+    const cropperSaveBtn = document.getElementById('profile-crop-save');
+
+    function showProfileUploadOptions() {
+        let overlay = document.getElementById('profile-upload-modal');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'profile-upload-modal';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.background = 'rgba(0,0,0,0.6)';
+            overlay.style.backdropFilter = 'blur(4px)';
+            overlay.style.webkitBackdropFilter = 'blur(4px)';
+            overlay.style.display = 'flex';
+            overlay.style.justifyContent = 'center';
+            overlay.style.alignItems = 'center';
+            overlay.style.zIndex = '9998';
+            
+            overlay.innerHTML = `
+                <div style="background: var(--color-bg); padding: 25px; border-radius: 15px; width: 90%; max-width: 320px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border: 1px solid var(--color-border);">
+                    <h3 style="font-family: var(--font-heading); font-size: 1.3rem; margin-bottom: 20px; color: var(--color-graphite);">Zmień zdjęcie profilowe</h3>
+                    <button id="profile-opt-photo" class="modal-btn" style="background: var(--color-gold); color: #000000; margin-bottom: 10px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        <i class="ph ph-camera" style="font-size: 1.4rem;"></i> Zrób zdjęcie
+                    </button>
+                    <button id="profile-opt-gallery" class="modal-btn" style="background: var(--color-gold); color: #000000; margin-bottom: 15px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        <i class="ph ph-images" style="font-size: 1.4rem;"></i> Wybierz z galerii
+                    </button>
+                    <button id="profile-opt-cancel" class="modal-btn" style="background: #f0f0f0; color: #333; width: 100%; border: none; padding: 10px; border-radius: 8px; cursor: pointer;">
+                        Anuluj
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            document.getElementById('profile-opt-photo').addEventListener('click', () => {
+                overlay.style.display = 'none';
+                openCameraDirect('profile', 'image');
+            });
+
+            document.getElementById('profile-opt-gallery').addEventListener('click', () => {
+                overlay.style.display = 'none';
+                openCameraDirect('profile', 'gallery');
+            });
+
+            document.getElementById('profile-opt-cancel').addEventListener('click', () => {
+                overlay.style.display = 'none';
+            });
+
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.style.display = 'none';
+            });
+        }
+        overlay.style.display = 'flex';
+    }
+
+    function loadCropperImage(file) {
+        cropperImgFile = file;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            cropperImage.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    if (cropperImage) {
+        cropperImage.onload = function() {
+            naturalWidth = cropperImage.naturalWidth;
+            naturalHeight = cropperImage.naturalHeight;
+            
+            baseScale = Math.max(280 / naturalWidth, 280 / naturalHeight);
+            cropperZoom = 1;
+            if (cropperZoomInput) cropperZoomInput.value = 1;
+            
+            const width = naturalWidth * baseScale;
+            const height = naturalHeight * baseScale;
+            imgX = (280 - width) / 2;
+            imgY = (280 - height) / 2;
+            
+            updateCropperTransform();
+            if (cropperModal) cropperModal.style.display = 'flex';
+        };
+    }
+
+    function updateCropperTransform() {
+        if (!cropperImage) return;
+        const currentScale = baseScale * cropperZoom;
+        const currentWidth = naturalWidth * currentScale;
+        const currentHeight = naturalHeight * currentScale;
+        
+        const minX = 280 - currentWidth;
+        const minY = 280 - currentHeight;
+        
+        if (imgX > 0) imgX = 0;
+        if (imgY > 0) imgY = 0;
+        if (imgX < minX) imgX = minX;
+        if (imgY < minY) imgY = minY;
+        
+        cropperImage.style.width = naturalWidth + 'px';
+        cropperImage.style.height = naturalHeight + 'px';
+        cropperImage.style.transform = `translate(${imgX}px, ${imgY}px) scale(${currentScale})`;
+    }
+
+    if (cropperZoomInput) {
+        cropperZoomInput.addEventListener('input', (e) => {
+            const newZoom = parseFloat(e.target.value);
+            
+            const oldScale = baseScale * cropperZoom;
+            const newScale = baseScale * newZoom;
+            
+            const containerCenterX = 280 / 2;
+            const containerCenterY = 280 / 2;
+            
+            const imageCenterX = (containerCenterX - imgX) / oldScale;
+            const imageCenterY = (containerCenterY - imgY) / oldScale;
+            
+            imgX = containerCenterX - (imageCenterX * newScale);
+            imgY = containerCenterY - (imageCenterY * newScale);
+            
+            cropperZoom = newZoom;
+            updateCropperTransform();
+        });
+    }
+
+    if (cropperContainer) {
+        cropperContainer.addEventListener('pointerdown', (e) => {
+            isDragging = true;
+            startX = e.clientX - imgX;
+            startY = e.clientY - imgY;
+            cropperContainer.setPointerCapture(e.pointerId);
+        });
+
+        cropperContainer.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+            imgX = e.clientX - startX;
+            imgY = e.clientY - startY;
+            updateCropperTransform();
+        });
+
+        cropperContainer.addEventListener('pointerup', (e) => {
+            isDragging = false;
+            cropperContainer.releasePointerCapture(e.pointerId);
+        });
+
+        cropperContainer.addEventListener('pointercancel', (e) => {
+            isDragging = false;
+        });
+    }
+
+    function getCroppedBlob() {
+        return new Promise((resolve) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 500;
+            canvas.height = 500;
+            const ctx = canvas.getContext('2d');
+            
+            const currentScale = baseScale * cropperZoom;
+            
+            const sX = -imgX / currentScale;
+            const sY = -imgY / currentScale;
+            const sW = 280 / currentScale;
+            const sH = 280 / currentScale;
+            
+            ctx.drawImage(cropperImage, sX, sY, sW, sH, 0, 0, 500, 500);
+            
+            canvas.toBlob((blob) => {
+                resolve(blob);
+            }, 'image/jpeg', 0.85);
+        });
+    }
+
+    function closeCropper() {
+        if (cropperModal) cropperModal.style.display = 'none';
+        cropperImgFile = null;
+        if (cropperImage) cropperImage.src = '';
+    }
+
+    if (cropperCloseBtn) cropperCloseBtn.addEventListener('click', closeCropper);
+    if (cropperCancelBtn) cropperCancelBtn.addEventListener('click', closeCropper);
+
+    if (cropperSaveBtn) {
+        cropperSaveBtn.addEventListener('click', async () => {
+            closeCropper();
+            showUploadSpinner("Wgrywanie zdjęcia profilowego...");
+            try {
+                const croppedBlob = await getCroppedBlob();
+                const formData = new FormData();
+                const token = localStorage.getItem('access_token');
+                formData.append('profile_picture', croppedBlob, `profile_${Date.now()}.jpg`);
+                
+                const response = await fetch(`${API_URL}/me/`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    let user = JSON.parse(localStorage.getItem('user')) || {};
+                    user.profile_picture = data.profile_picture;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    updateProfileUI();
+                } else {
+                    alert("Wystąpił błąd podczas zmiany zdjęcia profilowego.");
+                }
+            } catch (err) {
+                console.error("Profile upload failed:", err);
+                alert("Błąd podczas przetwarzania lub wgrywania pliku.");
+            } finally {
+                hideUploadSpinner();
+            }
+        });
     }
 
     function closeCamera() {
@@ -3058,7 +3297,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const editProfilePictureLabel = document.getElementById('edit-profile-picture-label');
     if (editProfilePictureLabel) {
-        editProfilePictureLabel.addEventListener('click', () => openCamera('profile'));
+        editProfilePictureLabel.addEventListener('click', showProfileUploadOptions);
     }
 
     const userTableCard = document.getElementById('user-table-card');
