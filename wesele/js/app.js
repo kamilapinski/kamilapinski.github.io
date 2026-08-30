@@ -2199,7 +2199,17 @@ document.addEventListener('DOMContentLoaded', () => {
         cropperImgFile = file;
         const reader = new FileReader();
         reader.onload = function(e) {
-            cropperImage.src = e.target.result;
+            const tempImg = new Image();
+            tempImg.src = e.target.result;
+            tempImg.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = tempImg.naturalWidth;
+                canvas.height = tempImg.naturalHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(tempImg, 0, 0);
+                
+                cropperImage.src = canvas.toDataURL('image/jpeg', 0.95);
+            };
         };
         reader.readAsDataURL(file);
     }
@@ -2263,12 +2273,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (cropperImage) {
+        cropperImage.addEventListener('dragstart', (e) => e.preventDefault());
+    }
+
     if (cropperContainer) {
         cropperContainer.addEventListener('pointerdown', (e) => {
             isDragging = true;
             startX = e.clientX - imgX;
             startY = e.clientY - imgY;
-            cropperContainer.setPointerCapture(e.pointerId);
+            try {
+                cropperContainer.setPointerCapture(e.pointerId);
+            } catch (err) {
+                console.error("Pointer capture failed:", err);
+            }
         });
 
         cropperContainer.addEventListener('pointermove', (e) => {
@@ -2280,33 +2298,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
         cropperContainer.addEventListener('pointerup', (e) => {
             isDragging = false;
-            cropperContainer.releasePointerCapture(e.pointerId);
+            try {
+                cropperContainer.releasePointerCapture(e.pointerId);
+            } catch (err) { }
         });
 
         cropperContainer.addEventListener('pointercancel', (e) => {
             isDragging = false;
+            try {
+                cropperContainer.releasePointerCapture(e.pointerId);
+            } catch (err) { }
         });
     }
 
     function getCroppedBlob() {
         return new Promise((resolve) => {
+            // Create a temporary canvas matching the 280x280 viewport exactly
+            const cropCanvas = document.createElement('canvas');
+            cropCanvas.width = 280;
+            cropCanvas.height = 280;
+            const cropCtx = cropCanvas.getContext('2d');
+            
+            const natW = cropperImage.naturalWidth || naturalWidth || 500;
+            const natH = cropperImage.naturalHeight || naturalHeight || 500;
+            
+            const baseSc = Math.max(280 / natW, 280 / natH);
+            const currentScale = baseSc * cropperZoom;
+            
+            // Apply the exact same translation and scaling as CSS transform
+            cropCtx.translate(imgX, imgY);
+            cropCtx.scale(currentScale, currentScale);
+            cropCtx.drawImage(cropperImage, 0, 0, natW, natH);
+            
+            // Upscale to 500x500 for a high-quality profile picture
             const canvas = document.createElement('canvas');
             canvas.width = 500;
             canvas.height = 500;
             const ctx = canvas.getContext('2d');
+            ctx.drawImage(cropCanvas, 0, 0, 280, 280, 0, 0, 500, 500);
             
-            const currentScale = baseScale * cropperZoom;
-            
-            const sX = -imgX / currentScale;
-            const sY = -imgY / currentScale;
-            const sW = 280 / currentScale;
-            const sH = 280 / currentScale;
-            
-            ctx.drawImage(cropperImage, sX, sY, sW, sH, 0, 0, 500, 500);
-            
-            canvas.toBlob((blob) => {
-                resolve(blob);
-            }, 'image/jpeg', 0.85);
+            if (canvas.toBlob) {
+                canvas.toBlob((blob) => {
+                    resolve(blob);
+                }, 'image/jpeg', 0.85);
+            } else {
+                const dataURL = canvas.toDataURL('image/jpeg', 0.85);
+                const arr = dataURL.split(',');
+                const mime = arr[0].match(/:(.*?);/)[1];
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while(n--){
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                resolve(new Blob([u8arr], {type:mime}));
+            }
         });
     }
 
@@ -2321,10 +2367,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (cropperSaveBtn) {
         cropperSaveBtn.addEventListener('click', async () => {
-            closeCropper();
-            showUploadSpinner("Wgrywanie zdjęcia profilowego...");
+            showUploadSpinner("Przetwarzanie zdjęcia...");
             try {
                 const croppedBlob = await getCroppedBlob();
+                closeCropper();
                 const formData = new FormData();
                 const token = localStorage.getItem('access_token');
                 formData.append('profile_picture', croppedBlob, `profile_${Date.now()}.jpg`);
@@ -3286,7 +3332,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Removed Seating Creator panel (coupleToolsContainer) as requested
 
             if (user.profile_picture) {
-                const picUrl = user.profile_picture.startsWith('http') ? user.profile_picture : `http://127.0.0.1:8000${user.profile_picture}`;
+                const baseUrl = user.profile_picture.startsWith('http') ? user.profile_picture : `http://127.0.0.1:8000${user.profile_picture}`;
+                const picUrl = `${baseUrl}?t=${Date.now()}`;
                 if (userProfilePicture) userProfilePicture.src = picUrl;
             } else {
                 if (userProfilePicture) userProfilePicture.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(getInitials(user.first_name, user.last_name))}&background=EAE0D5&color=000`;
