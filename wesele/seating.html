@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kreator Planu Sali — Zuzia & Kamil</title>
+    <title>Kreator Planu Sali</title>
     <meta name="description" content="Interaktywny kreator rozkładu stołów weselnych">
 
     <!-- Google Fonts -->
@@ -13,6 +13,7 @@
 
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="js/theme.js"></script>
 
     <style>
         /* ====== RESET & ROOT ====== */
@@ -1355,10 +1356,49 @@
 (async () => {
 
 // ── CONFIG ──────────────────────────────────────────────────────────────────
+let currentOrgId = (typeof detectOrganizationId === 'function') ? detectOrganizationId() : 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
+
+// Synchronize currentOrgId with authenticated user from localStorage if not explicitly requested in URL
+const urlParams = new URLSearchParams(window.location.search);
+const explicitOrg = urlParams.get('org') || urlParams.get('org_id');
+try {
+    const cachedUser = JSON.parse(localStorage.getItem('user'));
+    if (!explicitOrg && cachedUser && cachedUser.organization_id) {
+        currentOrgId = cachedUser.organization_id;
+        localStorage.setItem('current_org_id', cachedUser.organization_id);
+    }
+} catch(e) {}
+
+const nativeFetch = window.fetch;
+window.fetch = function(url, options = {}) {
+    if (typeof url === 'string' && url.includes('/api/')) {
+        options = options || {};
+        options.headers = options.headers || {};
+        const activeOrg = currentOrgId || ((typeof detectOrganizationId === 'function') ? detectOrganizationId() : 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d');
+        if (options.headers instanceof Headers) {
+            if (!options.headers.has('X-Organization-Id')) {
+                options.headers.set('X-Organization-Id', activeOrg);
+            }
+        } else {
+            if (!options.headers['X-Organization-Id']) {
+                options.headers['X-Organization-Id'] = activeOrg;
+            }
+        }
+    }
+    return nativeFetch.call(this, url, options);
+};
+
 const API_URL = (() => {
     const host = window.location.hostname || '127.0.0.1';
-    return `http://${host}:8000/api`;
+    if (host === 'localhost' || host === '127.0.0.1') {
+        return `http://${host}:8000/api`;
+    }
+    return 'https://wedding-production-d4a1.up.railway.app/api';
 })();
+
+if (typeof initOrganizationTheme === 'function') {
+    initOrganizationTheme(API_URL);
+}
 
 // ── AUTH ─────────────────────────────────────────────────────────────────────
 const token = localStorage.getItem('access_token');
@@ -2500,6 +2540,7 @@ function isGuestAssigned(guestId) {
 }
 
 function roleLabel(role) {
+    if (typeof getRoleLabel === 'function') return getRoleLabel(role);
     if (role === 'para_mloda') return 'Para Młoda';
     if (role === 'swiadek') return 'Świadek';
     return 'Gość';

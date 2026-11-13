@@ -1,4 +1,40 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    document.documentElement.setAttribute('data-org-ready', 'true');
+    document.documentElement.removeAttribute('data-theme');
+    if (document.body) document.body.classList.remove('dark-theme');
+    let currentOrgId = (typeof detectOrganizationId === 'function') ? detectOrganizationId() : 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
+
+    // Synchronize currentOrgId with authenticated user from localStorage if not explicitly requested in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const explicitOrg = urlParams.get('org') || urlParams.get('org_id');
+    try {
+        const cachedUser = JSON.parse(localStorage.getItem('user'));
+        if (!explicitOrg && cachedUser && cachedUser.organization_id) {
+            currentOrgId = cachedUser.organization_id;
+            localStorage.setItem('current_org_id', cachedUser.organization_id);
+        }
+    } catch(e) {}
+
+    // Wrap fetch to automatically attach X-Organization-Id for all admin API requests
+    const nativeFetch = window.fetch;
+    window.fetch = function(url, options = {}) {
+        if (typeof url === 'string' && url.includes('/api/')) {
+            options = options || {};
+            options.headers = options.headers || {};
+            const activeOrg = currentOrgId || ((typeof detectOrganizationId === 'function') ? detectOrganizationId() : 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d');
+            if (options.headers instanceof Headers) {
+                if (!options.headers.has('X-Organization-Id')) {
+                    options.headers.set('X-Organization-Id', activeOrg);
+                }
+            } else {
+                if (!options.headers['X-Organization-Id']) {
+                    options.headers['X-Organization-Id'] = activeOrg;
+                }
+            }
+        }
+        return nativeFetch.call(this, url, options);
+    };
+
     const getApiUrl = () => {
         const host = window.location.hostname || '127.0.0.1';
         if (host === 'localhost' || host === '127.0.0.1') {
@@ -14,6 +50,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     let coupleImageFocusX = 50;
     let coupleImageFocusY = 50;
 
+    function updateFocusMarkerUI() {
+        const marker = document.getElementById('admin-couple-image-focus-marker');
+        if (marker) {
+            marker.style.left = `${coupleImageFocusX}%`;
+            marker.style.top = `${coupleImageFocusY}%`;
+            marker.style.display = 'block';
+        }
+    }
+
     // ── AUTH CHECK ─────────────────────────────────────────────────────────────
     const token = localStorage.getItem('access_token');
     const userRaw = localStorage.getItem('user');
@@ -25,11 +70,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mainUI = document.getElementById('main-ui');
 
     function showUI() {
+        document.documentElement.setAttribute('data-org-ready', 'true');
         loadingOverlay.style.display = 'none';
         mainUI.style.display = 'block';
     }
 
     function showAuthError(details = '') {
+        document.documentElement.setAttribute('data-org-ready', 'true');
         loadingOverlay.style.display = 'none';
         authError.style.display = 'flex';
         const debugEl = document.getElementById('debug-auth-info');
@@ -61,6 +108,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         currentUser = me;
+        if (me.organization_id && !explicitOrg) {
+            currentOrgId = me.organization_id;
+            localStorage.setItem('current_org_id', me.organization_id);
+        }
         showUI();
         initAdminPanel();
     } catch(e) {
@@ -92,6 +143,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (tabId === 'admin-tab-notifications') {
                     loadPushNotifications();
+                } else if (tabId === 'admin-tab-organization') {
+                    if (weddingConfigRaw) populateOrganizationTab(weddingConfigRaw);
+                    loadAdminConfigForm();
                 }
             });
         });
@@ -100,7 +154,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const openCreatorBtn = document.getElementById('admin-open-creator-btn');
         if (openCreatorBtn) {
             openCreatorBtn.addEventListener('click', () => {
-                window.location.href = 'seating.html';
+                const orgId = currentOrgId || ((typeof detectOrganizationId === 'function') ? detectOrganizationId() : '');
+                window.location.href = orgId ? `seating.html?org=${encodeURIComponent(orgId)}` : 'seating.html';
             });
         }
 
@@ -116,6 +171,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         initHeaderSettingsListeners();
         initWitnessPermissionsListeners();
         initPushNotificationsListeners();
+        initThemeSettingsListeners();
+        initOrganizationSettingsListeners();
 
         // Attach search and filter event listeners
         const guestSearchInput = document.getElementById('admin-guest-search-input');
@@ -183,11 +240,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.className = 'admin-guest-row';
             
             // Badges details
-            const roleName = g.role === 'para_mloda' ? 'Para Młoda' : (g.role === 'swiadek' ? 'Świadek' : 'Gość');
+            const roleName = (typeof getRoleLabel === 'function') ? getRoleLabel(g.role) : (g.role === 'para_mloda' ? 'Para Młoda' : (g.role === 'swiadek' ? 'Świadek' : 'Gość'));
             const roleColor = g.role === 'para_mloda' ? '#fbbf24' : (g.role === 'swiadek' ? '#a5b4fc' : '#8a8074');
             const roleBg = g.role === 'para_mloda' ? 'rgba(251, 191, 36, 0.15)' : (g.role === 'swiadek' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255, 255, 255, 0.05)');
 
-            const tableText = g.table_number !== null ? (g.table_number === 0 ? 'Stół Pary Młodej' : `Stolik ${g.table_number}`) : 'Brak stolika';
+            const mainTableLabel = (weddingConfigRaw && weddingConfigRaw.custom_labels && weddingConfigRaw.custom_labels.main_table_label)
+                ? weddingConfigRaw.custom_labels.main_table_label
+                : ((typeof getRoleLabel === 'function' && getRoleLabel('para_mloda') === 'Jubilat') ? 'Stół Jubilata' : 'Stół Pary Młodej');
+            const tableText = g.table_number !== null ? (g.table_number === 0 ? mainTableLabel : `Stolik ${g.table_number}`) : 'Brak stolika';
             const tableStyle = g.table_number !== null 
                 ? 'background: rgba(94, 184, 122, 0.15); color: #5eb87a;' 
                 : 'background: rgba(224, 85, 85, 0.12); color: #e05555;';
@@ -565,6 +625,104 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ── CONFIG FORMS ───────────────────────────────────────────────────────────
+    function populateOrganizationTab(cfg) {
+        if (!cfg) return;
+
+        // 1. Direct Wedding Link Box
+        const directUrlInput = document.getElementById('admin-org-direct-url');
+        if (directUrlInput) {
+            const cleanPath = window.location.pathname.replace('admin.html', '').replace(/\/+$/, '') || '';
+            const orgId = cfg.organization_id || currentOrgId;
+            const guestUrl = `${window.location.origin}${cleanPath}/?org=${orgId}`;
+            directUrlInput.value = guestUrl;
+        }
+
+        // 2. Organization Info Form
+        const orgWeddingName = document.getElementById('admin-org-wedding-name');
+        if (orgWeddingName) orgWeddingName.value = cfg.wedding_name || cfg.organization_name || '';
+
+        const orgPartner1 = document.getElementById('admin-org-partner1');
+        if (orgPartner1) orgPartner1.value = cfg.partner1_name || '';
+
+        const orgPartner2 = document.getElementById('admin-org-partner2');
+        if (orgPartner2) orgPartner2.value = cfg.partner2_name || '';
+
+        const orgMonogram = document.getElementById('admin-org-monogram');
+        if (orgMonogram) orgMonogram.value = cfg.monogram_text || '';
+
+        const orgDateText = document.getElementById('admin-org-date-text');
+        if (orgDateText) orgDateText.value = cfg.date_display_text || '';
+
+        const orgWeddingDate = document.getElementById('admin-org-wedding-date');
+        if (orgWeddingDate) orgWeddingDate.value = cfg.wedding_date ? cfg.wedding_date.slice(0, 16) : '';
+
+        const orgWeddingEndDate = document.getElementById('admin-org-wedding-end-date');
+        if (orgWeddingEndDate) orgWeddingEndDate.value = cfg.wedding_end_date ? cfg.wedding_end_date.slice(0, 16) : '';
+
+        // 3. Custom Labels per Organization
+        const orgAdminPanelTitle = document.getElementById('admin-org-admin-panel-title');
+        if (orgAdminPanelTitle) orgAdminPanelTitle.value = cfg.admin_panel_title || '';
+
+        const orgContactLabel = document.getElementById('admin-org-contact-label');
+        if (orgContactLabel) orgContactLabel.value = cfg.contact_label || '';
+
+        const orgDefaultStatusText = document.getElementById('admin-org-default-status-text');
+        if (orgDefaultStatusText) orgDefaultStatusText.value = cfg.default_status_text || '';
+
+        // 4. Enabled Modules
+        const orgWishesCheckbox = document.getElementById('admin-org-wishes-enabled-checkbox');
+        if (orgWishesCheckbox) orgWishesCheckbox.checked = cfg.wishes_enabled !== false;
+
+        const orgSeatingCheckbox = document.getElementById('admin-org-seating-enabled-checkbox');
+        if (orgSeatingCheckbox) orgSeatingCheckbox.checked = cfg.seating_enabled !== false;
+
+        // 5. Roles configuration
+        const roles = cfg.roles_config || {};
+        const isSingle = !cfg.partner2_name || !cfg.partner2_name.trim();
+
+        const roleParaMlodaInput = document.getElementById('admin-role-label-para-mloda');
+        if (roleParaMlodaInput) {
+            roleParaMlodaInput.value = roles.para_mloda?.label || (isSingle ? 'Jubilat' : 'Para Młoda');
+        }
+
+        const roleSwiadekInput = document.getElementById('admin-role-label-swiadek');
+        if (roleSwiadekInput) {
+            roleSwiadekInput.value = roles.swiadek?.label || (isSingle ? 'Moderator' : 'Świadek/Świadkowa');
+        }
+
+        const roleGoscInput = document.getElementById('admin-role-label-gosc');
+        if (roleGoscInput) {
+            roleGoscInput.value = roles.gosc?.label || 'Gość';
+        }
+
+        const roleSwiadekEnabled = document.getElementById('admin-role-enabled-swiadek');
+        if (roleSwiadekEnabled) {
+            roleSwiadekEnabled.checked = roles.swiadek?.enabled !== false;
+        }
+
+        const roleGoscEnabled = document.getElementById('admin-role-enabled-gosc');
+        if (roleGoscEnabled) {
+            roleGoscEnabled.checked = roles.gosc?.enabled !== false;
+        }
+
+        updateRoleDropdowns(roles, isSingle);
+
+        const adminHeaderTitle = document.getElementById('admin-header-title');
+        if (adminHeaderTitle && cfg.admin_panel_title) {
+            adminHeaderTitle.textContent = cfg.admin_panel_title;
+        }
+
+        const logoPreview = document.getElementById('admin-org-logo-preview');
+        if (logoPreview) {
+            if (cfg.logo_image) {
+                logoPreview.style.display = 'block';
+                logoPreview.querySelector('img').src = cfg.logo_image;
+            } else {
+                logoPreview.style.display = 'none';
+            }
+        }
+    }
+
     async function loadAdminConfigForm() {
         try {
             const res = await fetch(`${API_URL}/wedding-config/`, {
@@ -572,57 +730,124 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             if (res.ok) {
                 weddingConfigRaw = await res.json();
+
+                if (weddingConfigRaw.organization_id && !explicitOrg) {
+                    currentOrgId = weddingConfigRaw.organization_id;
+                    localStorage.setItem('current_org_id', weddingConfigRaw.organization_id);
+                }
                 
+                window.__WEDDING_CONFIG = weddingConfigRaw;
+
                 // 1. Timeline Tab
-                renderAdminTimelineForm(weddingConfigRaw.schedule_events || []);
+                try {
+                    renderAdminTimelineForm(weddingConfigRaw.schedule_events || []);
+                } catch(err) {
+                    console.error("Timeline render error:", err);
+                }
 
                 // 2. Info Tab
-                renderAdminInfoForm(weddingConfigRaw.info_places || []);
+                try {
+                    renderAdminInfoForm(weddingConfigRaw.info_places || []);
+                } catch(err) {
+                    console.error("Info render error:", err);
+                }
 
                 // 3. Couple Page Tab
-                const previewImg = document.getElementById('admin-couple-image-preview');
-                const imageContainer = document.getElementById('admin-couple-image-container');
-                const imageHelp = document.getElementById('admin-couple-image-help');
-                const placeholder = document.getElementById('admin-upload-placeholder');
-                
-                coupleImageFocusX = (weddingConfigRaw.couple_image_position_x !== undefined && weddingConfigRaw.couple_image_position_x !== null) ? weddingConfigRaw.couple_image_position_x : 50;
-                coupleImageFocusY = (weddingConfigRaw.couple_image_position_y !== undefined && weddingConfigRaw.couple_image_position_y !== null) ? weddingConfigRaw.couple_image_position_y : 50;
-                
-                if (weddingConfigRaw.couple_image) {
-                    if (previewImg) previewImg.src = weddingConfigRaw.couple_image;
-                    if (imageContainer) imageContainer.style.display = 'block';
-                    if (imageHelp) imageHelp.style.display = 'block';
-                    if (placeholder) placeholder.style.display = 'none';
-                    updateFocusMarkerUI();
-                } else {
-                    if (imageContainer) imageContainer.style.display = 'none';
-                    if (imageHelp) imageHelp.style.display = 'none';
-                    if (placeholder) placeholder.style.display = 'flex';
-                }
-                renderAdminStatusTextsForm(weddingConfigRaw.status_texts || []);
-                
-                const phoneGroomInput = document.getElementById('admin-phone-groom-input');
-                if (phoneGroomInput) phoneGroomInput.value = weddingConfigRaw.phone_groom || '';
-                const phoneBrideInput = document.getElementById('admin-phone-bride-input');
-                if (phoneBrideInput) phoneBrideInput.value = weddingConfigRaw.phone_bride || '';
+                try {
+                    const previewImg = document.getElementById('admin-couple-image-preview');
+                    const imageContainer = document.getElementById('admin-couple-image-container');
+                    const imageHelp = document.getElementById('admin-couple-image-help');
+                    const placeholder = document.getElementById('admin-upload-placeholder');
+                    
+                    coupleImageFocusX = (weddingConfigRaw.couple_image_position_x !== undefined && weddingConfigRaw.couple_image_position_x !== null) ? weddingConfigRaw.couple_image_position_x : 50;
+                    coupleImageFocusY = (weddingConfigRaw.couple_image_position_y !== undefined && weddingConfigRaw.couple_image_position_y !== null) ? weddingConfigRaw.couple_image_position_y : 50;
+                    
+                    if (weddingConfigRaw.couple_image) {
+                        if (previewImg) previewImg.src = weddingConfigRaw.couple_image;
+                        if (imageContainer) imageContainer.style.display = 'block';
+                        if (imageHelp) imageHelp.style.display = 'block';
+                        if (placeholder) placeholder.style.display = 'none';
+                        updateFocusMarkerUI();
+                    } else {
+                        if (imageContainer) imageContainer.style.display = 'none';
+                        if (imageHelp) imageHelp.style.display = 'none';
+                        if (placeholder) placeholder.style.display = 'flex';
+                    }
+                    renderAdminStatusTextsForm(weddingConfigRaw.status_texts || []);
+                    
+                    const phoneGroomInput = document.getElementById('admin-phone-groom-input');
+                    if (phoneGroomInput) phoneGroomInput.value = weddingConfigRaw.phone_groom || '';
+                    const phoneBrideInput = document.getElementById('admin-phone-bride-input');
+                    if (phoneBrideInput) phoneBrideInput.value = weddingConfigRaw.phone_bride || '';
 
-                const wishesEnabledCheckbox = document.getElementById('admin-wishes-enabled-checkbox');
-                const wishesLockedCheckbox = document.getElementById('admin-wishes-locked-checkbox');
-                if (wishesEnabledCheckbox) wishesEnabledCheckbox.checked = weddingConfigRaw.wishes_enabled !== false;
-                if (wishesLockedCheckbox) wishesLockedCheckbox.checked = weddingConfigRaw.wishes_locked === true;
+                    const wishesEnabledCheckbox = document.getElementById('admin-wishes-enabled-checkbox');
+                    const wishesLockedCheckbox = document.getElementById('admin-wishes-locked-checkbox');
+                    if (wishesEnabledCheckbox) wishesEnabledCheckbox.checked = weddingConfigRaw.wishes_enabled !== false;
+                    if (wishesLockedCheckbox) wishesLockedCheckbox.checked = weddingConfigRaw.wishes_locked === true;
+                } catch(err) {
+                    console.error("Couple settings error:", err);
+                }
 
                 // 4. Header config
-                const hs = weddingConfigRaw.header_mode_settings || {};
-                document.getElementById('admin-header-enabled').checked = hs.header_enabled !== false;
-                document.getElementById('admin-countdown-end').value = hs.countdown_end ? hs.countdown_end.slice(0, 16) : '';
-                document.getElementById('admin-schedule-start').value = hs.schedule_start ? hs.schedule_start.slice(0, 16) : '';
-                document.getElementById('admin-thank-you-start').value = hs.thank_you_start ? hs.thank_you_start.slice(0, 16) : '';
+                try {
+                    const hs = weddingConfigRaw.header_mode_settings || {};
+                    const adminHeaderEnabled = document.getElementById('admin-header-enabled');
+                    if (adminHeaderEnabled) adminHeaderEnabled.checked = hs.header_enabled !== false;
+                    const adminCountdownEnd = document.getElementById('admin-countdown-end');
+                    if (adminCountdownEnd) adminCountdownEnd.value = hs.countdown_end ? hs.countdown_end.slice(0, 16) : '';
+                    const adminScheduleStart = document.getElementById('admin-schedule-start');
+                    if (adminScheduleStart) adminScheduleStart.value = hs.schedule_start ? hs.schedule_start.slice(0, 16) : '';
+                    const adminThankYouStart = document.getElementById('admin-thank-you-start');
+                    if (adminThankYouStart) adminThankYouStart.value = hs.thank_you_start ? hs.thank_you_start.slice(0, 16) : '';
+                } catch(err) {
+                    console.error("Header settings error:", err);
+                }
 
                 // 5. Witness tab
-                const wp = weddingConfigRaw.witness_permissions || {};
-                document.getElementById('admin-perm-delete-photos').checked = wp.can_delete_photos === true;
-                document.getElementById('admin-perm-delete-videos').checked = wp.can_delete_videos === true;
-                document.getElementById('admin-perm-see-wishes').checked = wp.can_see_wishes !== false;
+                try {
+                    const wp = weddingConfigRaw.witness_permissions || {};
+                    const adminPermDelPhotos = document.getElementById('admin-perm-delete-photos');
+                    if (adminPermDelPhotos) adminPermDelPhotos.checked = wp.can_delete_photos === true;
+                    const adminPermDelVideos = document.getElementById('admin-perm-delete-videos');
+                    if (adminPermDelVideos) adminPermDelVideos.checked = wp.can_delete_videos === true;
+                    const adminPermSeeWishes = document.getElementById('admin-perm-see-wishes');
+                    if (adminPermSeeWishes) adminPermSeeWishes.checked = wp.can_see_wishes !== false;
+                } catch(err) {
+                    console.error("Witness settings error:", err);
+                }
+
+                // 6. Theme Tab
+                try {
+                    const theme = weddingConfigRaw.theme_settings || {};
+                    const presetSelect = document.getElementById('admin-theme-preset-select');
+                    if (presetSelect) presetSelect.value = theme.preset_name || 'classic_gold';
+
+                    setThemeField('admin-theme-color-bg', theme.color_bg || '#f7f3ee');
+                    setThemeField('admin-theme-color-text', theme.color_text || '#111111');
+                    setThemeField('admin-theme-color-primary', theme.color_primary || '#2E2E2E');
+                    setThemeField('admin-theme-color-accent', theme.color_accent || '#c9a84c');
+                    setThemeField('admin-theme-color-surface', theme.color_surface || '#FAF6F0');
+                    setThemeField('admin-theme-color-qr', theme.qr_code_color || '#000000');
+
+                    const fontHeadingSelect = document.getElementById('admin-theme-font-heading');
+                    if (fontHeadingSelect && theme.font_heading) fontHeadingSelect.value = theme.font_heading;
+
+                    const fontBodySelect = document.getElementById('admin-theme-font-body');
+                    if (fontBodySelect && theme.font_body) fontBodySelect.value = theme.font_body;
+
+                    updateLiveThemePreview();
+                } catch(err) {
+                    console.error("Theme settings error:", err);
+                }
+
+                // 7. Organization Tab
+                try {
+                    populateOrganizationTab(weddingConfigRaw);
+                } catch(err) {
+                    console.error("Organization tab populate error:", err);
+                }
+
+                loadOrganizationsList();
             } else {
                 console.error(`Failed to load wedding config form. Status: ${res.status}`);
             }
@@ -1407,15 +1632,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        function updateFocusMarkerUI() {
-            const marker = document.getElementById('admin-couple-image-focus-marker');
-            if (marker) {
-                marker.style.left = `${coupleImageFocusX}%`;
-                marker.style.top = `${coupleImageFocusY}%`;
-                marker.style.display = 'block';
-            }
-        }
-
         const imageContainer = document.getElementById('admin-couple-image-container');
         if (imageContainer) {
             imageContainer.addEventListener('click', (e) => {
@@ -1693,6 +1909,383 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
             console.error(e);
             pushListContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: red;">Błąd sieci.</div>';
+        }
+    }
+
+    // ── THEME & LIVE PREVIEW HELPERS ──────────────────────────────────────────
+    function setThemeField(id, val) {
+        const picker = document.getElementById(id);
+        const text = document.getElementById(id + '-text');
+        if (picker && val) picker.value = val;
+        if (text && val) text.value = val;
+    }
+
+    function getThemeField(id) {
+        const text = document.getElementById(id + '-text');
+        const picker = document.getElementById(id);
+        return (text && text.value) ? text.value : (picker ? picker.value : '');
+    }
+
+    function updateLiveThemePreview() {
+        const bg = getThemeField('admin-theme-color-bg') || '#f7f3ee';
+        const text = getThemeField('admin-theme-color-text') || '#111111';
+        const primary = getThemeField('admin-theme-color-primary') || '#2E2E2E';
+        const accent = getThemeField('admin-theme-color-accent') || '#c9a84c';
+        const surface = getThemeField('admin-theme-color-surface') || '#FAF6F0';
+
+        const fontHeading = document.getElementById('admin-theme-font-heading')?.value || "'Playfair Display', serif";
+        const fontBody = document.getElementById('admin-theme-font-body')?.value || "'Inter', sans-serif";
+
+        const previewBox = document.getElementById('theme-live-preview-box');
+        if (previewBox) {
+            previewBox.style.backgroundColor = bg;
+        }
+
+        const heading = document.getElementById('preview-heading');
+        if (heading) {
+            heading.style.fontFamily = fontHeading;
+            heading.style.color = text;
+            const p1 = document.getElementById('admin-org-partner1')?.value?.trim() || 'Gospodarz';
+            const p2 = document.getElementById('admin-org-partner2')?.value?.trim();
+            heading.textContent = p2 ? `${p1} & ${p2}` : p1;
+        }
+
+        const badge = document.getElementById('preview-badge');
+        if (badge) {
+            badge.style.backgroundColor = accent;
+        }
+
+        const body = document.getElementById('preview-body');
+        if (body) {
+            body.style.fontFamily = fontBody;
+            body.style.color = text;
+        }
+
+        const btn = document.getElementById('preview-btn');
+        if (btn) {
+            btn.style.backgroundColor = primary;
+        }
+    }
+
+    function initThemeSettingsListeners() {
+        const presetSelect = document.getElementById('admin-theme-preset-select');
+        if (presetSelect) {
+            presetSelect.addEventListener('change', (e) => {
+                const presetKey = e.target.value;
+                if (typeof THEME_PRESETS !== 'undefined' && THEME_PRESETS[presetKey]) {
+                    const p = THEME_PRESETS[presetKey];
+                    setThemeField('admin-theme-color-bg', p.color_bg);
+                    setThemeField('admin-theme-color-text', p.color_text);
+                    setThemeField('admin-theme-color-primary', p.color_primary);
+                    setThemeField('admin-theme-color-accent', p.color_accent);
+                    setThemeField('admin-theme-color-surface', p.color_surface);
+                    setThemeField('admin-theme-color-qr', p.qr_code_color);
+                    if (p.font_heading && document.getElementById('admin-theme-font-heading')) {
+                        document.getElementById('admin-theme-font-heading').value = p.font_heading;
+                    }
+                    if (p.font_body && document.getElementById('admin-theme-font-body')) {
+                        document.getElementById('admin-theme-font-body').value = p.font_body;
+                    }
+                    updateLiveThemePreview();
+                }
+            });
+        }
+
+        const colorFields = ['bg', 'text', 'primary', 'accent', 'surface', 'qr'];
+        colorFields.forEach(cf => {
+            const picker = document.getElementById(`admin-theme-color-${cf}`);
+            const text = document.getElementById(`admin-theme-color-${cf}-text`);
+            if (picker && text) {
+                picker.addEventListener('input', (e) => {
+                    text.value = e.target.value;
+                    if (presetSelect) presetSelect.value = 'custom';
+                    updateLiveThemePreview();
+                });
+                text.addEventListener('input', (e) => {
+                    if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) {
+                        picker.value = e.target.value;
+                    }
+                    if (presetSelect) presetSelect.value = 'custom';
+                    updateLiveThemePreview();
+                });
+            }
+        });
+
+        const fontHeadingSelect = document.getElementById('admin-theme-font-heading');
+        if (fontHeadingSelect) {
+            fontHeadingSelect.addEventListener('change', updateLiveThemePreview);
+        }
+
+        const fontBodySelect = document.getElementById('admin-theme-font-body');
+        if (fontBodySelect) {
+            fontBodySelect.addEventListener('change', updateLiveThemePreview);
+        }
+
+        const saveThemeBtn = document.getElementById('admin-save-theme-btn');
+        if (saveThemeBtn) {
+            saveThemeBtn.addEventListener('click', async () => {
+                saveThemeBtn.disabled = true;
+                saveThemeBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Zapisywanie...';
+                try {
+                    const themePayload = {
+                        preset_name: document.getElementById('admin-theme-preset-select')?.value || 'custom',
+                        color_bg: getThemeField('admin-theme-color-bg'),
+                        color_text: getThemeField('admin-theme-color-text'),
+                        color_primary: getThemeField('admin-theme-color-primary'),
+                        color_accent: getThemeField('admin-theme-color-accent'),
+                        color_surface: getThemeField('admin-theme-color-surface'),
+                        qr_code_color: getThemeField('admin-theme-color-qr'),
+                        font_heading: document.getElementById('admin-theme-font-heading')?.value,
+                        font_body: document.getElementById('admin-theme-font-body')?.value,
+                    };
+
+                    await patchWeddingConfig({ theme_settings: themePayload });
+                    alert('Motyw i wygląd zostały zaktualizowane!');
+                } catch (e) {
+                    alert('Błąd zapisu motywu: ' + e);
+                } finally {
+                    saveThemeBtn.disabled = false;
+                    saveThemeBtn.innerHTML = '<i class="ph ph-floppy-disk"></i> Zapisz Wygląd & Motyw';
+                }
+            });
+        }
+    }
+
+    // ── ROLE DROPDOWNS & BADGES HELPER ──────────────────────────────────────────
+    function updateRoleDropdowns(rolesConfig, isSingle = false) {
+        rolesConfig = rolesConfig || {};
+        const filterRole = document.getElementById('filter-role');
+        const guestRole = document.getElementById('admin-guest-role');
+
+        const paraMlodaLabel = rolesConfig.para_mloda?.label || (isSingle ? 'Jubilat' : 'Para Młoda');
+        const swiadekLabel = rolesConfig.swiadek?.label || (isSingle ? 'Moderator' : 'Świadek');
+        const goscLabel = rolesConfig.gosc?.label || 'Gość';
+
+        const swiadekEnabled = rolesConfig.swiadek?.enabled !== false;
+        const goscEnabled = rolesConfig.gosc?.enabled !== false;
+
+        const currentFilterVal = filterRole ? filterRole.value : '';
+        const currentGuestRoleVal = guestRole ? guestRole.value : 'gosc';
+
+        if (filterRole) {
+            filterRole.innerHTML = `
+                <option value="">Rola: Wszystkie</option>
+                <option value="para_mloda">${paraMlodaLabel}</option>
+                ${swiadekEnabled ? `<option value="swiadek">${swiadekLabel}</option>` : ''}
+                ${goscEnabled ? `<option value="gosc">${goscLabel}</option>` : ''}
+            `;
+            filterRole.value = currentFilterVal;
+        }
+
+        if (guestRole) {
+            guestRole.innerHTML = `
+                ${goscEnabled ? `<option value="gosc">${goscLabel}</option>` : ''}
+                ${swiadekEnabled ? `<option value="swiadek">${swiadekLabel}</option>` : ''}
+                <option value="para_mloda">${paraMlodaLabel}</option>
+            `;
+            if (guestRole.querySelector(`option[value="${currentGuestRoleVal}"]`)) {
+                guestRole.value = currentGuestRoleVal;
+            }
+        }
+
+        // Witness / Moderator tab
+        const witnessTabNavBtn = document.querySelector('.admin-tab-nav-btn[data-target="admin-tab-witness"]');
+        const witnessTabHeader = document.querySelector('#admin-tab-witness .admin-section-header h3');
+        const witnessTabSaveBtn = document.getElementById('admin-save-witness-btn');
+        if (witnessTabNavBtn) {
+            if (!swiadekEnabled) {
+                witnessTabNavBtn.style.display = 'none';
+            } else {
+                witnessTabNavBtn.style.display = 'flex';
+                witnessTabNavBtn.title = `Uprawnienia: ${swiadekLabel}`;
+            }
+        }
+        if (witnessTabHeader) {
+            witnessTabHeader.textContent = `Uprawnienia: ${swiadekLabel}`;
+        }
+        if (witnessTabSaveBtn) {
+            witnessTabSaveBtn.textContent = `Zapisz Uprawnienia: ${swiadekLabel}`;
+        }
+    }
+
+    // ── ORGANIZATION SETTINGS TAB ──────────────────────────────────────────────
+    function initOrganizationSettingsListeners() {
+        const copyBtn = document.getElementById('admin-copy-direct-url-btn');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                const input = document.getElementById('admin-org-direct-url');
+                if (input && input.value) {
+                    navigator.clipboard.writeText(input.value).then(() => {
+                        alert('Skopiowano link do schowka: ' + input.value);
+                    }).catch(() => {
+                        input.select();
+                        document.execCommand('copy');
+                        alert('Skopiowano link do schowka!');
+                    });
+                }
+            });
+        }
+
+        const saveOrgBtn = document.getElementById('admin-save-org-settings-btn');
+        if (saveOrgBtn) {
+            saveOrgBtn.addEventListener('click', async () => {
+                saveOrgBtn.disabled = true;
+                saveOrgBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Zapisywanie...';
+                try {
+                    const formData = new FormData();
+                    formData.append('wedding_name', document.getElementById('admin-org-wedding-name').value.trim());
+                    formData.append('partner1_name', document.getElementById('admin-org-partner1').value.trim());
+                    formData.append('partner2_name', document.getElementById('admin-org-partner2').value.trim());
+                    formData.append('monogram_text', document.getElementById('admin-org-monogram').value.trim());
+                    formData.append('date_display_text', document.getElementById('admin-org-date-text').value.trim());
+
+                    // Custom Labels per Organization
+                    formData.append('admin_panel_title', document.getElementById('admin-org-admin-panel-title')?.value.trim() || '');
+                    formData.append('contact_label', document.getElementById('admin-org-contact-label')?.value.trim() || '');
+                    formData.append('default_status_text', document.getElementById('admin-org-default-status-text')?.value.trim() || '');
+
+                    // Enabled Features / Modules per Organization
+                    const orgWishesCheckbox = document.getElementById('admin-org-wishes-enabled-checkbox');
+                    if (orgWishesCheckbox) {
+                        formData.append('wishes_enabled', orgWishesCheckbox.checked);
+                    }
+                    const orgSeatingCheckbox = document.getElementById('admin-org-seating-enabled-checkbox');
+                    if (orgSeatingCheckbox) {
+                        formData.append('seating_enabled', orgSeatingCheckbox.checked);
+                    }
+
+                    // Roles configuration per Organization
+                    const rolesConfigPayload = {
+                        para_mloda: {
+                            label: document.getElementById('admin-role-label-para-mloda')?.value.trim() || 'Para Młoda',
+                            enabled: true
+                        },
+                        swiadek: {
+                            label: document.getElementById('admin-role-label-swiadek')?.value.trim() || 'Świadek/Świadkowa',
+                            enabled: document.getElementById('admin-role-enabled-swiadek')?.checked !== false
+                        },
+                        gosc: {
+                            label: document.getElementById('admin-role-label-gosc')?.value.trim() || 'Gość',
+                            enabled: document.getElementById('admin-role-enabled-gosc')?.checked !== false
+                        }
+                    };
+                    formData.append('roles_config', JSON.stringify(rolesConfigPayload));
+
+                    const wDate = document.getElementById('admin-org-wedding-date').value;
+                    if (wDate) formData.append('wedding_date', wDate);
+
+                    const wEndDate = document.getElementById('admin-org-wedding-end-date').value;
+                    if (wEndDate) formData.append('wedding_end_date', wEndDate);
+
+                    const logoInput = document.getElementById('admin-org-logo-file');
+                    if (logoInput && logoInput.files && logoInput.files[0]) {
+                        formData.append('logo_image', logoInput.files[0]);
+                    }
+
+                    await patchWeddingConfig(formData, false);
+                } catch(e) {
+                    alert('Błąd zapisu danych wesela: ' + e);
+                } finally {
+                    saveOrgBtn.disabled = false;
+                    saveOrgBtn.innerHTML = '<i class="ph ph-floppy-disk"></i> Zapisz Dane Wesela';
+                }
+            });
+        }
+
+        const showNewOrgBtn = document.getElementById('admin-show-create-org-btn');
+        const newOrgContainer = document.getElementById('admin-create-org-form-container');
+        if (showNewOrgBtn && newOrgContainer) {
+            showNewOrgBtn.addEventListener('click', () => {
+                newOrgContainer.style.display = (newOrgContainer.style.display === 'none' || !newOrgContainer.style.display) ? 'block' : 'none';
+            });
+        }
+
+        const submitNewOrgBtn = document.getElementById('new-org-submit-btn');
+        if (submitNewOrgBtn) {
+            submitNewOrgBtn.addEventListener('click', async () => {
+                const name = document.getElementById('new-org-name').value.trim();
+                const p1 = document.getElementById('new-org-p1').value.trim();
+                const p2 = document.getElementById('new-org-p2').value.trim();
+                const date = document.getElementById('new-org-date').value;
+                const code = document.getElementById('new-org-login-code').value.trim();
+                const pass = document.getElementById('new-org-password').value.trim();
+
+                if (!p1 || !p2) {
+                    alert('Wprowadź imiona Pary Młodej.');
+                    return;
+                }
+
+                submitNewOrgBtn.disabled = true;
+                submitNewOrgBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Tworzenie...';
+
+                try {
+                    const res = await fetch(`${API_URL}/admin/organizations/`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name: name,
+                            partner1_name: p1,
+                            partner2_name: p2,
+                            wedding_date: date || null,
+                            login_code: code,
+                            password: pass
+                        })
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        alert(`Nowe wesele zostało utworzone!\nKod pary młodej: ${data.organization.admin_login_code}`);
+                        localStorage.setItem('current_org_id', data.organization.id);
+                        window.location.search = `?org=${data.organization.id}`;
+                    } else {
+                        const err = await res.json();
+                        alert(err.error || 'Wystąpił błąd podczas tworzenia wesela.');
+                    }
+                } catch(e) {
+                    alert('Błąd połączenia.');
+                } finally {
+                    submitNewOrgBtn.disabled = false;
+                    submitNewOrgBtn.innerHTML = '<i class="ph ph-check"></i> Utwórz Wesele i Przejdź';
+                }
+            });
+        }
+
+        const orgSwitcher = document.getElementById('admin-org-select-switcher');
+        if (orgSwitcher) {
+            orgSwitcher.addEventListener('change', (e) => {
+                const chosenId = e.target.value;
+                if (chosenId && chosenId !== currentOrgId) {
+                    localStorage.setItem('current_org_id', chosenId);
+                    window.location.search = `?org=${chosenId}`;
+                }
+            });
+        }
+    }
+
+    async function loadOrganizationsList() {
+        const switcher = document.getElementById('admin-org-select-switcher');
+        if (!switcher) return;
+
+        try {
+            const res = await fetch(`${API_URL}/admin/organizations/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const orgs = await res.json();
+                switcher.innerHTML = '';
+                orgs.forEach(o => {
+                    const opt = document.createElement('option');
+                    opt.value = o.id;
+                    opt.textContent = `${o.name} (${o.guests_count} gości)${(o.is_current || o.id === currentOrgId) ? ' [Aktywne]' : ''}`;
+                    if (o.is_current || o.id === currentOrgId) opt.selected = true;
+                    switcher.appendChild(opt);
+                });
+            }
+        } catch(e) {
+            console.warn('Could not load organizations list:', e);
         }
     }
 });

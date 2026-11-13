@@ -15,14 +15,35 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
 
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css?v=2.1">
+    <link rel="stylesheet" href="css/style.css?v=2.7">
+
+    <style>
+        /* Zero-flash Multi-tenant Shield for Main App */
+        html:not([data-org-ready]) #app-container {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        #app-container {
+            transition: opacity 0.15s ease-in;
+        }
+    </style>
+
+    <!-- Theme & Multi-tenant Init -->
+    <script src="js/theme.js?v=2.7"></script>
+    <script>
+        (function() {
+            const host = window.location.hostname || '127.0.0.1';
+            const apiUrl = (host === 'localhost' || host === '127.0.0.1') ? `http://${host}:8000/api` : 'https://wedding-production-d4a1.up.railway.app/api';
+            initOrganizationTheme(apiUrl);
+        })();
+    </script>
 </head>
 
 <body>
@@ -30,8 +51,8 @@
         <!-- Login Screen Overlay -->
         <div id="login-overlay" class="login-overlay active">
             <div class="login-content">
-                <h1 class="logo login-logo"><img src="assets/zk-logo.png" alt="Logo" class="login-logo"></h1>
-                <h2>26.06.2027</h2>
+                <h1 class="logo login-logo" id="login-logo-container"></h1>
+                <h2 id="login-date-display"></h2>
                 <div class="login-form" id="login-code-form">
                     <p style="margin-bottom: 20px;">Aby zobaczyć szczegóły, wpisz kod z zaproszenia lub wejdź
                         z dedykowanego linku.</p>
@@ -40,11 +61,7 @@
                     <button id="login-submit-btn" class="modal-btn">Wejdź</button>
                     <div id="demo-codes-container" style="display: none; margin-top: 14px; font-size: 0.78rem; color: #888;">
                         Wypróbuj kod testowy:
-                        <div style="display: flex; justify-content: center; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
-                            <button type="button" class="demo-code-chip" onclick="document.getElementById('login-code-input').value='KAMIL'; document.getElementById('login-submit-btn').click();">KAMIL</button>
-                            <button type="button" class="demo-code-chip" onclick="document.getElementById('login-code-input').value='FRED'; document.getElementById('login-submit-btn').click();">FRED</button>
-                            <button type="button" class="demo-code-chip" onclick="document.getElementById('login-code-input').value='8VGP87'; document.getElementById('login-submit-btn').click();">8VGP87</button>
-                        </div>
+                        <div id="demo-codes-chips" style="display: flex; justify-content: center; gap: 6px; margin-top: 6px; flex-wrap: wrap;"></div>
                     </div>
                 </div>
 
@@ -78,7 +95,7 @@
 
                 <div class="login-phone-form" id="login-phone-form" style="display: none; width: 100%;">
                     <p style="margin-bottom: 10px;">Podaj swój numer telefonu</p>
-                    <span style="font-size: 0.8rem; color: #666; display: block; margin-bottom: 15px; line-height: 1.3;">Numer telefonu przyda się Parze Młodej, gdy zapomnisz potwierdzić swoją obecność ;)</span>
+                    <span id="login-phone-helper" style="font-size: 0.8rem; color: #666; display: block; margin-bottom: 15px; line-height: 1.3;">Numer telefonu przyda się organizatorom, gdy zapomnisz potwierdzić swoją obecność ;)</span>
                     <input type="tel" id="login-phone-input" placeholder="np. +48 500 600 700" autocomplete="tel"
                         style="margin-bottom: 15px; width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit;">
                     <button id="login-phone-submit-btn" class="modal-btn">Wejdź</button>
@@ -92,7 +109,7 @@
         <!-- Header / Countdown Widget & Interactive Schedule -->
         <header class="top-header">
             <div class="top-header-brand">
-                <h1 class="logo"><span class="logo-letter">Z</span><span class="logo-amp">&</span><span class="logo-letter">K</span></h1>
+                <h1 class="logo" id="top-brand-logo"></h1>
                 <!-- Test Switcher Toggle -->
                 <button id="toggle-header-mode-btn" class="header-test-toggle-btn" title="Przełącz podgląd: Odliczanie / Harmonogram" style="display: none;">
                     <i class="ph-fill ph-swap"></i> <span id="toggle-mode-text">Test: Harmonogram</span>
@@ -102,7 +119,8 @@
             <!-- 1. Header Countdown Box -->
             <div class="header-countdown-box" id="header-countdown-box">
                 <div class="header-countdown-label">
-                    <strong>26 Czerwca 2027</strong>
+                    <i class="ph-fill ph-hourglass-high" id="header-countdown-icon"></i>
+                    <strong id="header-countdown-date"></strong>
                 </div>
                 <div class="header-countdown-timer">
                     <div class="header-cd-unit"><span id="h-cd-days">00</span><label>dni</label></div>
@@ -173,11 +191,8 @@
                 <button id="direct-modal-close" class="direct-modal-close" title="Zamknij"><i class="ph ph-x"></i></button>
 
                 <div class="direct-modal-header">
-                    <div class="direct-avatar-stack">
-                        <span class="avatar-ring">Z</span>
-                        <span class="avatar-ring">K</span>
-                    </div>
-                    <h3>Wiadomość dla Pary Młodej</h3>
+                    <div class="direct-avatar-stack" id="direct-avatar-stack"></div>
+                    <h3 id="direct-modal-title">Wiadomość</h3>
                     <p>Napisz życzenia, nagraj wiadomość głosową lub film wideo</p>
                 </div>
 
@@ -190,7 +205,7 @@
 
                 <!-- 1. Text Message Panel (Z limitem 1000 słów i ostrzeżeniem) -->
                 <div id="panel-direct-text" class="direct-panel active" style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
-                    <textarea id="direct-text-input" placeholder="Napisz coś pięknego dla Zuzi i Kamila..." style="flex: 1; min-height: 200px; width: 100%; border-radius: 20px; border: 1.5px solid #e8decb; padding: 18px; font-size: 1rem; line-height: 1.5; font-family: var(--font-body); resize: none; box-sizing: border-box; outline: none;"></textarea>
+                    <textarea id="direct-text-input" placeholder="Napisz życzenia..." style="flex: 1; min-height: 200px; width: 100%; border-radius: 20px; border: 1.5px solid #e8decb; padding: 18px; font-size: 1rem; line-height: 1.5; font-family: var(--font-body); resize: none; box-sizing: border-box; outline: none;"></textarea>
                     
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 4px;">
                         <div id="word-limit-warning" style="display: none; color: #e11d48; font-weight: 700; font-size: 0.85rem; align-items: center; gap: 6px;">
@@ -230,7 +245,7 @@
                 </div>
 
                 <button id="send-direct-submit-btn" class="send-direct-submit-btn" style="margin-top: 16px;">
-                    <i class="ph-fill ph-paper-plane-right"></i> Wyślij do Zuzi & Kamila
+                    <i class="ph-fill ph-paper-plane-right"></i> <span id="send-direct-btn-text">Wyślij</span>
                 </button>
             </div>
         </div>
@@ -241,11 +256,12 @@
             <!-- Tab 1: Para Młoda -->
             <section id="tab-couple" class="tab-content active">
                 <div class="couple-hero-card">
-                    <div class="couple-hero-bg" style="background-image: url('img/couple.png');"></div>
+                    <div class="couple-hero-bg" id="couple-hero-bg"></div>
                     <div class="couple-hero-overlay"></div>
                     <div class="couple-hero-content">
+                        <div class="couple-hero-badge" id="couple-hero-badge" style="display: none;"></div>
                         <div class="couple-status-emoji" id="couple-status-emoji" style="display: none; font-size: 3rem; margin-bottom: 8px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));"></div>
-                        <div class="couple-status-text" id="couple-status-text">Do zobaczenia na naszym weselu</div>
+                        <div class="couple-status-text" id="couple-status-text"></div>
                         <button id="open-direct-msg-btn" class="wishes-trigger-btn">
                             <i class="ph-fill ph-chat-circle-dots"></i> Złóż życzenia
                         </button>
@@ -298,35 +314,7 @@
                     <h2><i class="ph-fill ph-info"></i> Informacje</h2>
                 </div>
 
-                <div class="places-container" id="info-places-container">
-                    <!-- Church Card -->
-                    <div class="place-card">
-                        <div class="place-card-main">
-                            <div class="place-icon-wrapper"><i class="ph-fill ph-church"></i></div>
-                            <div class="place-details">
-                                <h3>Ślub</h3>
-                                <p class="place-time"><i class="ph ph-clock"></i> 26 Czerwca 2027, 16:00</p>
-                                <p class="place-address"><i class="ph ph-map-pin"></i> Kościół św. Andrzeja Boboli, Białystok</p>
-                            </div>
-                        </div>
-                        <a href="https://maps.app.goo.gl/DiMgQBWfKNrzzuBC6" target="_blank"
-                            class="place-nav-btn"><i class="ph-bold ph-navigation-arrow"></i> Nawiguj do Miejsca</a>
-                    </div>
-
-                    <!-- Venue Card -->
-                    <div class="place-card">
-                        <div class="place-card-main">
-                            <div class="place-icon-wrapper"><i class="ph-fill ph-martini"></i></div>
-                            <div class="place-details">
-                                <h3>Wesele</h3>
-                                <p class="place-time"><i class="ph ph-clock"></i> Od 18:00 do białego rana</p>
-                                <p class="place-address"><i class="ph ph-map-pin"></i> Oranżeria Nowosiółki</p>
-                            </div>
-                        </div>
-                        <a href="https://maps.app.goo.gl/NQ9LhmRhB7jbRusZ9" target="_blank"
-                            class="place-nav-btn"><i class="ph-bold ph-navigation-arrow"></i> Nawiguj do Miejsca</a>
-                    </div>
-                </div>
+                <div class="places-container" id="info-places-container"></div>
 
 
 
@@ -865,7 +853,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
         <!-- JS -->
-        <script src="js/app.js?v=2.4"></script>
+        <script src="js/app.js?v=2.7"></script>
 </body>
 
 </html>

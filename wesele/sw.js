@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wesele-cache-v19';
+const CACHE_NAME = 'wesele-cache-v26';
 const urlsToCache = [
   './',
   './index.html',
@@ -18,6 +18,11 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  // Let non-GET requests pass through without interception
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -25,7 +30,11 @@ self.addEventListener('fetch', event => {
         if (response) {
           return response;
         }
-        return fetch(event.request);
+        return fetch(event.request).catch(err => {
+          // If network fetch fails (e.g. offline, CORS or broken 3rd party URL), don't crash with uncaught promise rejection
+          console.warn('SW fetch failed for:', event.request.url);
+          return new Response('', { status: 408, statusText: 'Fetch failed' });
+        });
       })
   );
 });

@@ -1,5 +1,43 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    let currentOrgId = (typeof detectOrganizationId === 'function') ? detectOrganizationId() : 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
+
+    // Synchronize currentOrgId with authenticated user from localStorage if not explicitly requested in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const explicitOrg = urlParams.get('org') || urlParams.get('org_id');
+    try {
+        const cachedUser = JSON.parse(localStorage.getItem('user'));
+        if (explicitOrg && cachedUser && cachedUser.organization_id && cachedUser.organization_id !== explicitOrg) {
+            // User belongs to a different organization! Clear credentials to prevent cross-tenant data leak
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+        } else if (!explicitOrg && cachedUser && cachedUser.organization_id) {
+            currentOrgId = cachedUser.organization_id;
+            localStorage.setItem('current_org_id', cachedUser.organization_id);
+        }
+    } catch(e) {}
+
+    // Wrap fetch to automatically attach X-Organization-Id for all API requests
+    const nativeFetch = window.fetch;
+    window.fetch = function(url, options = {}) {
+        if (typeof url === 'string' && url.includes('/api/')) {
+            options = options || {};
+            options.headers = options.headers || {};
+            const activeOrg = currentOrgId || ((typeof detectOrganizationId === 'function') ? detectOrganizationId() : 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d');
+            if (options.headers instanceof Headers) {
+                if (!options.headers.has('X-Organization-Id')) {
+                    options.headers.set('X-Organization-Id', activeOrg);
+                }
+            } else {
+                if (!options.headers['X-Organization-Id']) {
+                    options.headers['X-Organization-Id'] = activeOrg;
+                }
+            }
+        }
+        return nativeFetch.call(this, url, options);
+    };
+
     const getApiUrl = () => {
         const host = window.location.hostname || '127.0.0.1';
         if (host === 'localhost' || host === '127.0.0.1') {
@@ -8,12 +46,41 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'https://wedding-production-d4a1.up.railway.app/api';
     };
     const API_URL = getApiUrl();
+
+    let weddingConfig = window.__WEDDING_CONFIG || {};
+    let witnessPermissions = {
+        can_delete_photos: false,
+        can_delete_videos: false,
+        can_see_wishes: true
+    };
+    let coupleStatusTexts = (weddingConfig.status_texts && weddingConfig.status_texts.length > 0)
+        ? weddingConfig.status_texts
+        : [{ text: (weddingConfig.default_status_text || "Do zobaczenia!") }];
+    let tablesData = [];
+
+    function calculateAndSetTabCoupleHeight() {
+        const tabCouple = document.getElementById('tab-couple');
+        const topHeader = document.getElementsByClassName('top-header')[0];
+        const bottomNav = document.getElementsByClassName('bottom-nav')[0];
+
+        const topHeaderHeight = topHeader ? topHeader.offsetHeight : 0;
+        const bottomNavHeight = bottomNav ? bottomNav.offsetHeight : 0;
+        const windowHeight = window.innerHeight;
+
+        const newTabCoupleHeight = windowHeight - topHeaderHeight - bottomNavHeight;
+        if (tabCouple && newTabCoupleHeight > 0) {
+            tabCouple.style.height = `${newTabCoupleHeight}px`;
+        }
+    }
+    window.calculateAndSetTabCoupleHeight = calculateAndSetTabCoupleHeight;
+    calculateAndSetTabCoupleHeight();
     
     function updateRoleBadge(elementId, role, relationshipText) {
         const el = document.getElementById(elementId);
         if (!el) return;
+        const roleLabel = (typeof getRoleLabel === 'function') ? getRoleLabel(role) : ((role === 'para_mloda') ? 'Para Młoda' : 'Świadek');
         if (role === 'para_mloda' || role === 'swiadek') {
-            el.textContent = relationshipText || ((role === 'para_mloda') ? 'Para Młoda' : 'Świadek');
+            el.textContent = relationshipText || roleLabel;
             el.className = `role-badge ${role}`;
             el.style.display = 'inline-flex';
             el.style.marginTop = '2px';
@@ -148,7 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginPhoneBackBtn = document.getElementById('login-phone-back-btn');
 
     // Check if URL has ?code=ABC123
-    const urlParams = new URLSearchParams(window.location.search);
     const codeFromUrl = urlParams.get('code');
     
     let currentLoginCode = '';
@@ -163,7 +229,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (loginPhoneSubmitBtn) loginPhoneSubmitBtn.disabled = true;
             loginError.textContent = '';
 
+            const urlOrgParam = new URLSearchParams(window.location.search).get('org') || new URLSearchParams(window.location.search).get('org_id');
             const payload = { login_code: code };
+            if (urlOrgParam) {
+                payload.org_id = urlOrgParam;
+            } else if (currentOrgId && currentOrgId !== 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d') {
+                payload.org_id = currentOrgId;
+            }
             if (guestId) payload.guest_id = guestId;
             if (firstName) payload.first_name = firstName;
             if (lastName) payload.last_name = lastName;
@@ -227,9 +299,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('access_token', data.access);
                     localStorage.setItem('refresh_token', data.refresh);
                     localStorage.setItem('user', JSON.stringify(data.user));
+                    if (data.user && data.user.organization_id) {
+                        currentOrgId = data.user.organization_id;
+                        localStorage.setItem('current_org_id', data.user.organization_id);
+                    }
 
                     // Hide overlay
                     loginOverlay.classList.remove('active');
+                    calculateAndSetTabCoupleHeight();
                     if (typeof ScrollTrigger !== 'undefined') {
                         setTimeout(() => { ScrollTrigger.refresh(); }, 200);
                     }
@@ -243,8 +320,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     loadWeddingConfig();
                     initPushNotifications();
 
-                    // Remove code from URL
-                    window.history.replaceState({}, document.title, window.location.pathname);
+                    // Remove code from URL while preserving org parameter
+                    try {
+                        const url = new URL(window.location);
+                        url.searchParams.delete('code');
+                        window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
+                    } catch(e) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
                 }
             } else {
                 let errText = data.error || 'Nieprawidłowy kod.';
@@ -387,6 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function checkAuth() {
         const token = localStorage.getItem('access_token');
         if (token) {
+            loginOverlay.classList.remove('active');
             try {
                 const response = await fetch(`${API_URL}/me/`, {
                     headers: {
@@ -397,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok) {
                     const userData = await response.json();
                     localStorage.setItem('user', JSON.stringify(userData));
-                    loginOverlay.classList.remove('active');
+                    calculateAndSetTabCoupleHeight();
                     loadPhotos();
                     loadStories();
                     loadTables();
@@ -413,6 +497,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Błąd pobierania danych użytkownika:", error);
                 if (localStorage.getItem('user')) {
                     loginOverlay.classList.remove('active'); // Offline fallback
+                } else {
+                    loginOverlay.classList.add('active');
                 }
             }
         } else if (codeFromUrl) {
@@ -476,10 +562,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            if (targetId === 'tab-couple' && typeof ScrollTrigger !== 'undefined') {
-                setTimeout(() => {
-                    ScrollTrigger.refresh();
-                }, 150);
+            if (targetId === 'tab-couple') {
+                calculateAndSetTabCoupleHeight();
+                if (typeof ScrollTrigger !== 'undefined') {
+                    setTimeout(() => {
+                        ScrollTrigger.refresh();
+                    }, 150);
+                }
             }
 
             // Scroll to top when switching tabs for better UX
@@ -495,7 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sheetTableName = document.getElementById('sheet-table-name');
     const sheetGuestList = document.getElementById('sheet-guest-list');
 
-    let tablesData = [];
+    // tablesData declared at top of closure
     let allGuestsFlat = [];
     let searchedGuestId = null;
 
@@ -688,8 +777,19 @@ document.addEventListener('DOMContentLoaded', () => {
         window._seatingGuests = guestsList;
 
         const wrapper = document.getElementById('seating-plan-section-wrapper');
+        const planHeader = document.getElementById('plan-sali-header');
+
+        if (window.__WEDDING_CONFIG && window.__WEDDING_CONFIG.seating_enabled === false) {
+            if (wrapper) wrapper.style.display = 'none';
+            if (planHeader) planHeader.style.display = 'none';
+            updateFilterButtonVisibility();
+            updateProfileUI();
+            return;
+        }
+
         if (seatingLayout && seatingLayout.isReady) {
             if (wrapper) wrapper.style.display = 'block';
+            if (planHeader) planHeader.style.display = 'block';
             renderVenueMapFromLayout(seatingLayout);
         } else {
             if (wrapper) wrapper.style.display = 'none';
@@ -703,6 +803,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateFilterButtonVisibility() {
         const filterBtn = document.getElementById('filter-btn');
         if (!filterBtn) return;
+
+        if (window.__WEDDING_CONFIG && window.__WEDDING_CONFIG.seating_enabled === false) {
+            filterBtn.style.display = 'none';
+            return;
+        }
 
         let user = null;
         try { user = JSON.parse(localStorage.getItem('user')); } catch(e) {}
@@ -1049,9 +1154,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             let roleHtml = '';
-            if (guest.role === 'para_mloda') roleHtml = '<span class="sheet-guest-role" style="color:#d4af37;">Para Młoda</span>';
-            else if (guest.role === 'swiadek') roleHtml = '<span class="sheet-guest-role">Świadek</span>';
-            else if (guest.relationship) roleHtml = `<span class="sheet-guest-role">${guest.relationship}</span>`;
+            if (guest.role === 'para_mloda') {
+                const label = (typeof getRoleLabel === 'function') ? getRoleLabel('para_mloda', 'Para Młoda') : 'Para Młoda';
+                roleHtml = `<span class="sheet-guest-role" style="color:#d4af37;">${label}</span>`;
+            } else if (guest.role === 'swiadek') {
+                const label = (typeof getRoleLabel === 'function') ? getRoleLabel('swiadek', 'Świadek') : 'Świadek';
+                roleHtml = `<span class="sheet-guest-role">${label}</span>`;
+            } else if (guest.relationship) {
+                roleHtml = `<span class="sheet-guest-role">${guest.relationship}</span>`;
+            }
 
             let avatarUrl = guest.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(getInitials(guest.name, ''))}&background=EAE0D5&color=000`;
 
@@ -1276,12 +1387,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const couplePhotos = backendPhotos.filter(p => p.guest_role === 'para_mloda');
 
         if (couplePhotos.length === 0) {
+            const coupleNameDisplay = (weddingConfig && weddingConfig.wedding_name) ? weddingConfig.wedding_name : 'Para Młoda';
+            const coupleImgSrc = (weddingConfig && weddingConfig.couple_image) ? weddingConfig.couple_image : 'img/couple.png';
             container.innerHTML = `
                 <div class="couple-photo-card" style="grid-column: 1 / -1; height: 200px;">
-                    <img src="img/couple.png" alt="Zuzia & Kamil" class="couple-grid-img">
+                    <img src="${coupleImgSrc}" alt="${coupleNameDisplay}" class="couple-grid-img">
                     <div class="couple-photo-caption">
-                        <span><i class="ph-fill ph-heart"></i> Zuzia & Kamil</span>
-                        <span>Poznań 2026</span>
+                        <span><i class="ph-fill ph-heart"></i> ${coupleNameDisplay}</span>
                     </div>
                 </div>
             `;
@@ -3273,18 +3385,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 userProfileCode.textContent = `Kod: ${user.login_code}`;
             }
             
-            if (userTableInfo) {
-                const isLayoutReady = window._activeLayout && window._activeLayout.isReady;
-                if (!isLayoutReady) {
-                    userTableInfo.textContent = 'Plan stołów jest jeszcze niedostępny';
-                } else if (user.table_number !== null && user.table_number !== undefined && user.table_number !== '') {
-                    const tableLabel = (user.table_number === 0 || user.table_number === '0') 
-                        ? 'Stół Pary Młodej' 
-                        : `Stolik <strong>${user.table_number}</strong>`;
-                    userTableInfo.innerHTML = tableLabel + 
-                        (user.seat_number ? ` &bull; Miejsce ${user.seat_number}` : '');
-                } else {
-                    userTableInfo.textContent = 'Brak przypisanego stolika';
+            const cfg = window.__WEDDING_CONFIG || weddingConfig || {};
+            const userTableCard = document.getElementById('user-table-card');
+            if (cfg.seating_enabled === false) {
+                if (userTableCard) userTableCard.style.display = 'none';
+            } else {
+                if (userTableCard) userTableCard.style.display = 'flex';
+                if (userTableInfo) {
+                    const isLayoutReady = window._activeLayout && window._activeLayout.isReady;
+                    if (!isLayoutReady) {
+                        userTableInfo.textContent = 'Plan stołów jest jeszcze niedostępny';
+                    } else if (user.table_number !== null && user.table_number !== undefined && user.table_number !== '') {
+                        const tableLabel = (user.table_number === 0 || user.table_number === '0') 
+                            ? 'Stół Pary Młodej' 
+                            : `Stolik <strong>${user.table_number}</strong>`;
+                        userTableInfo.innerHTML = tableLabel + 
+                            (user.seat_number ? ` &bull; Miejsce ${user.seat_number}` : '');
+                    } else {
+                        userTableInfo.textContent = 'Brak przypisanego stolika';
+                    }
                 }
             }
 
@@ -3577,16 +3696,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Live Wedding Countdown Timer ---
-    const weddingDate = new Date('2027-06-26T16:00:00+02:00').getTime();
+    let weddingDate = (weddingConfig && weddingConfig.wedding_date) 
+        ? new Date(weddingConfig.wedding_date).getTime() 
+        : new Date().getTime() + 86400000;
     function updateWeddingCountdown() {
         const now = new Date().getTime();
         const distance = weddingDate - now;
 
         if (distance < 0) {
+            const isSingle = !weddingConfig.partner2_name || !weddingConfig.partner2_name.trim();
+            const todayMsg = weddingConfig.custom_labels?.today_text || (isSingle ? 'Dzisiaj jest Impreza! 🎂🎉' : 'Dzisiaj jest nasz Ślub! 💒🎉');
+            const todayHeaderMsg = weddingConfig.custom_labels?.today_header || (isSingle ? 'Dzisiaj jest Impreza! 🎉' : 'Dzisiaj jest nasz Ślub! 💒');
             const cdBox = document.querySelector('.wedding-countdown-box');
-            if (cdBox) cdBox.innerHTML = '<div style="font-size:1.2rem; font-weight:700; color:#d4af37;">Dzisiaj jest nasz Ślub! 💒🎉</div>';
+            if (cdBox) cdBox.innerHTML = `<div style="font-size:1.2rem; font-weight:700; color:var(--color-accent);">${todayMsg}</div>`;
             const hCdBox = document.getElementById('header-countdown-box');
-            if (hCdBox) hCdBox.innerHTML = '<div style="font-size:0.9rem; font-weight:700; color:#d4af37;">Dzisiaj jest nasz Ślub! 💒</div>';
+            if (hCdBox) hCdBox.innerHTML = `<div style="font-size:0.9rem; font-weight:700; color:var(--color-accent);">${todayHeaderMsg}</div>`;
             return;
         }
 
@@ -3962,13 +4086,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Interactive Header Schedule Logic & Test Controller ---
-    let SCHEDULE_EVENTS = [
-        { id: 1, time: '16:00', label: '16:00 Ślub', title: 'Ceremonia Ślubna', desc: 'Uroczysta msza i przysięga małżeńska w Kościele św. Andrzeja Boboli w Białymstoku.', location: 'Kościół św. Andrzeja Boboli', icon: 'ph-church', startMin: 16 * 60, endMin: 17 * 60 + 30 },
-        { id: 2, time: '18:00', label: '18:00 Obiad', title: 'Toast Powitalny i Obiad', desc: 'Powitanie Pary Młodej chlebem i solą, wykwintny obiad w Oranżerii.', location: 'Oranżeria Nowosiółki', icon: 'ph-champagne', startMin: 17 * 60 + 30, endMin: 19 * 60 + 30 },
-        { id: 3, time: '19:30', label: '19:30 Taniec', title: 'Pierwszy Taniec i Impreza', desc: 'Pierwszy taniec Zuzii i Kamila oraz huczne otwarcie parkietu!', location: 'Parkiet Główny', icon: 'ph-music-notes', startMin: 19 * 60 + 30, endMin: 22 * 60 },
-        { id: 4, time: '22:00', label: '22:00 Tort', title: 'Uroczysty Tort Weselny', desc: 'Serwowanie słodkiego tortu weselnego oraz pokaz sztucznych ogni.', location: 'Sala Główna', icon: 'ph-cake', startMin: 22 * 60, endMin: 24 * 60 },
-        { id: 5, time: '00:00', label: '00:00 Oczepiny', title: 'Oczepiny i Zabawy', desc: 'Tradycyjne zabawy oczepinowe, rzucanie welonem i krawatem!', location: 'Parkiet', icon: 'ph-crown', startMin: 24 * 60, endMin: 28 * 60 }
-    ];
+    let SCHEDULE_EVENTS = (weddingConfig.schedule_events && weddingConfig.schedule_events.length > 0)
+        ? weddingConfig.schedule_events
+        : [];
 
     let forceScheduleMode = false;
     let simulatedEventIndex = null;
@@ -4067,12 +4187,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const toggleText = document.getElementById('toggle-mode-text');
 
         const now = new Date().getTime();
-        const weddingDate = new Date('2027-06-26T16:00:00+02:00').getTime();
-        const weddingEnd = new Date('2027-06-27T06:00:00+02:00').getTime();
+        const effectiveWeddingDate = (weddingConfig && weddingConfig.wedding_date) ? new Date(weddingConfig.wedding_date).getTime() : weddingDate;
+        const effectiveWeddingEnd = (weddingConfig && weddingConfig.wedding_end_date) ? new Date(weddingConfig.wedding_end_date).getTime() : ((weddingConfig && weddingConfig.wedding_date) ? new Date(weddingConfig.wedding_date).getTime() + 14 * 3600000 : new Date('2027-06-27T06:00:00+02:00').getTime());
 
-        let isBeforeWedding = now < weddingDate;
-        let isDuringWedding = now >= weddingDate && now <= weddingEnd;
-        let isAfterWedding = now > weddingEnd;
+        let isBeforeWedding = now < effectiveWeddingDate;
+        let isDuringWedding = now >= effectiveWeddingDate && now <= effectiveWeddingEnd;
+        let isAfterWedding = now > effectiveWeddingEnd;
 
         // Override if using test switcher toggle
         if (testHeaderState === 0) {
@@ -4099,7 +4219,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (isDuringWedding) {
                 coupleStatusText.textContent = "Dziękujemy, że jesteście z nami!";
             } else {
-                coupleStatusText.textContent = "Do zobaczenia na naszym weselu";
+                const cfg = window.__WEDDING_CONFIG || {};
+                const defaultMsg = cfg.default_status_text || (!cfg.partner2_name ? "Do zobaczenia na imprezie" : "Do zobaczenia na naszym weselu");
+                coupleStatusText.textContent = defaultMsg;
             }
         }
 
@@ -5347,17 +5469,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // WEDDING CONFIG & ADMIN PANEL IMPLEMENTATION
     // ==========================================
-    let witnessPermissions = {
-        can_delete_photos: false,
-        can_delete_videos: false,
-        can_see_wishes: true
-    };
-
-    let coupleStatusTexts = [
-        { text: "Do zobaczenia na naszym weselu" }
-    ];
-    let weddingConfig = {};
-
     async function loadWeddingConfig() {
         const token = localStorage.getItem('access_token');
         if (!token) return;
@@ -5370,6 +5481,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const config = await res.json();
                 weddingConfig = config;
                 
+                if (typeof applyTheme === 'function') {
+                    applyTheme(config);
+                }
+                if (config.wedding_date) {
+                    weddingDate = new Date(config.wedding_date).getTime();
+                }
+
                 // 1. Witness permissions
                 if (config.witness_permissions) {
                     witnessPermissions = { ...witnessPermissions, ...config.witness_permissions };
@@ -5416,6 +5534,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (config.status_texts && config.status_texts.length > 0) {
                     coupleStatusTexts = config.status_texts;
                     updateCoupleStatusTextCycling();
+                } else {
+                    const fallbackStatus = config.default_status_text || (!config.partner2_name ? "Do zobaczenia na imprezie" : "Do zobaczenia na naszym weselu");
+                    coupleStatusTexts = [
+                        { text: fallbackStatus }
+                    ];
+                    const textEl = document.getElementById('couple-status-text');
+                    if (textEl && (!textEl.textContent.trim() || textEl.textContent === "Do zobaczenia na naszym weselu" || textEl.textContent === "Do zobaczenia na imprezie")) {
+                        textEl.textContent = fallbackStatus;
+                    }
                 }
 
                 // 3. Info places
@@ -5432,14 +5559,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // 5. Couple image
-                if (config.couple_image) {
-                    const coupleHeroBg = document.querySelector('.couple-hero-bg');
-                    if (coupleHeroBg) {
+                const coupleHeroBg = document.querySelector('.couple-hero-bg');
+                if (coupleHeroBg) {
+                    if (config.couple_image) {
                         coupleHeroBg.style.backgroundImage = `url('${config.couple_image}')`;
-                        const x = config.couple_image_position_x !== undefined ? config.couple_image_position_x : 50;
-                        const y = config.couple_image_position_y !== undefined ? config.couple_image_position_y : 50;
-                        coupleHeroBg.style.backgroundPosition = `${x}% ${y}%`;
+                    } else {
+                        coupleHeroBg.style.backgroundImage = "url('img/couple.png')";
                     }
+                    const x = config.couple_image_position_x !== undefined ? config.couple_image_position_x : 50;
+                    const y = config.couple_image_position_y !== undefined ? config.couple_image_position_y : 50;
+                    coupleHeroBg.style.backgroundPosition = `${x}% ${y}%`;
                 }
 
                 // 6. Header mode settings
@@ -5509,15 +5638,20 @@ document.addEventListener('DOMContentLoaded', () => {
             wrapper.className = 'info-contacts-wrapper';
             wrapper.id = 'info-contacts-wrapper-el';
             
+            const isSingle = !config.partner2_name;
+            const contactHeaderTitle = config.contact_label || (isSingle ? 'Kontakt do jubilata' : 'Kontakt do pary młodej');
+            const groomTitle = isSingle ? (config.partner1_name ? `Kontakt do: ${config.partner1_name}` : 'Jubilat') : (config.partner1_name ? `Pan Młody (${config.partner1_name})` : 'Pan Młody');
+            const brideTitle = config.partner2_name ? `Panna Młoda (${config.partner2_name})` : 'Panna Młoda';
+
             wrapper.innerHTML = `
-                <div class="info-contacts-header">Kontakt do pary młodej</div>
+                <div class="info-contacts-header">${contactHeaderTitle}</div>
                 <div class="info-contacts-container">
                     ${config.phone_groom ? `
                         <div class="contact-card">
                             <div class="contact-card-main">
                                 <div class="contact-icon-wrapper"><i class="ph-fill ph-phone"></i></div>
                                 <div class="contact-details">
-                                    <h3>Pan Młody</h3>
+                                    <h3>${groomTitle}</h3>
                                     <p class="contact-phone"><i class="ph ph-device-mobile"></i> ${config.phone_groom}</p>
                                 </div>
                             </div>
@@ -5529,7 +5663,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="contact-card-main">
                                 <div class="contact-icon-wrapper"><i class="ph-fill ph-phone"></i></div>
                                 <div class="contact-details">
-                                    <h3>Panna Młoda</h3>
+                                    <h3>${brideTitle}</h3>
                                     <p class="contact-phone"><i class="ph ph-device-mobile"></i> ${config.phone_bride}</p>
                                 </div>
                             </div>
@@ -5635,20 +5769,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const tabCouple = document.getElementById('tab-couple');
-    const topHeader = document.getElementsByClassName('top-header')[0];
-    const bottomNav = document.getElementsByClassName('bottom-nav')[0];
-
-    function calculateAndSetTabCoupleHeight() {
-        const topHeaderHeight = topHeader.offsetHeight;
-        const bottomNavHeight = bottomNav.offsetHeight;
-
-        const windowHeight = window.innerHeight;
-
-        const newTabCoupleHeight = windowHeight - topHeaderHeight - bottomNavHeight;
-        tabCouple.style.height = `${newTabCoupleHeight}px`;
-    }
-
     calculateAndSetTabCoupleHeight();
     window.addEventListener('resize', calculateAndSetTabCoupleHeight);
 
@@ -5656,7 +5776,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminPanelCard = document.getElementById('admin-panel-card');
     if (adminPanelCard) {
         adminPanelCard.addEventListener('click', () => {
-            window.location.href = 'admin.html';
+            const orgId = (typeof detectOrganizationId === 'function') ? detectOrganizationId() : '';
+            window.location.href = orgId ? `admin.html?org=${encodeURIComponent(orgId)}` : 'admin.html';
         });
     }
 
