@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.documentElement.setAttribute('data-org-ready', 'true');
     document.documentElement.removeAttribute('data-theme');
     if (document.body) document.body.classList.remove('dark-theme');
-    let currentOrgId = (typeof detectOrganizationId === 'function') ? detectOrganizationId() : 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
+    let currentOrgId = (typeof detectOrganizationId === 'function') ? detectOrganizationId() : '18181818-1818-4818-8818-181818181818';
 
     // Synchronize currentOrgId with authenticated user from localStorage if not explicitly requested in URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (typeof url === 'string' && url.includes('/api/')) {
             options = options || {};
             options.headers = options.headers || {};
-            const activeOrg = currentOrgId || ((typeof detectOrganizationId === 'function') ? detectOrganizationId() : 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d');
+            const activeOrg = currentOrgId || ((typeof detectOrganizationId === 'function') ? detectOrganizationId() : '18181818-1818-4818-8818-181818181818');
             if (options.headers instanceof Headers) {
                 if (!options.headers.has('X-Organization-Id')) {
                     options.headers.set('X-Organization-Id', activeOrg);

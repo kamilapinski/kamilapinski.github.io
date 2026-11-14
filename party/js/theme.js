@@ -1,7 +1,8 @@
 /**
  * Multi-tenant Theme & Organization Helper for Wesele App
  */
-const DEFAULT_ORG_ID = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
+const DEFAULT_ORG_ID = '18181818-1818-4818-8818-181818181818';
+const LEGACY_DEFAULT_ORG_ID = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
 
 const THEME_PRESETS = {
     classic_gold: {
@@ -210,7 +211,13 @@ function detectOrganizationId() {
         const userRaw = localStorage.getItem('user');
         if (userRaw) {
             const user = JSON.parse(userRaw);
-            if (user && user.organization_id) {
+            // If the user belongs to the legacy default org and no org param was specified, clear stale session so main page opens 18-stka Pawła
+            if (user && user.organization_id && user.organization_id === LEGACY_DEFAULT_ORG_ID && !window.location.pathname.includes('admin.html')) {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('current_org_id');
+            } else if (user && user.organization_id) {
                 localStorage.setItem('current_org_id', user.organization_id);
                 return user.organization_id;
             }
@@ -219,11 +226,14 @@ function detectOrganizationId() {
 
     // 4. Stored in localStorage
     const storedOrg = localStorage.getItem('current_org_id');
-    if (storedOrg) {
+    if (storedOrg && storedOrg !== LEGACY_DEFAULT_ORG_ID) {
         return storedOrg;
     }
+    if (storedOrg === LEGACY_DEFAULT_ORG_ID) {
+        localStorage.removeItem('current_org_id');
+    }
 
-    // 5. Default to Org 1
+    // 5. Default to 18-stka Pawła
     return DEFAULT_ORG_ID;
 }
 
