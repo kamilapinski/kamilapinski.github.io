@@ -563,6 +563,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const roleField = document.getElementById('admin-guest-role');
         const parentField = document.getElementById('admin-guest-parent');
         const tableField = document.getElementById('admin-guest-table');
+        const seatField = document.getElementById('admin-guest-seat');
         const relationshipField = document.getElementById('admin-guest-relationship');
         const phoneField = document.getElementById('admin-guest-phone');
         const howMetField = document.getElementById('admin-guest-how-met');
