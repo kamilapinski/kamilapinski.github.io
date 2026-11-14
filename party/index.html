@@ -389,12 +389,12 @@
                             <div class="info-card-arrow" style="color: #5a5047;"><i class="ph-bold ph-caret-right"></i></div>
                         </div>
 
-                        <!-- Zmień Hasło Panel (Dla świadków i pary młodej) -->
+                        <!-- Ustaw / Zmień Hasło Panel (Dla wszystkich gości) -->
                         <div class="profile-info-card change-password-card" id="change-password-card" style="display: none; cursor: pointer;">
                             <div class="info-card-icon"><i class="ph-fill ph-key"></i></div>
                             <div class="info-card-content">
-                                <span class="info-card-label">Zmień hasło</span>
-                                <strong class="info-card-value" style="font-size: 0.85rem; font-weight: normal; color: #777;">Zabezpiecz swoje konto</strong>
+                                <span class="info-card-label" id="change-password-label">Ustaw hasło</span>
+                                <strong class="info-card-value" id="change-password-subtitle" style="font-size: 0.85rem; font-weight: normal; color: #777;">Zabezpiecz swoje konto</strong>
                             </div>
                             <div class="info-card-arrow"><i class="ph-bold ph-caret-right"></i></div>
                         </div>
@@ -782,8 +782,8 @@
 
                 <div class="direct-modal-header" style="margin-bottom: 20px;">
                     <div class="info-card-icon" style="background: #f5e9da; color: #5a5047; margin: 0 auto 12px auto; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 1.5rem;"><i class="ph-fill ph-key"></i></div>
-                    <h3>Zmień hasło</h3>
-                    <p>Wpisz nowe hasło do swojego konta</p>
+                    <h3 id="change-password-modal-title">Ustaw hasło</h3>
+                    <p id="change-password-modal-subtitle">Wpisz nowe hasło do swojego konta</p>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
@@ -849,7 +849,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
         <!-- JS -->
-        <script src="js/app.js?v=3.5"></script>
+        <script src="js/app.js?v=3.6"></script>
 </body>
 
 </html>

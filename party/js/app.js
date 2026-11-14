@@ -3438,14 +3438,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Section "Zmień Hasło" (only for para_mloda / swiadek)
+            // Section "Ustaw / Zmień Hasło" (available for all guests)
             const changePasswordCard = document.getElementById('change-password-card');
             if (changePasswordCard) {
-                if (user.role === 'para_mloda' || user.role === 'swiadek') {
-                    changePasswordCard.style.display = 'flex';
-                } else {
-                    changePasswordCard.style.display = 'none';
-                }
+                changePasswordCard.style.display = 'flex';
+                const pwdLabel = document.getElementById('change-password-label');
+                const pwdSubtitle = document.getElementById('change-password-subtitle');
+                const hasPassword = !!(user && user.has_password);
+                if (pwdLabel) pwdLabel.textContent = hasPassword ? 'Zmień hasło' : 'Ustaw hasło';
+                if (pwdSubtitle) pwdSubtitle.textContent = hasPassword ? 'Zmień hasło do swojego konta' : 'Zabezpiecz swoje konto hasłem';
             }
 
             // Removed Seating Creator panel (coupleToolsContainer) as requested
@@ -3536,6 +3537,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (changePasswordCard && changePasswordModal) {
         changePasswordCard.addEventListener('click', () => {
+            let user = null;
+            try {
+                user = JSON.parse(localStorage.getItem('user'));
+            } catch (e) { }
+            const hasPassword = !!(user && user.has_password);
+            const pwdModalTitle = document.getElementById('change-password-modal-title');
+            const pwdModalSubtitle = document.getElementById('change-password-modal-subtitle');
+            if (pwdModalTitle) pwdModalTitle.textContent = hasPassword ? 'Zmień hasło' : 'Ustaw hasło';
+            if (pwdModalSubtitle) pwdModalSubtitle.textContent = hasPassword ? 'Wpisz nowe hasło do swojego konta' : 'Wpisz hasło do swojego konta';
+            if (changePasswordSubmitBtn) changePasswordSubmitBtn.textContent = hasPassword ? 'Zmień hasło' : 'Ustaw hasło';
+
             changePasswordModal.style.display = 'flex';
             newPasswordInput.value = '';
             confirmPasswordInput.value = '';
@@ -3583,7 +3595,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const data = await response.json();
                 if (response.ok) {
-                    changePasswordError.textContent = 'Hasło zostało zmienione!';
+                    let user = null;
+                    try {
+                        user = JSON.parse(localStorage.getItem('user')) || {};
+                    } catch (e) { user = {}; }
+                    user.has_password = true;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    if (typeof updateProfileUI === 'function') {
+                        updateProfileUI();
+                    }
+
+                    changePasswordError.textContent = 'Hasło zostało zapisane!';
                     changePasswordError.style.color = '#10b981';
                     setTimeout(() => {
                         changePasswordModal.style.display = 'none';
@@ -3598,7 +3620,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 changePasswordError.style.color = '#e11d48';
             } finally {
                 changePasswordSubmitBtn.disabled = false;
-                changePasswordSubmitBtn.textContent = 'Zmień hasło';
+                let user = null;
+                try {
+                    user = JSON.parse(localStorage.getItem('user'));
+                } catch (e) { }
+                const hasPassword = !!(user && user.has_password);
+                changePasswordSubmitBtn.textContent = hasPassword ? 'Zmień hasło' : 'Ustaw hasło';
             }
         });
     }
