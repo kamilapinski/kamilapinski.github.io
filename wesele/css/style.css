@@ -1674,7 +1674,13 @@ button {
 }
 
 img.login-logo {
-    height: 10rem;
+    max-width: 85%;
+    max-height: 55px;
+    height: auto;
+    width: auto;
+    object-fit: contain;
+    margin: 0 auto;
+    display: block;
 }
 
 .login-content h2 {
@@ -6528,10 +6534,14 @@ body.dark-theme .login-content {
 [data-theme="dark"] img.login-logo,
 body.dark-theme .login-content .login-logo img,
 body.dark-theme img.login-logo {
-    max-height: 100px;
+    max-width: 85%;
+    max-height: 55px;
     width: auto;
+    height: auto;
+    display: block;
+    margin: 0 auto;
     object-fit: contain;
-    filter: drop-shadow(0 4px 18px rgba(212, 175, 55, 0.5));
+    filter: drop-shadow(0 2px 10px rgba(212, 175, 55, 0.35));
 }
 
 [data-theme="dark"] .login-content h2,
