@@ -706,6 +706,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             roleGoscEnabled.checked = roles.gosc?.enabled !== false;
         }
 
+        const roleParaMlodaPhone = document.getElementById('admin-role-require-phone-para-mloda');
+        if (roleParaMlodaPhone) {
+            roleParaMlodaPhone.checked = roles.para_mloda?.require_phone !== false;
+        }
+
+        const roleSwiadekPhone = document.getElementById('admin-role-require-phone-swiadek');
+        if (roleSwiadekPhone) {
+            roleSwiadekPhone.checked = roles.swiadek?.require_phone !== false;
+        }
+
+        const roleGoscPhone = document.getElementById('admin-role-require-phone-gosc');
+        if (roleGoscPhone) {
+            roleGoscPhone.checked = roles.gosc?.require_phone !== false;
+        }
+
         updateRoleDropdowns(roles, isSingle);
 
         const adminHeaderTitle = document.getElementById('admin-header-title');
@@ -2159,15 +2174,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const rolesConfigPayload = {
                         para_mloda: {
                             label: document.getElementById('admin-role-label-para-mloda')?.value.trim() || 'Para Młoda',
-                            enabled: true
+                            enabled: true,
+                            require_phone: document.getElementById('admin-role-require-phone-para-mloda')?.checked !== false
                         },
                         swiadek: {
                             label: document.getElementById('admin-role-label-swiadek')?.value.trim() || 'Świadek/Świadkowa',
-                            enabled: document.getElementById('admin-role-enabled-swiadek')?.checked !== false
+                            enabled: document.getElementById('admin-role-enabled-swiadek')?.checked !== false,
+                            require_phone: document.getElementById('admin-role-require-phone-swiadek')?.checked !== false
                         },
                         gosc: {
                             label: document.getElementById('admin-role-label-gosc')?.value.trim() || 'Gość',
-                            enabled: document.getElementById('admin-role-enabled-gosc')?.checked !== false
+                            enabled: document.getElementById('admin-role-enabled-gosc')?.checked !== false,
+                            require_phone: document.getElementById('admin-role-require-phone-gosc')?.checked !== false
                         }
                     };
                     formData.append('roles_config', JSON.stringify(rolesConfigPayload));
