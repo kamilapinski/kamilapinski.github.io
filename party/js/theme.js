@@ -393,7 +393,7 @@ function applyTheme(config) {
     const loginLogoContainer = document.querySelector('.login-content .login-logo') || document.getElementById('login-logo-container');
     if (loginLogoContainer) {
         if (config.logo_image) {
-            loginLogoContainer.innerHTML = `<img src="${config.logo_image}" alt="Logo" class="login-logo" style="max-height: 100px; width: auto; object-fit: contain; filter: drop-shadow(0 4px 18px rgba(212, 175, 55, 0.45));">`;
+            loginLogoContainer.innerHTML = `<img src="${config.logo_image}" alt="Logo" class="login-logo" style="max-width: 100% !important; max-height: 48px !important; width: auto !important; height: auto !important; object-fit: contain !important; margin: 0 auto !important; display: block !important; filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.35)) !important;">`;
         } else if (config.monogram_text) {
             const parts = config.monogram_text.split('&');
             if (parts.length === 2) {
