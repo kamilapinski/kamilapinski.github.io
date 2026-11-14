@@ -196,6 +196,7 @@
                             <button id="admin-add-guest-btn" class="admin-btn-primary"><i class="ph ph-user-plus"></i> Dodaj</button>
                             <label for="admin-csv-file" class="admin-btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; border: 1.5px solid #dcd1c4;"><i class="ph ph-file-csv"></i> Importuj CSV</label>
                             <input type="file" id="admin-csv-file" accept=".csv" style="display: none;">
+                            <button id="admin-export-pdf-btn" class="admin-btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; border: 1.5px solid #dcd1c4; background: var(--color-surface, #ffffff); color: var(--color-text, #111111);"><i class="ph-fill ph-file-pdf" style="color: #dc2626; font-size: 1.15rem;"></i> Pobierz kody (PDF)</button>
                         </div>
                     </div>
                     
@@ -842,6 +843,7 @@
     </div>
 
     <!-- JS Scripts -->
-    <script src="js/admin.js?v=3.4"></script>
+    <script src="js/html2pdf.bundle.min.js"></script>
+    <script src="js/admin.js?v=3.5"></script>
 </body>
 </html>

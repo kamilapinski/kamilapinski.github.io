@@ -6022,6 +6022,7 @@ body.no-scroll .couple-hero-card {
     display: flex;
     gap: 8px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .admin-guest-search {
