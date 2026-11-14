@@ -12,7 +12,7 @@
     
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="js/theme.js?v=3.2"></script>
+    <script src="js/theme.js?v=3.3"></script>
     <script>
         (function() {
             document.documentElement.setAttribute('data-org-ready', 'true');
@@ -22,7 +22,7 @@
     </script>
     
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="css/style.css?v=3.2">
+    <link rel="stylesheet" href="css/style.css?v=3.3">
     
     <style>
         body {
@@ -645,6 +645,10 @@
                                     <input type="checkbox" id="admin-org-seating-enabled-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
                                     <label for="admin-org-seating-enabled-checkbox" style="font-weight: 600; cursor: pointer; user-select: none;">Włącz Plan Stołów / Salę (widok rozmieszczenia gości)</label>
                                 </div>
+                                <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                    <input type="checkbox" id="admin-org-simple-codes-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
+                                    <label for="admin-org-simple-codes-checkbox" style="font-weight: 600; cursor: pointer; user-select: none;">Proste kody logowania dla nowych gości (imię gościa, np. PAWEL, a przy duplikatach PAWEL2)</label>
+                                </div>
                             </div>
                         </div>
 
@@ -838,6 +842,6 @@
     </div>
 
     <!-- JS Scripts -->
-    <script src="js/admin.js?v=3.2"></script>
+    <script src="js/admin.js?v=3.3"></script>
 </body>
 </html>

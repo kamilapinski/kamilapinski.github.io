@@ -677,6 +677,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const orgSeatingCheckbox = document.getElementById('admin-org-seating-enabled-checkbox');
         if (orgSeatingCheckbox) orgSeatingCheckbox.checked = cfg.seating_enabled !== false;
 
+        const orgSimpleCodesCheckbox = document.getElementById('admin-org-simple-codes-checkbox');
+        if (orgSimpleCodesCheckbox) orgSimpleCodesCheckbox.checked = Boolean(cfg.simple_codes_enabled);
+
         // 5. Roles configuration
         const roles = cfg.roles_config || {};
         const isSingle = !cfg.partner2_name || !cfg.partner2_name.trim();
@@ -2168,6 +2171,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const orgSeatingCheckbox = document.getElementById('admin-org-seating-enabled-checkbox');
                     if (orgSeatingCheckbox) {
                         formData.append('seating_enabled', orgSeatingCheckbox.checked);
+                    }
+                    const orgSimpleCodesCheckbox = document.getElementById('admin-org-simple-codes-checkbox');
+                    if (orgSimpleCodesCheckbox) {
+                        formData.append('simple_codes_enabled', orgSimpleCodesCheckbox.checked);
                     }
 
                     // Roles configuration per Organization
