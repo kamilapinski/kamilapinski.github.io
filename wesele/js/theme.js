@@ -515,25 +515,11 @@ function applyTheme(config) {
         if (filterBtn) filterBtn.style.display = 'none';
     }
 
-    // Update Demo Codes Container
-    const demoChipsContainer = document.getElementById('demo-codes-chips') || document.querySelector('#demo-codes-container div');
+    // Hide demo codes container if present
     const demoCodesContainer = document.getElementById('demo-codes-container');
-    if (demoChipsContainer && demoCodesContainer) {
-        if (config.organization_id === '18181818-1818-4818-8818-181818181818' || (config.organization_name && config.organization_name.includes('Paweł')) || isSingleHost) {
-            demoChipsContainer.innerHTML = `
-                <button type="button" class="demo-code-chip" onclick="document.getElementById('login-code-input').value='PAWEL18'; document.getElementById('login-submit-btn').click();">PAWEL18</button>
-                <button type="button" class="demo-code-chip" onclick="document.getElementById('login-code-input').value='MAREK18'; document.getElementById('login-submit-btn').click();">MAREK18</button>
-                <button type="button" class="demo-code-chip" onclick="document.getElementById('login-code-input').value='KASIA18'; document.getElementById('login-submit-btn').click();">KASIA18</button>
-            `;
-            demoCodesContainer.style.display = 'block';
-        } else {
-            demoChipsContainer.innerHTML = `
-                <button type="button" class="demo-code-chip" onclick="document.getElementById('login-code-input').value='KAMIL'; document.getElementById('login-submit-btn').click();">KAMIL</button>
-                <button type="button" class="demo-code-chip" onclick="document.getElementById('login-code-input').value='FRED'; document.getElementById('login-submit-btn').click();">FRED</button>
-                <button type="button" class="demo-code-chip" onclick="document.getElementById('login-code-input').value='8VGP87'; document.getElementById('login-submit-btn').click();">8VGP87</button>
-            `;
-            demoCodesContainer.style.display = 'block';
-        }
+    if (demoCodesContainer) {
+        demoCodesContainer.style.display = 'none';
+        demoCodesContainer.remove();
     }
 
     // Update Places dynamically in Info tab if element exists
