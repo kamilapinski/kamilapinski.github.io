@@ -862,6 +862,34 @@
                     <button class="admin-modal-close" id="admin-pdf-modal-close" style="background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #64748b; line-height: 1; padding: 4px;">&times;</button>
                 </div>
             </div>
+            <div class="admin-pdf-columns-toolbar" style="padding: 10px 20px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                <span style="font-size: 0.82rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 6px;">
+                    <i class="ph ph-columns" style="font-size: 1rem;"></i> Wybierz kolumny:
+                </span>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                    <label style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.83rem; font-weight: 500; color: #1e293b; cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="pdf-col-lp" class="pdf-col-toggle" data-col="lp" style="accent-color: #2563eb; cursor: pointer; width: 15px; height: 15px;"> Lp.
+                    </label>
+                    <label style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.83rem; font-weight: 500; color: #1e293b; cursor: not-allowed; user-select: none;">
+                        <input type="checkbox" id="pdf-col-name" class="pdf-col-toggle" data-col="name" checked disabled style="accent-color: #2563eb; cursor: not-allowed; width: 15px; height: 15px; opacity: 0.6;"> Imię i nazwisko
+                    </label>
+                    <label style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.83rem; font-weight: 500; color: #1e293b; cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="pdf-col-role" class="pdf-col-toggle" data-col="role" style="accent-color: #2563eb; cursor: pointer; width: 15px; height: 15px;"> Rola
+                    </label>
+                    <label style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.83rem; font-weight: 500; color: #1e293b; cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="pdf-col-table" class="pdf-col-toggle" data-col="table" style="accent-color: #2563eb; cursor: pointer; width: 15px; height: 15px;"> Stolik
+                    </label>
+                    <label style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.83rem; font-weight: 500; color: #1e293b; cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="pdf-col-code" class="pdf-col-toggle" data-col="code" style="accent-color: #2563eb; cursor: pointer; width: 15px; height: 15px;"> Kod logowania
+                    </label>
+                    <label style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.83rem; font-weight: 500; color: #1e293b; cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="pdf-col-phone" class="pdf-col-toggle" data-col="phone" style="accent-color: #2563eb; cursor: pointer; width: 15px; height: 15px;"> Telefon
+                    </label>
+                    <label style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.83rem; font-weight: 500; color: #1e293b; cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="pdf-col-relationship" class="pdf-col-toggle" data-col="relationship" style="accent-color: #2563eb; cursor: pointer; width: 15px; height: 15px;"> Relacja
+                    </label>
+                </div>
+            </div>
             <div class="admin-modal-body" style="padding: 20px; overflow-y: auto; display: flex; justify-content: center; background: #64748b;">
                 <div id="admin-pdf-sheet-wrapper" style="width: 100%; max-width: 760px; background: #ffffff; box-shadow: 0 4px 20px rgba(0,0,0,0.18); border-radius: 4px; box-sizing: border-box;">
                     <!-- Printable sheet content injected dynamically -->
@@ -872,6 +900,6 @@
 
     <!-- JS Scripts -->
     <script src="js/html2pdf.bundle.min.js"></script>
-    <script src="js/admin.js?v=3.6"></script>
+    <script src="js/admin.js?v=3.7"></script>
 </body>
 </html>

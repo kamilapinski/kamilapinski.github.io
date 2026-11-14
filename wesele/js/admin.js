@@ -636,6 +636,206 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
         }
+
+        // Column selection checkbox toggles
+        document.querySelectorAll('.pdf-col-toggle').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const cols = readPdfColumnCheckboxes();
+                savePdfSelectedColumns(cols);
+                renderPdfSheet(cols);
+            });
+        });
+    }
+
+    function getPdfSelectedColumns() {
+        const defaults = {
+            lp: true,
+            name: true,
+            role: true,
+            table: true,
+            code: true,
+            phone: true,
+            relationship: false
+        };
+        try {
+            const saved = localStorage.getItem('pdf_selected_columns');
+            if (saved) {
+                return { ...defaults, ...JSON.parse(saved) };
+            }
+        } catch (e) {}
+        return defaults;
+    }
+
+    function savePdfSelectedColumns(cols) {
+        try {
+            localStorage.setItem('pdf_selected_columns', JSON.stringify(cols));
+        } catch (e) {}
+    }
+
+    function syncPdfColumnCheckboxes(cols) {
+        ['lp', 'name', 'role', 'table', 'code', 'phone', 'relationship'].forEach(key => {
+            const cb = document.getElementById(`pdf-col-${key}`);
+            if (cb && key !== 'name') {
+                cb.checked = Boolean(cols[key]);
+            }
+        });
+    }
+
+    function readPdfColumnCheckboxes() {
+        return {
+            lp: document.getElementById('pdf-col-lp')?.checked ?? true,
+            name: true,
+            role: document.getElementById('pdf-col-role')?.checked ?? true,
+            table: document.getElementById('pdf-col-table')?.checked ?? true,
+            code: document.getElementById('pdf-col-code')?.checked ?? true,
+            phone: document.getElementById('pdf-col-phone')?.checked ?? true,
+            relationship: document.getElementById('pdf-col-relationship')?.checked ?? false
+        };
+    }
+
+    function renderPdfSheet(cols = null) {
+        if (!cols) cols = getPdfSelectedColumns();
+        const sheetWrapper = document.getElementById('admin-pdf-sheet-wrapper');
+        if (!sheetWrapper || !allGuestsData) return;
+
+        // Sort guests alphabetically by Polish last_name, then first_name
+        const sortedGuests = [...allGuestsData].sort((a, b) => {
+            const lastNameA = (a.last_name || '').trim();
+            const lastNameB = (b.last_name || '').trim();
+            const comp = lastNameA.localeCompare(lastNameB, 'pl', { sensitivity: 'base' });
+            if (comp !== 0) return comp;
+            const firstNameA = (a.first_name || '').trim();
+            const firstNameB = (b.first_name || '').trim();
+            return firstNameA.localeCompare(firstNameB, 'pl', { sensitivity: 'base' });
+        });
+
+        const eventName = (weddingConfigRaw && (weddingConfigRaw.wedding_name || weddingConfigRaw.organization_name)) || 'Wydarzenie';
+        const dateStr = new Date().toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const timeStr = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+
+        const mainTableLabel = (weddingConfigRaw && weddingConfigRaw.custom_labels && weddingConfigRaw.custom_labels.main_table_label)
+            ? weddingConfigRaw.custom_labels.main_table_label
+            : ((typeof getRoleLabel === 'function' && getRoleLabel('para_mloda') === 'Jubilat') ? 'Stół Jubilata' : 'Stół Pary Młodej');
+
+        // Build columns specification based on user selection
+        const thCols = [];
+        if (cols.lp) thCols.push({ id: 'lp', label: 'Lp.', align: 'center', width: '32px' });
+        if (cols.name) thCols.push({ id: 'name', label: 'Imię i Nazwisko', align: 'left', width: 'auto' });
+        if (cols.role) thCols.push({ id: 'role', label: 'Rola', align: 'left', width: '85px' });
+        if (cols.table) thCols.push({ id: 'table', label: 'Stolik', align: 'left', width: '95px' });
+        if (cols.code) thCols.push({ id: 'code', label: 'Kod logowania', align: 'center', width: '120px' });
+        if (cols.phone) thCols.push({ id: 'phone', label: 'Telefon', align: 'left', width: '95px' });
+        if (cols.relationship) thCols.push({ id: 'relationship', label: 'Relacja', align: 'left', width: '95px' });
+
+        let theadHtml = '<tr style="background: #0f172a; color: #ffffff; text-transform: uppercase; font-size: 9.5px; font-weight: 700; letter-spacing: 0.5px;">';
+        thCols.forEach((col, idx) => {
+            let radius = '';
+            if (idx === 0) radius = 'border-radius: 4px 0 0 0;';
+            if (idx === thCols.length - 1) radius = 'border-radius: 0 4px 0 0;';
+            const w = col.width !== 'auto' ? `width: ${col.width};` : '';
+            theadHtml += `<th style="padding: 8px 8px; text-align: ${col.align}; ${w} ${radius}">${col.label}</th>`;
+        });
+        theadHtml += '</tr>';
+
+        let rowsHtml = '';
+        sortedGuests.forEach((g, idx) => {
+            const rowBg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+            rowsHtml += `<tr style="background: ${rowBg}; border-bottom: 1px solid #e2e8f0; page-break-inside: avoid;">`;
+
+            thCols.forEach(col => {
+                if (col.id === 'lp') {
+                    rowsHtml += `<td style="padding: 7px 6px; text-align: center; color: #64748b; font-weight: 600; font-size: 10px;">${idx + 1}</td>`;
+                } else if (col.id === 'name') {
+                    const prefixText = g.prefix ? `<span style="color: #64748b; font-weight: normal;">${escapeHtml(g.prefix)} </span>` : '';
+                    const fullName = `${prefixText}${escapeHtml(g.first_name || '')} ${escapeHtml(g.last_name || '')}`.trim() || '—';
+                    const plusOneBadge = g.is_plus_one
+                        ? ' <span style="display: inline-block; font-size: 8.5px; font-weight: 700; color: #be185d; background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 3px; padding: 1px 4px; vertical-align: middle;">TOW</span>'
+                        : '';
+                    rowsHtml += `<td style="padding: 7px 10px; font-weight: 600; color: #0f172a; font-size: 11px;">${fullName}${plusOneBadge}</td>`;
+                } else if (col.id === 'role') {
+                    const roleName = (typeof getRoleLabel === 'function')
+                        ? getRoleLabel(g.role)
+                        : (g.role === 'para_mloda' ? 'Para Młoda' : (g.role === 'swiadek' ? 'Świadek' : 'Gość'));
+
+                    let roleBg = '#f1f5f9';
+                    let roleColor = '#475569';
+                    if (g.role === 'para_mloda') {
+                        roleBg = '#fef3c7';
+                        roleColor = '#b45309';
+                    } else if (g.role === 'swiadek') {
+                        roleBg = '#e0e7ff';
+                        roleColor = '#4338ca';
+                    }
+                    rowsHtml += `
+                        <td style="padding: 7px 8px; font-size: 10.5px;">
+                            <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; font-weight: 600; background: ${roleBg}; color: ${roleColor};">
+                                ${escapeHtml(roleName)}
+                            </span>
+                        </td>
+                    `;
+                } else if (col.id === 'table') {
+                    const tableText = g.table_number !== null
+                        ? (g.table_number === 0 ? mainTableLabel : `Stolik ${g.table_number}`)
+                        : 'Brak';
+                    rowsHtml += `<td style="padding: 7px 8px; color: #334155; font-size: 10.5px;">${escapeHtml(tableText)}</td>`;
+                } else if (col.id === 'code') {
+                    const code = escapeHtml(g.login_code || '—');
+                    rowsHtml += `
+                        <td style="padding: 7px 10px; text-align: center;">
+                            <span style="display: inline-block; font-family: 'Courier New', Courier, monospace; font-size: 12.5px; font-weight: 800; letter-spacing: 1.5px; background: #ffffff; color: #0f172a; padding: 3px 8px; border-radius: 4px; border: 1.5px solid #0f172a;">
+                                ${code}
+                            </span>
+                        </td>
+                    `;
+                } else if (col.id === 'phone') {
+                    const phone = escapeHtml(g.phone || '—');
+                    rowsHtml += `<td style="padding: 7px 8px; color: #475569; font-size: 10px;">${phone}</td>`;
+                } else if (col.id === 'relationship') {
+                    const rel = escapeHtml(g.relationship || '—');
+                    rowsHtml += `<td style="padding: 7px 8px; color: #475569; font-size: 10px;">${rel}</td>`;
+                }
+            });
+            rowsHtml += '</tr>';
+        });
+
+        const templateHtml = `
+            <div id="pdf-printable-document" style="padding: 24px 28px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; background: #ffffff;">
+                <!-- HEADER -->
+                <div style="border-bottom: 2.5px solid #d4af37; padding-bottom: 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <div style="font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 1.5px; color: #b45309; margin-bottom: 3px;">Kody Logowania Gości</div>
+                        <h1 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">${escapeHtml(eventName)}</h1>
+                    </div>
+                    <div style="text-align: right; font-size: 10px; color: #64748b; line-height: 1.45;">
+                        <div>Liczba gości: <strong style="color: #0f172a;">${sortedGuests.length}</strong></div>
+                        <div>Wygenerowano: ${dateStr} ${timeStr}</div>
+                    </div>
+                </div>
+
+                <!-- INSTRUCTION BOX -->
+                <div style="background: #fdfaf3; border: 1px solid #fde68a; border-radius: 6px; padding: 9px 14px; margin-bottom: 16px; font-size: 10.5px; color: #92400e; line-height: 1.4;">
+                    <strong>Instrukcja dla gości:</strong> Aby się zalogować, wejdź na stronę aplikacji i wpisz swój kod z poniższej listy lub wejdź z dedykowanego linku QR.
+                </div>
+
+                <!-- TABLE -->
+                <table style="width: 100%; border-collapse: collapse; font-size: 10.5px;">
+                    <thead style="display: table-header-group;">
+                        ${theadHtml}
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+
+                <!-- FOOTER -->
+                <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 9.5px; color: #94a3b8;">
+                    <span>${escapeHtml(eventName)} &bull; Panel Organizatora</span>
+                    <span>Dokument poufny &bull; Zawiera kody dostępu</span>
+                </div>
+            </div>
+        `;
+
+        sheetWrapper.innerHTML = templateHtml;
     }
 
     async function triggerPdfDownload() {
@@ -695,139 +895,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const modal = document.getElementById('admin-pdf-modal');
-        const sheetWrapper = document.getElementById('admin-pdf-sheet-wrapper');
         const subtitleEl = document.getElementById('admin-pdf-modal-subtitle');
-        if (!modal || !sheetWrapper) {
+        if (!modal) {
             alert("Nie znaleziono okna podglądu PDF.");
             return;
         }
 
-        // Sort guests alphabetically by Polish last_name, then first_name
-        const sortedGuests = [...allGuestsData].sort((a, b) => {
-            const lastNameA = (a.last_name || '').trim();
-            const lastNameB = (b.last_name || '').trim();
-            const comp = lastNameA.localeCompare(lastNameB, 'pl', { sensitivity: 'base' });
-            if (comp !== 0) return comp;
-            const firstNameA = (a.first_name || '').trim();
-            const firstNameB = (b.first_name || '').trim();
-            return firstNameA.localeCompare(firstNameB, 'pl', { sensitivity: 'base' });
-        });
+        const cols = getPdfSelectedColumns();
+        syncPdfColumnCheckboxes(cols);
+        renderPdfSheet(cols);
 
         const eventName = (weddingConfigRaw && (weddingConfigRaw.wedding_name || weddingConfigRaw.organization_name)) || 'Wydarzenie';
-        const dateStr = new Date().toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        const timeStr = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
-
         if (subtitleEl) {
-            subtitleEl.textContent = `${eventName} • Liczba gości: ${sortedGuests.length}`;
+            subtitleEl.textContent = `${eventName} • Liczba gości: ${allGuestsData.length}`;
         }
 
-        const mainTableLabel = (weddingConfigRaw && weddingConfigRaw.custom_labels && weddingConfigRaw.custom_labels.main_table_label)
-            ? weddingConfigRaw.custom_labels.main_table_label
-            : ((typeof getRoleLabel === 'function' && getRoleLabel('para_mloda') === 'Jubilat') ? 'Stół Jubilata' : 'Stół Pary Młodej');
-
-        let rowsHtml = '';
-        sortedGuests.forEach((g, idx) => {
-            const roleName = (typeof getRoleLabel === 'function')
-                ? getRoleLabel(g.role)
-                : (g.role === 'para_mloda' ? 'Para Młoda' : (g.role === 'swiadek' ? 'Świadek' : 'Gość'));
-
-            let roleBg = '#f1f5f9';
-            let roleColor = '#475569';
-            if (g.role === 'para_mloda') {
-                roleBg = '#fef3c7';
-                roleColor = '#b45309';
-            } else if (g.role === 'swiadek') {
-                roleBg = '#e0e7ff';
-                roleColor = '#4338ca';
-            }
-
-            const tableText = g.table_number !== null
-                ? (g.table_number === 0 ? mainTableLabel : `Stolik ${g.table_number}`)
-                : 'Brak';
-
-            const prefixText = g.prefix ? `<span style="color: #64748b; font-weight: normal;">${escapeHtml(g.prefix)} </span>` : '';
-            const fullName = `${prefixText}${escapeHtml(g.first_name || '')} ${escapeHtml(g.last_name || '')}`.trim() || '—';
-            const plusOneBadge = g.is_plus_one
-                ? ' <span style="display: inline-block; font-size: 8.5px; font-weight: 700; color: #be185d; background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 3px; padding: 1px 4px; vertical-align: middle;">TOW</span>'
-                : '';
-
-            const code = escapeHtml(g.login_code || '—');
-            const phone = escapeHtml(g.phone || '—');
-            const rowBg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
-
-            rowsHtml += `
-                <tr style="background: ${rowBg}; border-bottom: 1px solid #e2e8f0; page-break-inside: avoid;">
-                    <td style="padding: 7px 6px; text-align: center; color: #64748b; font-weight: 600; font-size: 10px;">${idx + 1}</td>
-                    <td style="padding: 7px 10px; font-weight: 600; color: #0f172a; font-size: 11px;">
-                        ${fullName}${plusOneBadge}
-                    </td>
-                    <td style="padding: 7px 8px; font-size: 10.5px;">
-                        <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; font-weight: 600; background: ${roleBg}; color: ${roleColor};">
-                            ${escapeHtml(roleName)}
-                        </span>
-                    </td>
-                    <td style="padding: 7px 8px; color: #334155; font-size: 10.5px;">${escapeHtml(tableText)}</td>
-                    <td style="padding: 7px 10px; text-align: center;">
-                        <span style="display: inline-block; font-family: 'Courier New', Courier, monospace; font-size: 12.5px; font-weight: 800; letter-spacing: 1.5px; background: #ffffff; color: #0f172a; padding: 3px 8px; border-radius: 4px; border: 1.5px solid #0f172a;">
-                            ${code}
-                        </span>
-                    </td>
-                    <td style="padding: 7px 8px; color: #475569; font-size: 10px;">${phone}</td>
-                </tr>
-            `;
-        });
-
-        const templateHtml = `
-            <div id="pdf-printable-document" style="padding: 24px 28px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; background: #ffffff;">
-                <!-- HEADER -->
-                <div style="border-bottom: 2.5px solid #d4af37; padding-bottom: 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end;">
-                    <div>
-                        <div style="font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 1.5px; color: #b45309; margin-bottom: 3px;">Kody Logowania Gości</div>
-                        <h1 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">${escapeHtml(eventName)}</h1>
-                    </div>
-                    <div style="text-align: right; font-size: 10px; color: #64748b; line-height: 1.45;">
-                        <div>Liczba gości: <strong style="color: #0f172a;">${sortedGuests.length}</strong></div>
-                        <div>Wygenerowano: ${dateStr} ${timeStr}</div>
-                    </div>
-                </div>
-
-                <!-- INSTRUCTION BOX -->
-                <div style="background: #fdfaf3; border: 1px solid #fde68a; border-radius: 6px; padding: 9px 14px; margin-bottom: 16px; font-size: 10.5px; color: #92400e; line-height: 1.4;">
-                    <strong>Instrukcja dla gości:</strong> Aby się zalogować, wejdź na stronę aplikacji i wpisz swój kod z poniższej listy lub wejdź z dedykowanego linku QR.
-                </div>
-
-                <!-- TABLE -->
-                <table style="width: 100%; border-collapse: collapse; font-size: 10.5px;">
-                    <thead style="display: table-header-group;">
-                        <tr style="background: #0f172a; color: #ffffff; text-transform: uppercase; font-size: 9.5px; font-weight: 700; letter-spacing: 0.5px;">
-                            <th style="padding: 8px 6px; text-align: center; width: 32px; border-radius: 4px 0 0 0;">Lp.</th>
-                            <th style="padding: 8px 10px; text-align: left;">Imię i Nazwisko</th>
-                            <th style="padding: 8px 8px; text-align: left; width: 85px;">Rola</th>
-                            <th style="padding: 8px 8px; text-align: left; width: 95px;">Stolik</th>
-                            <th style="padding: 8px 10px; text-align: center; width: 120px;">Kod logowania</th>
-                            <th style="padding: 8px 8px; text-align: left; width: 100px; border-radius: 0 4px 0 0;">Telefon</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rowsHtml}
-                    </tbody>
-                </table>
-
-                <!-- FOOTER -->
-                <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 9.5px; color: #94a3b8;">
-                    <span>${escapeHtml(eventName)} &bull; Panel Organizatora</span>
-                    <span>Dokument poufny &bull; Zawiera kody dostępu</span>
-                </div>
-            </div>
-        `;
-
-        sheetWrapper.innerHTML = templateHtml;
         modal.style.display = 'flex';
-
-        // Auto trigger download after layout renders
-        setTimeout(() => {
-            triggerPdfDownload();
-        }, 350);
     }
 
     function openGuestModal(id = null) {

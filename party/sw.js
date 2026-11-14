@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wesele-cache-v35';
+const CACHE_NAME = 'wesele-cache-v36';
 const urlsToCache = [
   './',
   './index.html',
