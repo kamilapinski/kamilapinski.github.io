@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zuzia & Kamil • Nasza Historia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <style>
+        .logo-letter {
+            font-family: 'Safira March', 'Playfair Display', Georgia, serif;
+        }
+        .logo-amp {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 0.8rem;
+        }
+
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html, body {
+            width:100%; height:100%; overflow:hidden;
+            background:#05070c; color:#f8fafc;
+            font-family:'Inter',system-ui,sans-serif;
+            -webkit-font-smoothing:antialiased;
+            overscroll-behavior:none;
+        }
+
+        /* BACK BUTTON */
+        #couple-back-btn {
+            position:fixed; top:18px; left:18px; z-index:200;
+            display:flex; align-items:center; gap:7px;
+            background:rgba(15,23,42,0.75); backdrop-filter:blur(16px);
+            border:1px solid rgba(255,255,255,0.15); border-radius:50px;
+            padding:9px 18px 9px 14px; color:#f8fafc;
+            font-size:0.88rem; font-weight:600; cursor:pointer;
+            transition:background 0.2s, transform 0.2s; letter-spacing:0.01em;
+            font-family:'Inter',sans-serif;
+        }
+        #couple-back-btn:hover { background:rgba(30,40,70,0.9); transform:translateX(-2px); }
+        #couple-back-btn i { font-size:1.1rem; }
+
+        /* PROGRESS BAR */
+        #scroll-progress-bar {
+            position:fixed; top:0; left:0; height:3px; width:0%;
+            background:linear-gradient(90deg,#f43f5e,#fbbf24,#6366f1);
+            z-index:201; transition:width 0.1s linear; border-radius:0 2px 2px 0;
+        }
+
+        /* AMBIENT BG */
+        #couple-bg {
+            position:fixed; inset:0; z-index:0; overflow:hidden;
+            background:radial-gradient(circle at 50% 20%,#1e1b4b 0%,#090d16 65%,#05070c 100%);
+        }
+        .ambient-orb {
+            position:absolute; border-radius:50%; filter:blur(110px); opacity:0.4;
+            animation:orbFloat 14s infinite alternate ease-in-out; will-change:transform;
+        }
+        .orb-1{width:450px;height:450px;top:-100px;left:-100px;background:radial-gradient(circle,#e11d48,#9f1239);}
+        .orb-2{width:480px;height:480px;bottom:-100px;right:-100px;background:radial-gradient(circle,#fbbf24,#d4af37);animation-delay:-7s;}
+        .orb-3{width:380px;height:380px;top:40%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,#6366f1,#4338ca);animation-delay:-3.5s;opacity:0.25;}
+        @keyframes orbFloat{0%{transform:translate(0,0) scale(1);}100%{transform:translate(60px,80px) scale(1.15);}}
+
+        .lusion-bg-text {
+            position:absolute; font-family:'Playfair Display',serif; font-weight:900;
+            color:rgba(255,255,255,0.035); user-select:none; pointer-events:none;
+            white-space:nowrap; will-change:transform;
+        }
+        #bg-monogram{font-size:24vw;top:15%;left:50%;transform:translateX(-50%);letter-spacing:-10px;}
+        #bg-year{font-size:30vw;bottom:-10%;right:-10%;letter-spacing:-15px;}
+        .lusion-parallax-shape{position:absolute;font-size:3.5rem;pointer-events:none;will-change:transform;}
+        .shape-1{top:20%;left:8%;color:rgba(251,191,36,0.18);filter:drop-shadow(0 0 15px rgba(251,191,36,0.2));}
+        .shape-2{top:75%;left:12%;color:rgba(225,29,72,0.2);}
+        .shape-3{top:30%;right:8%;color:rgba(99,102,241,0.25);}
+        #scrolly-particles{position:absolute;inset:0;pointer-events:none;}
+
+        /* STAGE */
+        #couple-stage {
+            position:fixed; inset:0; z-index:10;
+            display:flex; align-items:center; justify-content:center; perspective:1200px;
+        }
+
+        /* SCENES */
+        .scrolly-scene {
+            position:absolute; inset:0;
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            padding:70px 24px 80px; box-sizing:border-box;
+            opacity:0; pointer-events:none; will-change:transform,opacity;
+        }
+        .scrolly-scene.scene-0{opacity:1;pointer-events:auto;}
+
+        /* GLASS CARD */
+        .glass-card {
+            background:rgba(15,23,42,0.65); backdrop-filter:blur(28px);
+            border:1px solid rgba(255,255,255,0.16);
+            box-shadow:0 30px 60px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.25);
+            border-radius:28px; padding:28px; color:#fff;
+            box-sizing:border-box; max-width:680px; width:92%; margin:0 auto;
+            text-align:center; position:relative; transform-style:preserve-3d; will-change:transform;
+        }
+        .glass-card::before{
+            content:''; position:absolute; inset:0; border-radius:28px;
+            background:radial-gradient(500px circle at var(--mouse-x,50%) var(--mouse-y,50%),rgba(255,255,255,0.14),transparent 45%);
+            pointer-events:none; z-index:2; opacity:0; transition:opacity 0.3s;
+        }
+        .glass-card:hover::before{opacity:1;}
+
+        /* KINETIC TITLE */
+        .lusion-kinetic-title {
+            font-family:'Playfair Display',serif;
+            font-size:clamp(2.8rem,8vw,5.5rem); font-weight:700;
+            display:flex; align-items:center; gap:18px; letter-spacing:-2px; line-height:1;
+            margin-bottom:12px;
+            background:linear-gradient(135deg,#f43f5e 0%,#fbbf24 50%,#f8fafc 100%);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+        }
+        .hero-main-title{text-align:center;}
+        .hero-monogram-3d {
+            font-family:'Playfair Display',serif; font-size:clamp(3rem,10vw,6rem); font-weight:900;
+            background:linear-gradient(135deg,#f43f5e,#fbbf24);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+            letter-spacing:-4px; margin-bottom:8px; filter:drop-shadow(0 0 30px rgba(244,63,94,0.3));
+        }
+        .hero-sub-subtitle{
+            font-size:0.9rem; color:rgba(248,250,252,0.5); letter-spacing:0.12em;
+            text-transform:uppercase; margin-bottom:22px;
+        }
+
+        /* COUNTDOWN */
+        .wedding-countdown-box{padding:18px 22px;}
+        .countdown-header{font-size:0.78rem;color:rgba(248,250,252,0.55);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px;}
+        .countdown-timer{display:flex;align-items:center;justify-content:center;gap:6px;}
+        .countdown-unit{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:50px;}
+        .countdown-unit span{font-size:2rem;font-weight:700;color:#fbbf24;line-height:1;}
+        .countdown-unit label{font-size:0.6rem;color:rgba(248,250,252,0.4);text-transform:uppercase;letter-spacing:0.08em;}
+        .countdown-colon{font-size:1.8rem;font-weight:700;color:#fbbf24;opacity:0.5;align-self:flex-start;padding-top:2px;}
+
+        /* NAV BUTTONS */
+        .scene-nav-actions{display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap;}
+        .story-step-btn{
+            display:inline-flex;align-items:center;gap:6px;padding:10px 20px;
+            border-radius:50px;font-size:0.86rem;font-weight:600;cursor:pointer;border:none;
+            transition:transform 0.2s,box-shadow 0.2s;font-family:'Inter',sans-serif;
+        }
+        .primary-step-btn{background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;box-shadow:0 6px 20px rgba(244,63,94,0.35);}
+        .secondary-step-btn{background:rgba(255,255,255,0.1);color:#f8fafc;border:1px solid rgba(255,255,255,0.2);}
+        .story-step-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.25);}
+
+        /* SCENE HEADER */
+        .scene-header{margin-bottom:14px;text-align:center;}
+        .scene-badge{
+            display:inline-flex;align-items:center;gap:6px;
+            background:rgba(244,63,94,0.18);border:1px solid rgba(244,63,94,0.3);
+            border-radius:50px;padding:4px 14px;font-size:0.73rem;color:#fda4af;
+            letter-spacing:0.04em;margin-bottom:8px;
+        }
+        .scene-title-split{
+            font-family:'Playfair Display',serif;
+            font-size:clamp(1.2rem,4vw,1.8rem);font-weight:600;color:#f8fafc;line-height:1.25;
+        }
+
+        /* PROFILE CARDS */
+        .profiles-dual-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:640px;}
+        .profile-card{
+            background:rgba(15,23,42,0.65);backdrop-filter:blur(20px);
+            border:1px solid rgba(255,255,255,0.14);border-radius:20px;padding:20px 14px;
+            text-align:center;position:relative;will-change:transform;transform-style:preserve-3d;
+        }
+        .role-badge-chip{
+            display:inline-flex;align-items:center;gap:5px;font-size:0.7rem;font-weight:700;
+            letter-spacing:0.06em;padding:3px 12px;border-radius:50px;margin-bottom:10px;
+        }
+        .bride-badge{background:rgba(244,63,94,0.2);color:#fda4af;border:1px solid rgba(244,63,94,0.3);}
+        .groom-badge{background:rgba(251,191,36,0.2);color:#fbbf24;border:1px solid rgba(251,191,36,0.3);}
+        .profile-avatar-wrapper{position:relative;width:76px;height:76px;margin:0 auto 10px;}
+        .profile-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;}
+        .avatar-ring-glow{position:absolute;inset:-4px;border-radius:50%;opacity:0.7;}
+        .bride-glow{box-shadow:0 0 20px rgba(244,63,94,0.6),0 0 40px rgba(244,63,94,0.3);border:2px solid rgba(244,63,94,0.5);}
+        .groom-glow{box-shadow:0 0 20px rgba(251,191,36,0.6),0 0 40px rgba(251,191,36,0.3);border:2px solid rgba(251,191,36,0.5);}
+        .profile-card h3{font-family:'Playfair Display',serif;font-size:1.1rem;color:#f8fafc;margin-bottom:6px;}
+        .profile-desc{font-size:0.78rem;color:rgba(248,250,252,0.6);line-height:1.5;margin-bottom:10px;}
+        .profile-tags{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;}
+        .ptag{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:50px;padding:3px 9px;color:rgba(248,250,252,0.7);}
+
+        /* STORY CARDS */
+        .story-photo-card{text-align:center;}
+        .story-date-chip{
+            display:inline-flex;align-items:center;gap:6px;
+            background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.3);
+            border-radius:50px;padding:4px 14px;font-size:0.73rem;color:#a5b4fc;margin-bottom:10px;
+        }
+        .gold-chip{background:rgba(251,191,36,0.2);border-color:rgba(251,191,36,0.3);color:#fbbf24;}
+        .story-photo-card h2{
+            font-family:'Playfair Display',serif;
+            font-size:clamp(1.2rem,4vw,1.75rem);color:#f8fafc;margin-bottom:12px;
+        }
+        .gold-text{background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+        .story-img-frame{width:100%;max-height:250px;border-radius:16px;overflow:hidden;margin-bottom:12px;border:1px solid rgba(255,255,255,0.12);box-shadow:0 16px 35px rgba(0,0,0,0.45);position:relative;}
+        .story-img{width:100%;height:100%;object-fit:cover;}
+        .story-caption-text{font-size:0.92rem;color:#e2e8f0;line-height:1.6;}
+        .highlight-caption{color:#fbbf24;}
+        .proposal-card{border-color:rgba(251,191,36,0.4)!important;box-shadow:0 30px 60px rgba(0,0,0,0.5),0 0 40px rgba(251,191,36,0.1)!important;}
+        .ring-sparkle-overlay{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(251,191,36,0.15),transparent 70%);pointer-events:none;}
+
+        /* HIGHSCHOOL */
+        .highschool-duo{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;margin:12px 0;}
+        .hs-class-badge{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);padding:12px 10px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+        .hs-class-badge i{font-size:1.5rem;color:#fbbf24;}
+
+        /* CITY ROUTE */
+        .city-distance-route{display:flex;align-items:center;justify-content:space-between;width:100%;margin:16px 0;gap:8px;}
+        .city-pill{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:14px;padding:10px 14px;text-align:center;flex:1;}
+        .city-pill span{display:block;font-weight:700;font-size:0.95rem;}
+        .city-pill small{font-size:0.72rem;color:rgba(248,250,252,0.5);}
+        .route-line{flex:1;display:flex;align-items:center;justify-content:center;}
+        .route-heart{font-size:1.4rem;color:#f43f5e;animation:heartPulse 1.5s infinite;}
+        @keyframes heartPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
+
+        /* FINAL */
+        .final-wedding-block{max-height:82vh;overflow-y:auto;scrollbar-width:none;}
+        .final-wedding-block::-webkit-scrollbar{display:none;}
+        .final-header{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:12px;}
+        .final-quote{font-size:0.95rem;font-style:italic;color:#e2e8f0;margin-bottom:18px;}
+        .direct-msg-card{
+            background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.25);
+            border-radius:18px;padding:14px 18px;display:flex;align-items:center;
+            justify-content:space-between;gap:12px;margin-bottom:14px;
+        }
+        .direct-msg-info{display:flex;align-items:center;gap:10px;text-align:left;}
+        .direct-msg-icon-bubble{width:40px;height:40px;background:rgba(244,63,94,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:#fda4af;flex-shrink:0;}
+        .direct-msg-info strong{display:block;font-size:0.88rem;color:#f8fafc;}
+        .direct-msg-info p{font-size:0.76rem;color:rgba(248,250,252,0.55);margin:0;}
+        .open-direct-msg-btn{
+            display:inline-flex;align-items:center;gap:6px;
+            background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;
+            border-radius:50px;padding:9px 16px;font-size:0.8rem;font-weight:600;
+            cursor:pointer;border:none;white-space:nowrap;
+            box-shadow:0 4px 14px rgba(244,63,94,0.35);font-family:'Inter',sans-serif;
+        }
+        .couple-section-block{margin-top:14px;}
+        .section-title-wrapper{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:0.95rem;font-weight:600;color:rgba(248,250,252,0.75);}
+        .couple-photos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+        .couple-photo-thumb{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px;cursor:pointer;transition:transform 0.2s;}
+        .couple-photo-thumb:hover{transform:scale(1.03);}
+
+        /* TIMELINE NAV */
+        .scrolly-timeline-nav{
+            position:fixed;right:16px;top:50%;transform:translateY(-50%);
+            display:flex;flex-direction:column;align-items:center;gap:5px;z-index:150;
+            background:rgba(15,23,42,0.6);backdrop-filter:blur(14px);
+            border:1px solid rgba(255,255,255,0.1);border-radius:28px;padding:10px 7px;
+        }
+        .timeline-dot-item{display:flex;align-items:center;cursor:pointer;position:relative;}
+        .dot-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.22);display:block;transition:all 0.3s;}
+        .timeline-dot-item.active .dot-dot{background:#f43f5e;box-shadow:0 0 8px rgba(244,63,94,0.7);width:9px;height:9px;}
+        .timeline-dot-item:hover .dot-dot{background:rgba(244,63,94,0.55);}
+
+        /* SCROLL HINT */
+        #scroll-hint{
+            position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:150;
+            display:flex;flex-direction:column;align-items:center;gap:5px;
+            color:rgba(248,250,252,0.4);font-size:0.73rem;letter-spacing:0.08em;
+            animation:hintBounce 2.5s infinite;pointer-events:none;transition:opacity 0.5s;
+        }
+        #scroll-hint i{font-size:1.3rem;}
+        @keyframes hintBounce{
+            0%,100%{transform:translateX(-50%) translateY(0);}
+            50%{transform:translateX(-50%) translateY(6px);}
+        }
+
+        /* MOBILE */
+        @media (max-width:640px){
+            .profiles-dual-grid{grid-template-columns:1fr;gap:8px;max-height:58vh;overflow-y:auto;}
+            .glass-card{padding:18px 12px;max-height:82vh;overflow-y:auto;scrollbar-width:none;}
+            .glass-card::-webkit-scrollbar{display:none;}
+            .lusion-kinetic-title{font-size:2rem;gap:8px;}
+            .scrolly-timeline-nav{right:6px;padding:7px 5px;}
+            .story-img-frame{max-height:185px;}
+            .hero-monogram-3d{font-size:2.8rem;}
+            .direct-msg-card{flex-direction:column;text-align:center;}
+            .scene-nav-actions{gap:7px;}
+            .story-step-btn{padding:8px 14px;font-size:0.82rem;}
+        }
+    </style>
+</head>
+<body>
+
+<div id="scroll-progress-bar"></div>
+
+<button id="couple-back-btn" onclick="window.history.back()">
+    <i class="ph-bold ph-arrow-left"></i> Powrót
+</button>
+
+<div id="couple-bg">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+    <div class="lusion-bg-text" id="bg-monogram"><span class="logo-letter">Z</span><span class="logo-amp">&amp;</span><span class="logo-letter">K</span></div>
+    <div class="lusion-bg-text" id="bg-year">2027</div>
+    <div class="lusion-parallax-shape shape-1"><i class="ph-fill ph-heart"></i></div>
+    <div class="lusion-parallax-shape shape-2"><i class="ph-fill ph-sparkles"></i></div>
+    <div class="lusion-parallax-shape shape-3"><i class="ph-fill ph-infinity"></i></div>
+    <div id="scrolly-particles"></div>
+</div>
+
+<nav class="scrolly-timeline-nav" id="scrolly-timeline-nav">
+    <div class="timeline-dot-item active" data-scene="0"><span class="dot-dot"></span></div>
+    <div class="timeline-dot-item" data-scene="1"><span class="dot-dot"></span></div>
+    <div class="timeline-dot-item" data-scene="2"><span class="dot-dot"></span></div>
+    <div class="timeline-dot-item" data-scene="3"><span class="dot-dot"></span></div>
+    <div class="timeline-dot-item" data-scene="4"><span class="dot-dot"></span></div>
+    <div class="timeline-dot-item" data-scene="5"><span class="dot-dot"></span></div>
+    <div class="timeline-dot-item" data-scene="6"><span class="dot-dot"></span></div>
+    <div class="timeline-dot-item" data-scene="7"><span class="dot-dot"></span></div>
+    <div class="timeline-dot-item" data-scene="8"><span class="dot-dot"></span></div>
+    <div class="timeline-dot-item" data-scene="9"><span class="dot-dot"></span></div>
+</nav>
+
+<div id="couple-stage">
+
+    <!-- Scene 0: Hero -->
+    <div class="scrolly-scene scene-0" id="scene-0">
+        <div class="hero-monogram-3d"><span class="logo-letter">Z</span><span class="logo-amp">&amp;</span><span class="logo-letter">K</span></div>
+        <h1 class="hero-main-title lusion-kinetic-title">
+            <span class="title-part part-bride">ZUZIA</span>
+            <span class="title-part part-amp">&amp;</span>
+            <span class="title-part part-groom">KAMIL</span>
+        </h1>
+        <p class="hero-sub-subtitle">Poznaj Naszą Historię &bull; Studium Miłości</p>
+        <div class="wedding-countdown-box glass-card">
+            <div class="countdown-header"><i class="ph-fill ph-sparkles"></i> Odliczanie do Ślubu &bull; 26 Czerwca 2027</div>
+            <div class="countdown-timer">
+                <div class="countdown-unit"><span id="cd-days">00</span><label>Dni</label></div>
+                <div class="countdown-colon">:</div>
+                <div class="countdown-unit"><span id="cd-hours">00</span><label>Godz</label></div>
+                <div class="countdown-colon">:</div>
+                <div class="countdown-unit"><span id="cd-minutes">00</span><label>Min</label></div>
+                <div class="countdown-colon">:</div>
+                <div class="countdown-unit"><span id="cd-seconds">00</span><label>Sek</label></div>
+            </div>
+        </div>
+        <div class="scene-nav-actions">
+            <button class="story-step-btn primary-step-btn" onclick="goToScene(1)">
+                <span>Rozpocznij Podróż</span><i class="ph-bold ph-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Scene 1: O Nas -->
+    <div class="scrolly-scene scene-1" id="scene-1">
+        <div class="scene-header">
+            <span class="scene-badge"><i class="ph-fill ph-heart"></i> Krok 1 z 9 &bull; O Nas</span>
+            <h2 class="scene-title-split">Dwa serca, jedno przeznaczenie</h2>
+        </div>
+        <div class="profiles-dual-grid">
+            <div class="profile-card" id="card-zuzia">
+                <div class="role-badge-chip bride-badge"><i class="ph-fill ph-crown"></i> Panna Młoda</div>
+                <div class="profile-avatar-wrapper">
+                    <img src="img/couple.png" alt="Zuzia" class="profile-avatar">
+                    <div class="avatar-ring-glow bride-glow"></div>
+                </div>
+                <h3>Zuzia</h3>
+                <p class="profile-desc lusion-bio-text">Radosna, wygadana, wspierająca koniara. Uwielbia podróże i dobre jedzenie.</p>
+                <div class="profile-tags">
+                    <span class="ptag"><i class="ph-fill ph-horse"></i> Koniara</span>
+                    <span class="ptag"><i class="ph-fill ph-airplane"></i> Podróże</span>
+                    <span class="ptag"><i class="ph-fill ph-pizza"></i> Dobre jedzenie</span>
+                    <span class="ptag"><i class="ph-fill ph-smiley"></i> Radosna</span>
+                </div>
+            </div>
+            <div class="profile-card" id="card-kamil">
+                <div class="role-badge-chip groom-badge"><i class="ph-fill ph-code"></i> Pan Młody</div>
+                <div class="profile-avatar-wrapper">
+                    <img src="img/couple.png" alt="Kamil" class="profile-avatar">
+                    <div class="avatar-ring-glow groom-glow"></div>
+                </div>
+                <h3>Kamil</h3>
+                <p class="profile-desc lusion-bio-text">Ambitny, pracowity programista. Uwielbia szczególnie góry, a przy Zuzi pokochał kawę i wspólne podróże.</p>
+                <div class="profile-tags">
+                    <span class="ptag"><i class="ph-fill ph-code"></i> Programista</span>
+                    <span class="ptag"><i class="ph-fill ph-mountains"></i> Góry</span>
+                    <span class="ptag"><i class="ph-fill ph-coffee"></i> Kawa</span>
+                    <span class="ptag"><i class="ph-fill ph-chart-line-up"></i> Ambitny</span>
+                </div>
+            </div>
+        </div>
+        <div class="scene-nav-actions">
+            <button class="story-step-btn secondary-step-btn" onclick="goToScene(0)"><i class="ph-bold ph-arrow-left"></i> Wstęp</button>
+            <button class="story-step-btn primary-step-btn" onclick="goToScene(2)">Następny <i class="ph-bold ph-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Scene 2: Pierwsze Spotkanie -->
+    <div class="scrolly-scene scene-2" id="scene-2">
+        <div class="story-photo-card glass-card">
+            <div class="story-date-chip"><i class="ph-fill ph-calendar"></i> Marzec 2019 &bull; Krok 2</div>
+            <h2>Pierwsze Spotkanie</h2>
+            <div class="story-img-frame"><img src="img/story_1.jpg" alt="Suraż" class="story-img"></div>
+            <p class="story-caption-text">"Poznajemy się na rekolekcjach oazowych w Surażu..." ⛪✨</p>
+        </div>
+        <div class="scene-nav-actions">
+            <button class="story-step-btn secondary-step-btn" onclick="goToScene(1)"><i class="ph-bold ph-arrow-left"></i> Wróć</button>
+            <button class="story-step-btn primary-step-btn" onclick="goToScene(3)">Dalej: Liceum <i class="ph-bold ph-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Scene 3: Liceum -->
+    <div class="scrolly-scene scene-3" id="scene-3">
+        <div class="story-photo-card glass-card">
+            <div class="story-date-chip"><i class="ph-fill ph-student"></i> Czas Liceum &bull; Krok 3</div>
+            <h2>Jedna szkoła, dwa różne światy</h2>
+            <div class="highschool-duo">
+                <div class="hs-class-badge"><i class="ph-fill ph-cpu"></i><strong>Kamil</strong><span style="font-size:0.72rem;color:rgba(248,250,252,0.55)">Klasa Informatyczna</span></div>
+                <div style="font-size:1.3rem;color:#f43f5e"><i class="ph-fill ph-arrows-merge"></i></div>
+                <div class="hs-class-badge"><i class="ph-fill ph-dna"></i><strong>Zuzia</strong><span style="font-size:0.72rem;color:rgba(248,250,252,0.55)">Klasa Bio-Chem</span></div>
+            </div>
+            <p class="story-caption-text">Byliśmy w jednym liceum, choć w dwóch zupełnie różnych profilach! 📚💻🧪</p>
+        </div>
+        <div class="scene-nav-actions">
+            <button class="story-step-btn secondary-step-btn" onclick="goToScene(2)"><i class="ph-bold ph-arrow-left"></i> Wróć</button>
+            <button class="story-step-btn primary-step-btn" onclick="goToScene(4)">Dalej: Studia <i class="ph-bold ph-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Scene 4: Studia -->
+    <div class="scrolly-scene scene-4" id="scene-4">
+        <div class="story-photo-card glass-card">
+            <div class="story-date-chip"><i class="ph-fill ph-train"></i> Od 2022 Roku &bull; Krok 4</div>
+            <h2>Mimo Odległości...</h2>
+            <div class="city-distance-route">
+                <div class="city-pill"><span>Łódź</span><small>Zuzia 🎓</small></div>
+                <div class="route-line"><i class="ph-fill ph-heart route-heart"></i></div>
+                <div class="city-pill"><span>Warszawa</span><small>Kamil 💻</small></div>
+            </div>
+            <p class="story-caption-text">Zuzia w Łodzi, Kamil w Warszawie – ani na chwilę nie zwalniamy tempa spotkań! 🚆❤️</p>
+        </div>
+        <div class="scene-nav-actions">
+            <button class="story-step-btn secondary-step-btn" onclick="goToScene(3)"><i class="ph-bold ph-arrow-left"></i> Wróć</button>
+            <button class="story-step-btn primary-step-btn" onclick="goToScene(5)">Dalej: ŚDM <i class="ph-bold ph-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Scene 5: ŚDM Portugalia -->
+    <div class="scrolly-scene scene-5" id="scene-5">
+        <div class="story-photo-card glass-card">
+            <div class="story-date-chip"><i class="ph-fill ph-globe"></i> Lipiec &bull; Sierpień 2023 &bull; Krok 5</div>
+            <h2>Światowe Dni Młodzieży w Portugalii</h2>
+            <div class="story-img-frame"><img src="img/portugalia.jpg" alt="Portugalia ŚDM" class="story-img"></div>
+            <p class="story-caption-text">Niezapomniany czas wiary, radości i podróżowania po słonecznej Portugalii! 🇵🇹☀️✨</p>
+        </div>
+        <div class="scene-nav-actions">
+            <button class="story-step-btn secondary-step-btn" onclick="goToScene(4)"><i class="ph-bold ph-arrow-left"></i> Wróć</button>
+            <button class="story-step-btn primary-step-btn" onclick="goToScene(6)">Dalej: Czarnogóra <i class="ph-bold ph-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Scene 6: Czarnogóra -->
+    <div class="scrolly-scene scene-6" id="scene-6">
+        <div class="story-photo-card glass-card">
+            <div class="story-date-chip"><i class="ph-fill ph-mountains"></i> Wrzesień 2024 &bull; Krok 6</div>
+            <h2>Magiczna Czarnogóra</h2>
+            <div class="story-img-frame"><img src="img/montenegro.jpg" alt="Czarnogóra" class="story-img"></div>
+            <p class="story-caption-text">Przepiękne góry stykające się z turkusowym morzem... Nasza najpiękniejsza wyprawa! 🇲🇪🏔️🌊</p>
+        </div>
+        <div class="scene-nav-actions">
+            <button class="story-step-btn secondary-step-btn" onclick="goToScene(5)"><i class="ph-bold ph-arrow-left"></i> Wróć</button>
+            <button class="story-step-btn primary-step-btn" onclick="goToScene(7)">Dalej: Zaręczyny! <i class="ph-bold ph-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Scene 7: Zaręczyny -->
+    <div class="scrolly-scene scene-7" id="scene-7">
+        <div class="story-photo-card glass-card proposal-card">
+            <div class="story-date-chip gold-chip"><i class="ph-fill ph-sparkles"></i> 1 Maja 2025 &bull; Krok 7</div>
+            <h2 class="gold-text">Zaręczyny w Zakopanem 💍</h2>
+            <div class="story-img-frame proposal-frame">
+                <img src="img/antalowka.jpg" alt="Zaręczyny Antałowka" class="story-img">
+                <div class="ring-sparkle-overlay"></div>
+            </div>
+            <p class="story-caption-text highlight-caption">Na pięknej Antałówce z widokiem na Tatry padło najpiękniejsze: TAK! 💖🏔️✨</p>
+        </div>
+        <div class="scene-nav-actions">
+            <button class="story-step-btn secondary-step-btn" onclick="goToScene(6)"><i class="ph-bold ph-arrow-left"></i> Wróć</button>
+            <button class="story-step-btn primary-step-btn" onclick="goToScene(8)">Dalej: Alicante <i class="ph-bold ph-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Scene 8: Alicante -->
+    <div class="scrolly-scene scene-8" id="scene-8">
+        <div class="story-photo-card glass-card">
+            <div class="story-date-chip"><i class="ph-fill ph-sun-dim"></i> Wrzesień 2025 &bull; Krok 8</div>
+            <h2>Słoneczne Alicante</h2>
+            <div class="story-img-frame"><img src="img/alicante.jpg" alt="Alicante" class="story-img"></div>
+            <p class="story-caption-text">Wspólne łapanie słońca, spacer alejami palmowymi i odpoczynek w Alicante! 🇪🇸🌴☀️</p>
+        </div>
+        <div class="scene-nav-actions">
+            <button class="story-step-btn secondary-step-btn" onclick="goToScene(7)"><i class="ph-bold ph-arrow-left"></i> Wróć</button>
+            <button class="story-step-btn primary-step-btn" onclick="goToScene(9)">Finał: Ślub 💒 <i class="ph-bold ph-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Scene 9: Finał -->
+    <div class="scrolly-scene scene-9" id="scene-9">
+        <div class="final-wedding-block glass-card">
+            <div class="final-header">
+                <i class="ph-fill ph-church gold-text" style="font-size:2rem"></i>
+                <span class="story-date-chip gold-chip">26 Czerwca 2027 &bull; Poznań</span>
+                <h2 class="gold-text">Nasz Wielki Dzień 💒</h2>
+            </div>
+            <p class="final-quote">"Dziękujemy, że jesteście z nami i tworzycie ten niezapomniany rozdział!" 🎉🥂</p>
+            <div class="direct-msg-card">
+                <div class="direct-msg-info">
+                    <div class="direct-msg-icon-bubble"><i class="ph-fill ph-paper-plane-tilt"></i></div>
+                    <div>
+                        <strong>Wiadomość do Zuzi &amp; Kamila</strong>
+                        <p>Nagraj życzenia lub napisz wiadomość 💬🎙️</p>
+                    </div>
+                </div>
+                <button class="open-direct-msg-btn" onclick="window.location.href='index.html'">
+                    <i class="ph-fill ph-chat-circle-dots"></i> Wyślij
+                </button>
+            </div>
+            <div class="couple-section-block">
+                <div class="section-title-wrapper"><i class="ph-fill ph-camera"></i><h3 style="font-size:0.95rem">Wspomnienia</h3></div>
+                <div id="couple-photos-grid" class="couple-photos-grid"></div>
+            </div>
+        </div>
+        <div class="scene-nav-actions">
+            <button class="story-step-btn secondary-step-btn" onclick="goToScene(8)"><i class="ph-bold ph-arrow-left"></i> Poprzedni</button>
+            <button class="story-step-btn primary-step-btn" onclick="goToScene(0)"><i class="ph-bold ph-arrows-counter-clockwise"></i> Od nowa</button>
+        </div>
+    </div>
+</div>
+
+<div id="scroll-hint">
+    <i class="ph ph-mouse-scroll"></i>
+    <span>Przewiń, aby odkryć historię</span>
+</div>
+
+<script>
+(function(){
+    const TOTAL = 10;
+    const scenes = Array.from(document.querySelectorAll('.scrolly-scene'));
+    const dots = Array.from(document.querySelectorAll('.timeline-dot-item'));
+    const progressBar = document.getElementById('scroll-progress-bar');
+    const hint = document.getElementById('scroll-hint');
+
+    // Countdown
+    function tick(){
+        const t=new Date('2027-06-26T16:00:00'), n=new Date(), dist=t-n;
+        const p=v=>String(Math.max(0,v)).padStart(2,'0');
+        document.getElementById('cd-days').textContent=p(Math.floor(dist/86400000));
+        document.getElementById('cd-hours').textContent=p(Math.floor((dist%86400000)/3600000));
+        document.getElementById('cd-minutes').textContent=p(Math.floor((dist%3600000)/60000));
+        document.getElementById('cd-seconds').textContent=p(Math.floor((dist%60000)/1000));
+    }
+    tick(); setInterval(tick,1000);
+
+    // Particles
+    (function(){
+        const c=document.getElementById('scrolly-particles');
+        const cv=document.createElement('canvas');
+        Object.assign(cv.style,{position:'absolute',inset:'0',width:'100%',height:'100%',pointerEvents:'none'});
+        c.appendChild(cv);
+        const ctx=cv.getContext('2d');
+        let W=cv.width=window.innerWidth, H=cv.height=window.innerHeight;
+        window.addEventListener('resize',()=>{W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;});
+        const N=W<640?28:60, COLS=['rgba(244,63,94,','rgba(251,191,36,','rgba(99,102,241,'];
+        const pts=Array.from({length:N},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*2+0.7,col:COLS[Math.floor(Math.random()*3)],a:Math.random()*0.5+0.15,vx:(Math.random()-0.5)*0.45,vy:(Math.random()-0.5)*0.45,ps:Math.random()*0.018+0.007}));
+        let mx=W/2,my=H/2;
+        window.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;},{passive:true});
+        (function draw(){
+            ctx.clearRect(0,0,W,H);
+            pts.forEach(p=>{
+                p.x+=p.vx;p.y+=p.vy;
+                const dx=mx-p.x,dy=my-p.y,d=Math.sqrt(dx*dx+dy*dy);
+                if(d<150){const a=Math.atan2(dy,dx),f=(150-d)/150*1.0;p.x-=Math.cos(a)*f;p.y-=Math.sin(a)*f;}
+                if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+                p.a+=Math.sin(Date.now()*p.ps)*0.004;
+                const ca=Math.max(0.07,Math.min(0.72,p.a));
+                ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+                ctx.fillStyle=p.col+ca+')';ctx.shadowBlur=9;ctx.shadowColor=p.col+'0.6)';ctx.fill();
+            });
+            requestAnimationFrame(draw);
+        })();
+    })();
+
+    // Card tilt + spotlight
+    document.querySelectorAll('.glass-card,.profile-card').forEach(card=>{
+        card.addEventListener('mousemove',e=>{
+            const r=card.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+            card.style.setProperty('--mouse-x',`${(x/r.width)*100}%`);
+            card.style.setProperty('--mouse-y',`${(y/r.height)*100}%`);
+            card.style.transform=`perspective(1000px) rotateX(${((y-r.height/2)/r.height)*-8}deg) rotateY(${((x-r.width/2)/r.width)*8}deg) scale3d(1.012,1.012,1.012)`;
+        });
+        card.addEventListener('mouseleave',()=>{card.style.transform='';});
+    });
+
+    // Timeline
+    let tl=null, curP=0, targetP=0, raf=null;
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+    function updateNav(idx){
+        dots.forEach((d,i)=>d.classList.toggle('active',i===idx));
+        progressBar.style.width=(idx/(TOTAL-1)*100)+'%';
+    }
+
+    function render(){
+        curP+=(targetP-curP)*0.1;
+        if(tl) tl.progress(curP);
+        updateNav(Math.min(Math.floor(curP*TOTAL),TOTAL-1));
+        if(Math.abs(targetP-curP)>0.0003){raf=requestAnimationFrame(render);}
+        else{curP=targetP;if(tl)tl.progress(curP);raf=null;}
+    }
+
+    window.goToScene=function(i){
+        targetP=clamp(i/(TOTAL-1),0,1);
+        if(!raf)raf=requestAnimationFrame(render);
+        if(i>0&&hint)hint.style.opacity='0';
+    };
+
+    let touchY=0;
+    window.addEventListener('wheel',e=>{
+        e.preventDefault();
+        const step=e.deltaY>0?0.055:-0.055;
+        targetP=clamp(targetP+step,0,1);
+        if(targetP>0.01&&hint)hint.style.opacity='0';
+        if(!raf)raf=requestAnimationFrame(render);
+    },{passive:false});
+    window.addEventListener('touchstart',e=>{touchY=e.touches[0].clientY;},{passive:true});
+    window.addEventListener('touchmove',e=>{
+        e.preventDefault();
+        const dy=touchY-e.touches[0].clientY;
+        touchY=e.touches[0].clientY;
+        if(Math.abs(dy)>1){
+            targetP=clamp(targetP+(dy>0?0.05:-0.05),0,1);
+            if(!raf)raf=requestAnimationFrame(render);
+            if(targetP>0.01&&hint)hint.style.opacity='0';
+        }
+    },{passive:false});
+
+    dots.forEach(dot=>dot.addEventListener('click',()=>goToScene(parseInt(dot.dataset.scene))));
+
+    // GSAP timeline
+    if(typeof gsap!=='undefined'){
+        tl=gsap.timeline({paused:true});
+        scenes.forEach((sc,i)=>gsap.set(sc,{opacity:i===0?1:0,pointerEvents:i===0?'auto':'none',scale:i===0?1:0.9,filter:i===0?'blur(0px)':'blur(8px)',y:i===0?0:30}));
+        gsap.fromTo('.part-bride',{x:-80,opacity:0,rotate:-5,filter:'blur(10px)'},{x:0,opacity:1,rotate:0,filter:'blur(0px)',duration:0.8});
+        gsap.fromTo('.part-groom',{x:80,opacity:0,rotate:5,filter:'blur(10px)'},{x:0,opacity:1,rotate:0,filter:'blur(0px)',duration:0.8});
+
+        for(let i=0;i<TOTAL;i++){
+            tl.to({},{duration:1.2});
+            if(i<TOTAL-1){
+                const cur=scenes[i],nxt=scenes[i+1];
+                tl.to(cur,{opacity:0,scale:0.9,y:-30,filter:'blur(8px)',pointerEvents:'none',duration:0.8,ease:'power2.inOut'});
+                tl.to(nxt,{opacity:1,scale:1,y:0,filter:'blur(0px)',pointerEvents:'auto',duration:0.8,ease:'power2.inOut'},'<');
+                if(i===0){
+                    tl.fromTo('#card-zuzia',{x:'-140%',rotate:-15,scale:0.8,opacity:0},{x:'0%',rotate:0,scale:1,opacity:1,duration:1,ease:'power2.out'},'<')
+                      .fromTo('#card-kamil',{x:'140%',rotate:15,scale:0.8,opacity:0},{x:'0%',rotate:0,scale:1,opacity:1,duration:1,ease:'power2.out'},'<')
+                      .fromTo('#scene-1 .lusion-bio-text',{filter:'blur(8px)',opacity:0,y:15},{filter:'blur(0px)',opacity:1,y:0,duration:0.6,stagger:0.15},'-=0.4')
+                      .fromTo('#scene-1 .ptag',{scale:0,opacity:0},{scale:1,opacity:1,duration:0.5,stagger:0.04,ease:'back.out(1.8)'},'-=0.3')
+                      .to('#bg-monogram',{y:-180,scale:1.3,opacity:0.08,duration:1},'<')
+                      .to('.shape-1',{y:-260,rotate:180,duration:1.5},'<')
+                      .to('.shape-2',{y:-360,x:120,rotate:-90,duration:1.5},'<');
+                } else {
+                    const frame=nxt.querySelector('.story-img-frame'),cap=nxt.querySelector('.story-caption-text');
+                    if(frame)tl.fromTo(frame,{scale:0.88,rotate:i%2===0?-4:4},{scale:1,rotate:0,duration:0.8,ease:'power2.out'},'<');
+                    if(cap)tl.fromTo(cap,{opacity:0,filter:'blur(6px)',y:15},{opacity:1,filter:'blur(0px)',y:0,duration:0.6},'-=0.4');
+                }
+            }
+        }
+    }
+})();
+</script>
+</body>
+</html>
