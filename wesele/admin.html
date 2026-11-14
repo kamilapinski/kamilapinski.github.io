@@ -842,8 +842,36 @@
         </div>
     </div>
 
+    <!-- MODAL PODGLĄDU I POBIERANIA PDF Z KODAMI GOŚCI -->
+    <div id="admin-pdf-modal" class="admin-modal" style="display: none; z-index: 10000; align-items: center; justify-content: center;">
+        <div class="admin-modal-content" style="max-width: 880px; width: 95%; max-height: 92dvh; display: flex; flex-direction: column; overflow: hidden; padding: 0; background: #f8fafc; border-radius: 16px; box-shadow: 0 20px 45px rgba(0,0,0,0.35);">
+            <div class="admin-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding: 14px 20px; background: #ffffff; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3 style="font-weight: 700; margin: 0; font-size: 1.15rem; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                        <i class="ph-fill ph-file-pdf" style="color: #dc2626; font-size: 1.3rem;"></i> Kody Logowania Gości (PDF)
+                    </h3>
+                    <span id="admin-pdf-modal-subtitle" style="font-size: 0.8rem; color: #64748b;">Podgląd wygenerowanej listy</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <button id="admin-pdf-download-btn" class="admin-btn-primary" style="padding: 9px 18px; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px; border-radius: 10px; cursor: pointer;">
+                        <i class="ph ph-download-simple"></i> Pobierz plik PDF
+                    </button>
+                    <button id="admin-pdf-print-btn" class="admin-btn-secondary" style="padding: 9px 16px; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px; border-radius: 10px; border: 1.5px solid #cbd5e1; background: #ffffff; color: #0f172a; cursor: pointer;">
+                        <i class="ph ph-printer"></i> Drukuj
+                    </button>
+                    <button class="admin-modal-close" id="admin-pdf-modal-close" style="background: none; border: none; font-size: 1.6rem; cursor: pointer; color: #64748b; line-height: 1; padding: 4px;">&times;</button>
+                </div>
+            </div>
+            <div class="admin-modal-body" style="padding: 20px; overflow-y: auto; display: flex; justify-content: center; background: #64748b;">
+                <div id="admin-pdf-sheet-wrapper" style="width: 100%; max-width: 760px; background: #ffffff; box-shadow: 0 4px 20px rgba(0,0,0,0.18); border-radius: 4px; box-sizing: border-box;">
+                    <!-- Printable sheet content injected dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- JS Scripts -->
     <script src="js/html2pdf.bundle.min.js"></script>
-    <script src="js/admin.js?v=3.5"></script>
+    <script src="js/admin.js?v=3.6"></script>
 </body>
 </html>

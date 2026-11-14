@@ -165,6 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Attach other event listeners
         initGuestFormListeners();
+        initPdfModalListeners();
         initTimelineFormListeners();
         initInfoFormListeners();
         initCoupleSettingsListeners();
@@ -605,173 +606,228 @@ document.addEventListener('DOMContentLoaded', async () => {
         printWindow.document.close();
     }
 
+    function initPdfModalListeners() {
+        const modal = document.getElementById('admin-pdf-modal');
+        const closeBtn = document.getElementById('admin-pdf-modal-close');
+        const downloadBtn = document.getElementById('admin-pdf-download-btn');
+        const printBtn = document.getElementById('admin-pdf-print-btn');
+
+        if (closeBtn && modal) {
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.style.display = 'none';
+            });
+        }
+
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', () => {
+                triggerPdfDownload();
+            });
+        }
+
+        if (printBtn) {
+            printBtn.addEventListener('click', () => {
+                const sheet = document.getElementById('admin-pdf-sheet-wrapper');
+                const eventName = (weddingConfigRaw && (weddingConfigRaw.wedding_name || weddingConfigRaw.organization_name)) || 'Wydarzenie';
+                if (sheet) {
+                    openPrintWindow(sheet.innerHTML, eventName);
+                }
+            });
+        }
+    }
+
+    async function triggerPdfDownload() {
+        const sheet = document.getElementById('admin-pdf-sheet-wrapper');
+        const downloadBtn = document.getElementById('admin-pdf-download-btn');
+        if (!sheet) return;
+
+        const eventName = (weddingConfigRaw && (weddingConfigRaw.wedding_name || weddingConfigRaw.organization_name)) || 'Wydarzenie';
+        const fileSlug = eventName.toLowerCase().replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_');
+        const pdfFilename = `kody_logowania_${fileSlug}.pdf`;
+
+        const origHtml = downloadBtn ? downloadBtn.innerHTML : '';
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Zapisywanie PDF...';
+        }
+
+        try {
+            if (typeof html2pdf !== 'undefined') {
+                const opt = {
+                    margin: [10, 10, 12, 10],
+                    filename: pdfFilename,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 1.5, useCORS: true, logging: false },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                };
+                await html2pdf().set(opt).from(sheet).save();
+                if (downloadBtn) {
+                    downloadBtn.innerHTML = '<i class="ph ph-check"></i> Pobrano PDF!';
+                    setTimeout(() => {
+                        downloadBtn.disabled = false;
+                        downloadBtn.innerHTML = origHtml;
+                    }, 3000);
+                }
+            } else {
+                openPrintWindow(sheet.innerHTML, eventName);
+                if (downloadBtn) {
+                    downloadBtn.disabled = false;
+                    downloadBtn.innerHTML = origHtml;
+                }
+            }
+        } catch (err) {
+            console.error("Błąd zapisu PDF:", err);
+            openPrintWindow(sheet.innerHTML, eventName);
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = origHtml;
+            }
+        }
+    }
+
     async function exportGuestsToPdf() {
         if (!allGuestsData || allGuestsData.length === 0) {
             alert("Brak gości do wygenerowania listy PDF.");
             return;
         }
 
-        const exportBtn = document.getElementById('admin-export-pdf-btn');
-        const origBtnHtml = exportBtn ? exportBtn.innerHTML : '';
-        if (exportBtn) {
-            exportBtn.disabled = true;
-            exportBtn.innerHTML = '<i class="ph ph-spinner ph-spin" style="font-size: 1.15rem;"></i> Generowanie PDF...';
+        const modal = document.getElementById('admin-pdf-modal');
+        const sheetWrapper = document.getElementById('admin-pdf-sheet-wrapper');
+        const subtitleEl = document.getElementById('admin-pdf-modal-subtitle');
+        if (!modal || !sheetWrapper) {
+            alert("Nie znaleziono okna podglądu PDF.");
+            return;
         }
 
-        try {
-            // Sort guests alphabetically by Polish last_name, then first_name
-            const sortedGuests = [...allGuestsData].sort((a, b) => {
-                const lastNameA = (a.last_name || '').trim();
-                const lastNameB = (b.last_name || '').trim();
-                const comp = lastNameA.localeCompare(lastNameB, 'pl', { sensitivity: 'base' });
-                if (comp !== 0) return comp;
-                const firstNameA = (a.first_name || '').trim();
-                const firstNameB = (b.first_name || '').trim();
-                return firstNameA.localeCompare(firstNameB, 'pl', { sensitivity: 'base' });
-            });
+        // Sort guests alphabetically by Polish last_name, then first_name
+        const sortedGuests = [...allGuestsData].sort((a, b) => {
+            const lastNameA = (a.last_name || '').trim();
+            const lastNameB = (b.last_name || '').trim();
+            const comp = lastNameA.localeCompare(lastNameB, 'pl', { sensitivity: 'base' });
+            if (comp !== 0) return comp;
+            const firstNameA = (a.first_name || '').trim();
+            const firstNameB = (b.first_name || '').trim();
+            return firstNameA.localeCompare(firstNameB, 'pl', { sensitivity: 'base' });
+        });
 
-            const eventName = (weddingConfigRaw && (weddingConfigRaw.wedding_name || weddingConfigRaw.organization_name)) || 'Wydarzenie';
-            const dateStr = new Date().toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            const timeStr = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+        const eventName = (weddingConfigRaw && (weddingConfigRaw.wedding_name || weddingConfigRaw.organization_name)) || 'Wydarzenie';
+        const dateStr = new Date().toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const timeStr = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
 
-            const mainTableLabel = (weddingConfigRaw && weddingConfigRaw.custom_labels && weddingConfigRaw.custom_labels.main_table_label)
-                ? weddingConfigRaw.custom_labels.main_table_label
-                : ((typeof getRoleLabel === 'function' && getRoleLabel('para_mloda') === 'Jubilat') ? 'Stół Jubilata' : 'Stół Pary Młodej');
+        if (subtitleEl) {
+            subtitleEl.textContent = `${eventName} • Liczba gości: ${sortedGuests.length}`;
+        }
 
-            let rowsHtml = '';
-            sortedGuests.forEach((g, idx) => {
-                const roleName = (typeof getRoleLabel === 'function')
-                    ? getRoleLabel(g.role)
-                    : (g.role === 'para_mloda' ? 'Para Młoda' : (g.role === 'swiadek' ? 'Świadek' : 'Gość'));
+        const mainTableLabel = (weddingConfigRaw && weddingConfigRaw.custom_labels && weddingConfigRaw.custom_labels.main_table_label)
+            ? weddingConfigRaw.custom_labels.main_table_label
+            : ((typeof getRoleLabel === 'function' && getRoleLabel('para_mloda') === 'Jubilat') ? 'Stół Jubilata' : 'Stół Pary Młodej');
 
-                let roleBg = '#f1f5f9';
-                let roleColor = '#475569';
-                if (g.role === 'para_mloda') {
-                    roleBg = '#fef3c7';
-                    roleColor = '#b45309';
-                } else if (g.role === 'swiadek') {
-                    roleBg = '#e0e7ff';
-                    roleColor = '#4338ca';
-                }
+        let rowsHtml = '';
+        sortedGuests.forEach((g, idx) => {
+            const roleName = (typeof getRoleLabel === 'function')
+                ? getRoleLabel(g.role)
+                : (g.role === 'para_mloda' ? 'Para Młoda' : (g.role === 'swiadek' ? 'Świadek' : 'Gość'));
 
-                const tableText = g.table_number !== null
-                    ? (g.table_number === 0 ? mainTableLabel : `Stolik ${g.table_number}`)
-                    : 'Brak';
+            let roleBg = '#f1f5f9';
+            let roleColor = '#475569';
+            if (g.role === 'para_mloda') {
+                roleBg = '#fef3c7';
+                roleColor = '#b45309';
+            } else if (g.role === 'swiadek') {
+                roleBg = '#e0e7ff';
+                roleColor = '#4338ca';
+            }
 
-                const prefixText = g.prefix ? `<span style="color: #64748b; font-weight: normal;">${escapeHtml(g.prefix)} </span>` : '';
-                const fullName = `${prefixText}${escapeHtml(g.first_name || '')} ${escapeHtml(g.last_name || '')}`.trim() || '—';
-                const plusOneBadge = g.is_plus_one
-                    ? ' <span style="display: inline-block; font-size: 8.5px; font-weight: 700; color: #be185d; background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 3px; padding: 1px 4px; vertical-align: middle;">TOW</span>'
-                    : '';
+            const tableText = g.table_number !== null
+                ? (g.table_number === 0 ? mainTableLabel : `Stolik ${g.table_number}`)
+                : 'Brak';
 
-                const code = escapeHtml(g.login_code || '—');
-                const phone = escapeHtml(g.phone || '—');
-                const rowBg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+            const prefixText = g.prefix ? `<span style="color: #64748b; font-weight: normal;">${escapeHtml(g.prefix)} </span>` : '';
+            const fullName = `${prefixText}${escapeHtml(g.first_name || '')} ${escapeHtml(g.last_name || '')}`.trim() || '—';
+            const plusOneBadge = g.is_plus_one
+                ? ' <span style="display: inline-block; font-size: 8.5px; font-weight: 700; color: #be185d; background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 3px; padding: 1px 4px; vertical-align: middle;">TOW</span>'
+                : '';
 
-                rowsHtml += `
-                    <tr style="background: ${rowBg}; border-bottom: 1px solid #e2e8f0; page-break-inside: avoid;">
-                        <td style="padding: 7px 6px; text-align: center; color: #64748b; font-weight: 600; font-size: 10px;">${idx + 1}</td>
-                        <td style="padding: 7px 10px; font-weight: 600; color: #0f172a; font-size: 11px;">
-                            ${fullName}${plusOneBadge}
-                        </td>
-                        <td style="padding: 7px 8px; font-size: 10.5px;">
-                            <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; font-weight: 600; background: ${roleBg}; color: ${roleColor};">
-                                ${escapeHtml(roleName)}
-                            </span>
-                        </td>
-                        <td style="padding: 7px 8px; color: #334155; font-size: 10.5px;">${escapeHtml(tableText)}</td>
-                        <td style="padding: 7px 10px; text-align: center;">
-                            <span style="display: inline-block; font-family: 'Courier New', Courier, monospace; font-size: 12.5px; font-weight: 800; letter-spacing: 1.5px; background: #ffffff; color: #0f172a; padding: 3px 8px; border-radius: 4px; border: 1.5px solid #0f172a;">
-                                ${code}
-                            </span>
-                        </td>
-                        <td style="padding: 7px 8px; color: #475569; font-size: 10px;">${phone}</td>
-                    </tr>
-                `;
-            });
+            const code = escapeHtml(g.login_code || '—');
+            const phone = escapeHtml(g.phone || '—');
+            const rowBg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
 
-            const templateHtml = `
-                <div style="padding: 24px 28px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; background: #ffffff;">
-                    <!-- HEADER -->
-                    <div style="border-bottom: 2.5px solid #d4af37; padding-bottom: 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end;">
-                        <div>
-                            <div style="font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 1.5px; color: #b45309; margin-bottom: 3px;">Kody Logowania Gości</div>
-                            <h1 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">${escapeHtml(eventName)}</h1>
-                        </div>
-                        <div style="text-align: right; font-size: 10px; color: #64748b; line-height: 1.45;">
-                            <div>Liczba gości: <strong style="color: #0f172a;">${sortedGuests.length}</strong></div>
-                            <div>Wygenerowano: ${dateStr} ${timeStr}</div>
-                        </div>
+            rowsHtml += `
+                <tr style="background: ${rowBg}; border-bottom: 1px solid #e2e8f0; page-break-inside: avoid;">
+                    <td style="padding: 7px 6px; text-align: center; color: #64748b; font-weight: 600; font-size: 10px;">${idx + 1}</td>
+                    <td style="padding: 7px 10px; font-weight: 600; color: #0f172a; font-size: 11px;">
+                        ${fullName}${plusOneBadge}
+                    </td>
+                    <td style="padding: 7px 8px; font-size: 10.5px;">
+                        <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; font-weight: 600; background: ${roleBg}; color: ${roleColor};">
+                            ${escapeHtml(roleName)}
+                        </span>
+                    </td>
+                    <td style="padding: 7px 8px; color: #334155; font-size: 10.5px;">${escapeHtml(tableText)}</td>
+                    <td style="padding: 7px 10px; text-align: center;">
+                        <span style="display: inline-block; font-family: 'Courier New', Courier, monospace; font-size: 12.5px; font-weight: 800; letter-spacing: 1.5px; background: #ffffff; color: #0f172a; padding: 3px 8px; border-radius: 4px; border: 1.5px solid #0f172a;">
+                            ${code}
+                        </span>
+                    </td>
+                    <td style="padding: 7px 8px; color: #475569; font-size: 10px;">${phone}</td>
+                </tr>
+            `;
+        });
+
+        const templateHtml = `
+            <div id="pdf-printable-document" style="padding: 24px 28px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; background: #ffffff;">
+                <!-- HEADER -->
+                <div style="border-bottom: 2.5px solid #d4af37; padding-bottom: 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <div style="font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 1.5px; color: #b45309; margin-bottom: 3px;">Kody Logowania Gości</div>
+                        <h1 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">${escapeHtml(eventName)}</h1>
                     </div>
-
-                    <!-- INSTRUCTION BOX -->
-                    <div style="background: #fdfaf3; border: 1px solid #fde68a; border-radius: 6px; padding: 9px 14px; margin-bottom: 16px; font-size: 10.5px; color: #92400e; line-height: 1.4;">
-                        <strong>Instrukcja dla gości:</strong> Aby się zalogować, wejdź na stronę aplikacji i wpisz swój kod z poniższej listy lub wejdź z dedykowanego linku QR.
-                    </div>
-
-                    <!-- TABLE -->
-                    <table style="width: 100%; border-collapse: collapse; font-size: 10.5px;">
-                        <thead style="display: table-header-group;">
-                            <tr style="background: #0f172a; color: #ffffff; text-transform: uppercase; font-size: 9.5px; font-weight: 700; letter-spacing: 0.5px;">
-                                <th style="padding: 8px 6px; text-align: center; width: 32px; border-radius: 4px 0 0 0;">Lp.</th>
-                                <th style="padding: 8px 10px; text-align: left;">Imię i Nazwisko</th>
-                                <th style="padding: 8px 8px; text-align: left; width: 85px;">Rola</th>
-                                <th style="padding: 8px 8px; text-align: left; width: 95px;">Stolik</th>
-                                <th style="padding: 8px 10px; text-align: center; width: 120px;">Kod logowania</th>
-                                <th style="padding: 8px 8px; text-align: left; width: 100px; border-radius: 0 4px 0 0;">Telefon</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHtml}
-                        </tbody>
-                    </table>
-
-                    <!-- FOOTER -->
-                    <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 9.5px; color: #94a3b8;">
-                        <span>${escapeHtml(eventName)} &bull; Panel Organizatora</span>
-                        <span>Dokument poufny &bull; Zawiera kody dostępu</span>
+                    <div style="text-align: right; font-size: 10px; color: #64748b; line-height: 1.45;">
+                        <div>Liczba gości: <strong style="color: #0f172a;">${sortedGuests.length}</strong></div>
+                        <div>Wygenerowano: ${dateStr} ${timeStr}</div>
                     </div>
                 </div>
-            `;
 
-            const tempContainer = document.createElement('div');
-            tempContainer.style.position = 'absolute';
-            tempContainer.style.left = '-9999px';
-            tempContainer.style.top = '0';
-            tempContainer.style.width = '790px';
-            tempContainer.style.background = '#ffffff';
-            tempContainer.innerHTML = templateHtml;
-            document.body.appendChild(tempContainer);
+                <!-- INSTRUCTION BOX -->
+                <div style="background: #fdfaf3; border: 1px solid #fde68a; border-radius: 6px; padding: 9px 14px; margin-bottom: 16px; font-size: 10.5px; color: #92400e; line-height: 1.4;">
+                    <strong>Instrukcja dla gości:</strong> Aby się zalogować, wejdź na stronę aplikacji i wpisz swój kod z poniższej listy lub wejdź z dedykowanego linku QR.
+                </div>
 
-            const fileSlug = eventName.toLowerCase().replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_');
-            const pdfFilename = `kody_logowania_${fileSlug}.pdf`;
+                <!-- TABLE -->
+                <table style="width: 100%; border-collapse: collapse; font-size: 10.5px;">
+                    <thead style="display: table-header-group;">
+                        <tr style="background: #0f172a; color: #ffffff; text-transform: uppercase; font-size: 9.5px; font-weight: 700; letter-spacing: 0.5px;">
+                            <th style="padding: 8px 6px; text-align: center; width: 32px; border-radius: 4px 0 0 0;">Lp.</th>
+                            <th style="padding: 8px 10px; text-align: left;">Imię i Nazwisko</th>
+                            <th style="padding: 8px 8px; text-align: left; width: 85px;">Rola</th>
+                            <th style="padding: 8px 8px; text-align: left; width: 95px;">Stolik</th>
+                            <th style="padding: 8px 10px; text-align: center; width: 120px;">Kod logowania</th>
+                            <th style="padding: 8px 8px; text-align: left; width: 100px; border-radius: 0 4px 0 0;">Telefon</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
 
-            if (typeof html2pdf !== 'undefined') {
-                const opt = {
-                    margin: [10, 10, 12, 10],
-                    filename: pdfFilename,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, logging: false },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-                };
-                await html2pdf().set(opt).from(tempContainer).save();
-            } else {
-                openPrintWindow(templateHtml, eventName);
-            }
+                <!-- FOOTER -->
+                <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 9.5px; color: #94a3b8;">
+                    <span>${escapeHtml(eventName)} &bull; Panel Organizatora</span>
+                    <span>Dokument poufny &bull; Zawiera kody dostępu</span>
+                </div>
+            </div>
+        `;
 
-            if (tempContainer.parentNode) {
-                tempContainer.parentNode.removeChild(tempContainer);
-            }
-        } catch (err) {
-            console.error("Błąd podczas generowania PDF:", err);
-            alert(`Wystąpił błąd podczas generowania pliku PDF: ${err.message || err}`);
-        } finally {
-            if (exportBtn) {
-                exportBtn.disabled = false;
-                exportBtn.innerHTML = origBtnHtml;
-            }
-        }
+        sheetWrapper.innerHTML = templateHtml;
+        modal.style.display = 'flex';
+
+        // Auto trigger download after layout renders
+        setTimeout(() => {
+            triggerPdfDownload();
+        }, 350);
     }
 
     function openGuestModal(id = null) {
