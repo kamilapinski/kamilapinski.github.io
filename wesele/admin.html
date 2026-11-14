@@ -12,7 +12,7 @@
     
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="js/theme.js?v=2.8"></script>
+    <script src="js/theme.js?v=3.2"></script>
     <script>
         (function() {
             document.documentElement.setAttribute('data-org-ready', 'true');
@@ -22,7 +22,7 @@
     </script>
     
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="css/style.css?v=2.8">
+    <link rel="stylesheet" href="css/style.css?v=3.2">
     
     <style>
         body {
@@ -660,9 +660,15 @@
                                         <label for="admin-role-label-para-mloda" style="font-size: 0.8rem; font-weight: 600; color: #888;">Główny organizator / Para Młoda (klucz: para_mloda)</label>
                                         <input type="text" id="admin-role-label-para-mloda" placeholder="np. Para Młoda lub Jubilat" style="padding: 8px 12px; border: 1.5px solid #dcd1c4; border-radius: 8px; background: var(--color-surface); color: var(--color-text);">
                                     </div>
-                                    <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px; margin-top: 14px;">
-                                        <input type="checkbox" id="admin-role-enabled-para-mloda" checked disabled style="width: 18px; height: 18px;">
-                                        <label for="admin-role-enabled-para-mloda" style="font-size: 0.82rem; font-weight: 600; cursor: default;">Zawsze aktywna</label>
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px;">
+                                            <input type="checkbox" id="admin-role-enabled-para-mloda" checked disabled style="width: 17px; height: 17px;">
+                                            <label for="admin-role-enabled-para-mloda" style="font-size: 0.8rem; font-weight: 600; cursor: default;">Zawsze aktywna</label>
+                                        </div>
+                                        <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                            <input type="checkbox" id="admin-role-require-phone-para-mloda" checked style="width: 17px; height: 17px; cursor: pointer;">
+                                            <label for="admin-role-require-phone-para-mloda" style="font-size: 0.8rem; font-weight: 600; cursor: pointer; user-select: none;">Wymagaj telefonu</label>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -672,9 +678,15 @@
                                         <label for="admin-role-label-swiadek" style="font-size: 0.8rem; font-weight: 600; color: #888;">Świadek / Moderator (klucz: swiadek)</label>
                                         <input type="text" id="admin-role-label-swiadek" placeholder="np. Świadek/Świadkowa lub Moderator" style="padding: 8px 12px; border: 1.5px solid #dcd1c4; border-radius: 8px; background: var(--color-surface); color: var(--color-text);">
                                     </div>
-                                    <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin-top: 14px;">
-                                        <input type="checkbox" id="admin-role-enabled-swiadek" checked style="width: 18px; height: 18px; cursor: pointer;">
-                                        <label for="admin-role-enabled-swiadek" style="font-size: 0.82rem; font-weight: 600; cursor: pointer; user-select: none;">Dostępna</label>
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                            <input type="checkbox" id="admin-role-enabled-swiadek" checked style="width: 17px; height: 17px; cursor: pointer;">
+                                            <label for="admin-role-enabled-swiadek" style="font-size: 0.8rem; font-weight: 600; cursor: pointer; user-select: none;">Dostępna</label>
+                                        </div>
+                                        <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                            <input type="checkbox" id="admin-role-require-phone-swiadek" checked style="width: 17px; height: 17px; cursor: pointer;">
+                                            <label for="admin-role-require-phone-swiadek" style="font-size: 0.8rem; font-weight: 600; cursor: pointer; user-select: none;">Wymagaj telefonu</label>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -684,9 +696,15 @@
                                         <label for="admin-role-label-gosc" style="font-size: 0.8rem; font-weight: 600; color: #888;">Gość (klucz: gosc)</label>
                                         <input type="text" id="admin-role-label-gosc" placeholder="np. Gość lub Uczestnik" style="padding: 8px 12px; border: 1.5px solid #dcd1c4; border-radius: 8px; background: var(--color-surface); color: var(--color-text);">
                                     </div>
-                                    <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin-top: 14px;">
-                                        <input type="checkbox" id="admin-role-enabled-gosc" checked style="width: 18px; height: 18px; cursor: pointer;">
-                                        <label for="admin-role-enabled-gosc" style="font-size: 0.82rem; font-weight: 600; cursor: pointer; user-select: none;">Dostępna</label>
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                            <input type="checkbox" id="admin-role-enabled-gosc" checked style="width: 17px; height: 17px; cursor: pointer;">
+                                            <label for="admin-role-enabled-gosc" style="font-size: 0.8rem; font-weight: 600; cursor: pointer; user-select: none;">Dostępna</label>
+                                        </div>
+                                        <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                            <input type="checkbox" id="admin-role-require-phone-gosc" checked style="width: 17px; height: 17px; cursor: pointer;">
+                                            <label for="admin-role-require-phone-gosc" style="font-size: 0.8rem; font-weight: 600; cursor: pointer; user-select: none;">Wymagaj telefonu</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -820,6 +838,6 @@
     </div>
 
     <!-- JS Scripts -->
-    <script src="js/admin.js?v=2.8"></script>
+    <script src="js/admin.js?v=3.2"></script>
 </body>
 </html>

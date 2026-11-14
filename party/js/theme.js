@@ -251,8 +251,8 @@ function applyTheme(config) {
     if (!config.couple_image && (theme.couple_image || theme.preset_name === 'black_gold')) {
         config.couple_image = theme.couple_image || 'img/pawel_18_hero.jpg';
     }
-    if (!config.logo_image && (theme.logo_image || theme.preset_name === 'black_gold')) {
-        config.logo_image = theme.logo_image || 'img/pawel_18_logo.png';
+    if (!config.logo_image && theme.logo_image) {
+        config.logo_image = theme.logo_image;
     }
 
     // Detect dark mode

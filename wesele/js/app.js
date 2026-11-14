@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loginPasswordInput.value = '';
                 loginPasswordInput.focus();
             }
-        } else if (!guest.is_plus_one && !guest.has_phone) {
+        } else if (!guest.is_plus_one && guest.requires_phone !== false && !guest.has_phone) {
             loginCodeForm.style.display = 'none';
             loginGuestSelection.style.display = 'none';
             loginPlusOneForm.style.display = 'none';

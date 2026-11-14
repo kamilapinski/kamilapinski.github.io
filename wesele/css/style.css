@@ -1676,6 +1676,21 @@ button {
     max-width: 100%;
     margin-bottom: 10px;
     overflow: hidden;
+    box-sizing: border-box;
+}
+
+.login-logo .logo-letter {
+    font-family: var(--font-monogram), var(--font-heading), sans-serif;
+    font-size: clamp(1.7rem, 6.5vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: inline-block;
+    max-width: 100%;
+    color: var(--color-accent, #d4af37) !important;
+    text-shadow: 0 2px 14px rgba(212, 175, 55, 0.4);
+    line-height: 1.2;
+    text-align: center;
 }
 
 .login-content .login-logo img,
@@ -6788,6 +6803,34 @@ body.dark-theme .profile-header-card {
     border: 1px solid var(--color-border) !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
     color: #fcfbf7 !important;
+}
+
+[data-theme="dark"] .profile-picture-container img,
+body.dark-theme .profile-picture-container img {
+    border: 3px solid var(--color-accent, #d4af37) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .edit-profile-picture-btn,
+body.dark-theme .edit-profile-picture-btn {
+    background: var(--color-accent, #d4af37) !important;
+    color: #0a0a0c !important;
+    border: 2px solid var(--color-surface, #121215) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .edit-profile-picture-btn i,
+body.dark-theme .edit-profile-picture-btn i {
+    color: #0a0a0c !important;
+}
+
+[data-theme="dark"] .edit-profile-picture-btn:hover,
+[data-theme="dark"] .edit-profile-picture-btn:active,
+body.dark-theme .edit-profile-picture-btn:hover,
+body.dark-theme .edit-profile-picture-btn:active {
+    background: var(--color-primary-light, #f3d982) !important;
+    color: #000000 !important;
+    transform: scale(1.1);
 }
 
 [data-theme="dark"] .profile-name,
