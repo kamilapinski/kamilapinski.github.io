@@ -6790,6 +6790,34 @@ body.dark-theme .profile-header-card {
     color: #fcfbf7 !important;
 }
 
+[data-theme="dark"] .profile-picture-container img,
+body.dark-theme .profile-picture-container img {
+    border: 3px solid var(--color-accent, #d4af37) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .edit-profile-picture-btn,
+body.dark-theme .edit-profile-picture-btn {
+    background: var(--color-accent, #d4af37) !important;
+    color: #0a0a0c !important;
+    border: 2px solid var(--color-surface, #121215) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .edit-profile-picture-btn i,
+body.dark-theme .edit-profile-picture-btn i {
+    color: #0a0a0c !important;
+}
+
+[data-theme="dark"] .edit-profile-picture-btn:hover,
+[data-theme="dark"] .edit-profile-picture-btn:active,
+body.dark-theme .edit-profile-picture-btn:hover,
+body.dark-theme .edit-profile-picture-btn:active {
+    background: var(--color-primary-light, #f3d982) !important;
+    color: #000000 !important;
+    transform: scale(1.1);
+}
+
 [data-theme="dark"] .profile-name,
 body.dark-theme .profile-name {
     color: #fcfbf7 !important;
