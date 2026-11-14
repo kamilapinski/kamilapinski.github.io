@@ -247,6 +247,14 @@ function applyTheme(config) {
     const theme = config.theme || config.theme_settings || {};
     const root = document.documentElement;
 
+    // Fallbacks for static images when preset is black_gold / single host
+    if (!config.couple_image && (theme.couple_image || theme.preset_name === 'black_gold')) {
+        config.couple_image = theme.couple_image || 'img/pawel_18_hero.jpg';
+    }
+    if (!config.logo_image && (theme.logo_image || theme.preset_name === 'black_gold')) {
+        config.logo_image = theme.logo_image || 'img/pawel_18_logo.png';
+    }
+
     // Detect dark mode
     const isDark = Boolean(
         theme.is_dark ||
