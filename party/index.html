@@ -276,6 +276,10 @@
                         <button class="filter-btn" id="filter-btn" title="Pokaż osoby z Twojego stolika">
                             <i class="ph ph-users-three"></i>
                         </button>
+                        <button class="filter-btn" id="download-favorites-btn" title="Pobierz ulubione">
+                            <i class="ph ph-download-simple"></i>
+                            <span class="fav-count-badge" id="fav-count-badge" style="display: none;">0</span>
+                        </button>
                         <button class="add-photo-btn" id="add-photo-label" style="border: none; cursor: pointer;">
                             <i class="ph ph-camera-plus"></i> <span id="add-photo-text">Dodaj</span>
                         </button>
@@ -521,9 +525,12 @@
                     <span id="photo-viewer-relationship" class="user-relationship-text"></span>
                 </div>
             </div>
-            <button class="photo-viewer-close" id="photo-viewer-close"><i class="ph ph-x"></i></button>
-            <button id="photo-delete-btn"><i class="ph ph-trash"></i></button>
-            <button id="video-mute-btn"><i class="ph ph-speaker-slash"></i></button>
+            <div class="photo-viewer-top-actions">
+                <button id="photo-fav-btn" class="photo-viewer-action-btn" title="Dodaj do ulubionych"><i class="ph ph-heart"></i></button>
+                <button id="video-mute-btn" class="photo-viewer-action-btn" title="Wycisz"><i class="ph ph-speaker-slash"></i></button>
+                <button id="photo-delete-btn" class="photo-viewer-action-btn" title="Usuń"><i class="ph ph-trash"></i></button>
+                <button class="photo-viewer-close photo-viewer-action-btn" id="photo-viewer-close" title="Zamknij"><i class="ph ph-x"></i></button>
+            </div>
             <img id="photo-viewer-image" src="" alt="Pełen ekran">
             <video id="photo-viewer-video" src="" style="display: none;" playsinline loop muted></video>
 
@@ -847,9 +854,11 @@
         <!-- GSAP & ScrollTrigger -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+        <!-- JSZip -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
         <!-- JS -->
-        <script src="js/app.js?v=3.6"></script>
+        <script src="js/app.js?v=3.8"></script>
 </body>
 
 </html>

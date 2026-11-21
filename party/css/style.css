@@ -1765,74 +1765,89 @@ img.login-logo {
     pointer-events: auto;
 }
 
-.photo-viewer-close {
+.photo-viewer-top-actions {
     position: absolute;
     top: 20px;
     right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 4030;
+    margin-top: env(safe-area-inset-top);
+}
+
+.photo-viewer-top-actions button,
+.photo-viewer-action-btn {
+    position: static !important;
+    margin-top: 0 !important;
     width: 40px;
     height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.8rem;
+    font-size: 1.3rem;
     color: #fff;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.45);
     border-radius: 50%;
     border: none;
     cursor: pointer;
-    z-index: 4030;
-    margin-top: env(safe-area-inset-top);
+    transition: background 0.2s, transform 0.2s, color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.photo-viewer-top-actions button:hover,
+.photo-viewer-top-actions button:active,
+.photo-viewer-action-btn:hover,
+.photo-viewer-action-btn:active {
+    background: rgba(0, 0, 0, 0.7);
+    transform: scale(1.08);
+}
+
+.photo-viewer-close {
+    font-size: 1.8rem !important;
 }
 
 #photo-delete-btn {
-    position: absolute;
-    top: 20px;
-    right: 70px;
-    width: 40px;
-    height: 40px;
     display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-    color: #fff;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    z-index: 4030;
-    margin-top: env(safe-area-inset-top);
-    transition: background 0.2s, transform 0.2s;
 }
 
-#photo-delete-btn:hover,
-#photo-delete-btn:active {
-    background: rgba(220, 53, 69, 0.9);
+.photo-viewer-top-actions #photo-delete-btn:hover,
+.photo-viewer-top-actions #photo-delete-btn:active {
+    background: rgba(220, 53, 69, 0.9) !important;
     transform: scale(1.1);
 }
 
 #video-mute-btn {
-    position: absolute;
-    top: 20px;
-    right: 120px;
-    width: 40px;
-    height: 40px;
     display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
+}
+
+#photo-fav-btn {
+    font-size: 1.45rem !important;
     color: #fff;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    z-index: 4030;
-    margin-top: env(safe-area-inset-top);
+}
+
+#photo-fav-btn.is-favorite {
+    color: #ff4757 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 2px 10px rgba(255, 71, 87, 0.4);
+    animation: heartBeat 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#photo-fav-btn.is-favorite i {
+    color: #ff4757 !important;
+}
+
+@keyframes heartBeat {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.35); }
+    100% { transform: scale(1); }
 }
 
 .photo-viewer-info {
     position: absolute;
     top: 20px;
     left: 20px;
+    max-width: calc(100% - 190px);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -2529,6 +2544,18 @@ img.login-logo {
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }
 
+.grid-item-fav-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    color: #ff4757;
+    font-size: 1.15rem;
+    z-index: 5;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+    pointer-events: none;
+    line-height: 1;
+}
+
 /* Filter Styles */
 .filter-btn {
     background: var(--color-beige);
@@ -2543,6 +2570,27 @@ img.login-logo {
     justify-content: center;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     transition: background 0.2s;
+    position: relative;
+}
+
+.fav-count-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ff4757;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    min-width: 17px;
+    height: 17px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+    line-height: 1;
+    pointer-events: none;
 }
 
 .filter-btn:active {

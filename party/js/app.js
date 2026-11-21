@@ -1318,6 +1318,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Sort ascending (oldest to newest)
                 backendPhotos.sort((a, b) => new Date(a.uploaded_at) - new Date(b.uploaded_at));
                 
+                // Sync backend is_favorite with local stored favorites
+                const localFavs = getStoredFavorites();
+                backendPhotos.forEach(p => {
+                    if (p.is_favorite) {
+                        localFavs.add(p.id);
+                    } else if (localFavs.has(p.id)) {
+                        p.is_favorite = true;
+                    }
+                });
+                saveStoredFavorites(localFavs);
+                updateFavoritesBadge();
+
                 applyFiltersAndRender();
             } else if (res.status === 401) {
                 handleUnauthorized();
@@ -1492,6 +1504,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 avatarImg.classList.add('silver-highlight-avatar');
             }
             div.appendChild(avatarImg);
+
+            if (photo.is_favorite || isPhotoFavorite(photo.id)) {
+                const favBadge = document.createElement('div');
+                favBadge.className = 'grid-item-fav-badge';
+                favBadge.innerHTML = '<i class="ph-fill ph-heart"></i>';
+                div.appendChild(favBadge);
+            }
             
             div.addEventListener('click', () => {
                 const globalIndex = backendPhotos.findIndex(p => p.id === photo.id);
@@ -2870,8 +2889,240 @@ document.addEventListener('DOMContentLoaded', () => {
     const photoViewerAvatar = document.getElementById('photo-viewer-avatar');
     const photoViewerName = document.getElementById('photo-viewer-name');
     const photoViewerTime = document.getElementById('photo-viewer-time');
+    const photoFavBtn = document.getElementById('photo-fav-btn');
     let galleryPhotos = [];
     let currentPhotoIndex = 0;
+
+    // --- Favorites Logic for Party Gallery ---
+    function getFavoritesStorageKey() {
+        let user = null;
+        try { user = JSON.parse(localStorage.getItem('user')); } catch(e) {}
+        const userId = user && user.id ? user.id : 'guest';
+        const orgId = localStorage.getItem('current_org_id') || 'org';
+        return `wedding_favs_${orgId}_${userId}`;
+    }
+
+    function getStoredFavorites() {
+        try {
+            const raw = localStorage.getItem(getFavoritesStorageKey());
+            if (raw) {
+                const arr = JSON.parse(raw);
+                if (Array.isArray(arr)) {
+                    return new Set(arr);
+                }
+            }
+        } catch(e) {}
+        return new Set();
+    }
+
+    function saveStoredFavorites(setObj) {
+        try {
+            localStorage.setItem(getFavoritesStorageKey(), JSON.stringify(Array.from(setObj)));
+        } catch(e) {}
+    }
+
+    function isPhotoFavorite(photoId) {
+        if (!photoId) return false;
+        const setObj = getStoredFavorites();
+        return setObj.has(photoId);
+    }
+
+    function updateFavoritesBadge() {
+        const badge = document.getElementById('fav-count-badge');
+        const btn = document.getElementById('download-favorites-btn');
+        const setObj = getStoredFavorites();
+        const count = setObj.size;
+        if (badge) {
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        if (btn) {
+            btn.setAttribute('title', count > 0 ? `Pobierz ulubione (${count})` : 'Pobierz ulubione');
+        }
+    }
+    updateFavoritesBadge();
+
+    function updatePhotoFavButton(isFav) {
+        if (!photoFavBtn) return;
+        if (isFav) {
+            photoFavBtn.classList.add('is-favorite');
+            photoFavBtn.innerHTML = '<i class="ph-fill ph-heart"></i>';
+            photoFavBtn.setAttribute('title', 'Usuń z ulubionych');
+        } else {
+            photoFavBtn.classList.remove('is-favorite');
+            photoFavBtn.innerHTML = '<i class="ph ph-heart"></i>';
+            photoFavBtn.setAttribute('title', 'Dodaj do ulubionych');
+        }
+    }
+
+    async function toggleCurrentPhotoFavorite() {
+        if (!backendPhotos || currentPhotoIndex < 0 || currentPhotoIndex >= backendPhotos.length) return;
+        const currentPhoto = backendPhotos[currentPhotoIndex];
+        if (!currentPhoto) return;
+
+        const setObj = getStoredFavorites();
+        const isFav = setObj.has(currentPhoto.id);
+        const willBeFav = !isFav;
+
+        if (willBeFav) {
+            setObj.add(currentPhoto.id);
+            currentPhoto.is_favorite = true;
+        } else {
+            setObj.delete(currentPhoto.id);
+            currentPhoto.is_favorite = false;
+        }
+
+        saveStoredFavorites(setObj);
+        updatePhotoFavButton(willBeFav);
+        updateFavoritesBadge();
+
+        // Update badge in gallery item
+        const photoEl = document.getElementById(`photo-item-${currentPhoto.id}`);
+        if (photoEl) {
+            let favBadge = photoEl.querySelector('.grid-item-fav-badge');
+            if (willBeFav && !favBadge) {
+                favBadge = document.createElement('div');
+                favBadge.className = 'grid-item-fav-badge';
+                favBadge.innerHTML = '<i class="ph-fill ph-heart"></i>';
+                photoEl.appendChild(favBadge);
+            } else if (!willBeFav && favBadge) {
+                favBadge.remove();
+            }
+        }
+
+        // Sync with backend if authenticated
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            try {
+                await fetch(`${API_URL}/gallery/photos/${currentPhoto.id}/favorite/`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+            } catch(err) {
+                console.error('Error syncing favorite to backend:', err);
+            }
+        }
+    }
+
+    async function downloadFavoritePhotos() {
+        const setObj = getStoredFavorites();
+        if (!setObj || setObj.size === 0) {
+            showToast('Nie masz jeszcze żadnych ulubionych zdjęć ani filmów. Kliknij serduszko przy zdjęciu! ❤️');
+            return;
+        }
+
+        const favPhotos = (backendPhotos || []).filter(p => setObj.has(p.id));
+        if (favPhotos.length === 0) {
+            showToast('Nie znaleziono ulubionych plików do pobrania.');
+            return;
+        }
+
+        const downloadBtn = document.getElementById('download-favorites-btn');
+        const origHtml = downloadBtn ? downloadBtn.innerHTML : '';
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i>';
+        }
+
+        const countText = favPhotos.length === 1 ? '1 plik' : `${favPhotos.length} plików`;
+        showToast(`Przygotowywanie pobierania (${countText})...`, 4000);
+
+        const token = localStorage.getItem('access_token');
+        let downloaded = false;
+
+        // Try backend ZIP download first
+        if (token) {
+            try {
+                const idsParam = favPhotos.map(p => p.id).join(',');
+                const res = await fetch(`${API_URL}/gallery/photos/download-favorites/?ids=${idsParam}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `ulubione_wesele_${favPhotos.length}.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    downloaded = true;
+                    showToast('Pobrano ulubione zdjęcia i filmy! 🎉');
+                }
+            } catch (err) {
+                console.warn('Backend zip download failed, trying client fallback...', err);
+            }
+        }
+
+        // Fallback: client-side zipping with JSZip or direct individual download
+        if (!downloaded) {
+            try {
+                if (window.JSZip && favPhotos.length > 1) {
+                    const zip = new window.JSZip();
+                    for (let i = 0; i < favPhotos.length; i++) {
+                        const p = favPhotos[i];
+                        const fullUrl = p.image.startsWith('http') ? p.image : `http://127.0.0.1:8000${p.image}`;
+                        const fileRes = await fetch(fullUrl);
+                        const fileBlob = await fileRes.blob();
+                        const ext = p.media_type === 'video' ? 'mp4' : 'jpg';
+                        const filename = `ulubione_${i + 1}_${p.id}.${ext}`;
+                        zip.file(filename, fileBlob);
+                    }
+                    const zipBlob = await zip.generateAsync({ type: 'blob' });
+                    const url = URL.createObjectURL(zipBlob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `ulubione_wesele_${favPhotos.length}.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    downloaded = true;
+                    showToast('Pobrano ulubione zdjęcia i filmy! 🎉');
+                } else {
+                    for (let i = 0; i < favPhotos.length; i++) {
+                        const p = favPhotos[i];
+                        const fullUrl = p.image.startsWith('http') ? p.image : `http://127.0.0.1:8000${p.image}`;
+                        const res = await fetch(fullUrl);
+                        const blob = await res.blob();
+                        const url = URL.createObjectURL(blob);
+                        const ext = p.media_type === 'video' ? 'mp4' : 'jpg';
+                        const filename = `ulubione_${p.id}.${ext}`;
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        if (favPhotos.length > 1) {
+                            await new Promise(r => setTimeout(r, 400));
+                        }
+                    }
+                    downloaded = true;
+                    showToast('Pobrano ulubione pliki! 🎉');
+                }
+            } catch (clientErr) {
+                console.error('Client download failed:', clientErr);
+                showToast('Wystąpił błąd podczas pobierania plików.');
+            }
+        }
+
+        if (downloadBtn) {
+            downloadBtn.disabled = false;
+            downloadBtn.innerHTML = origHtml;
+            updateFavoritesBadge();
+        }
+    }
 
     // Swipe state
     let touchStartX = 0;
@@ -3005,6 +3256,10 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 if (photoDeleteBtn) photoDeleteBtn.style.display = 'none';
             }
+
+            // Update favorite button state
+            const isFav = isPhotoFavorite(currentPhoto.id);
+            updatePhotoFavButton(isFav);
         }
     }
 
@@ -3082,6 +3337,13 @@ document.addEventListener('DOMContentLoaded', () => {
             photoViewerVideo.pause();
             photoViewerVideo.src = "";
         }
+    }
+
+    if (photoFavBtn) {
+        photoFavBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleCurrentPhotoFavorite();
+        });
     }
 
     if (photoViewerClose) {
@@ -3682,6 +3944,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (clearFilterBtn) {
         clearFilterBtn.addEventListener('click', clearFilter);
+    }
+
+    // Download Favorites Listener
+    const downloadFavoritesBtn = document.getElementById('download-favorites-btn');
+    if (downloadFavoritesBtn) {
+        downloadFavoritesBtn.addEventListener('click', downloadFavoritePhotos);
     }
 
     function clearFilter() {
