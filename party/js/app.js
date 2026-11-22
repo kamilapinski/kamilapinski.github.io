@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (host === 'localhost' || host === '127.0.0.1') {
             return `http://${host}:8000/api`;
         }
-        return 'https://wedding-production-d4a1.up.railway.app/api';
+        return 'https://frameworthyparty.up.railway.app/api';
     };
     const API_URL = getApiUrl();
 
