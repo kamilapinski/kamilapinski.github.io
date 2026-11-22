@@ -1,10 +1,17 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    let currentOrgId = (typeof detectOrganizationId === 'function') ? detectOrganizationId() : '18181818-1818-4818-8818-181818181818';
+    let currentOrgId = (typeof detectOrganizationId === 'function') ? detectOrganizationId() : null;
+    if (!currentOrgId) {
+        if (typeof showNotFoundPage === 'function') showNotFoundPage();
+        return;
+    }
 
-    // Synchronize currentOrgId with authenticated user from localStorage if not explicitly requested in URL
+    // Synchronize currentOrgId with authenticated user from localStorage if not explicitly requested in URL or path
     const urlParams = new URLSearchParams(window.location.search);
-    const explicitOrg = urlParams.get('org') || urlParams.get('org_id');
+    const isWeselePath = /(?:^|\/)wesele(?:\/|$)/i.test(window.location.pathname);
+    const isPartyPath = /(?:^|\/)party(?:\/|$)/i.test(window.location.pathname);
+    const pathTargetOrg = isWeselePath ? 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' : (isPartyPath ? '18181818-1818-4818-8818-181818181818' : null);
+    const explicitOrg = urlParams.get('org') || urlParams.get('org_id') || pathTargetOrg;
     try {
         const cachedUser = JSON.parse(localStorage.getItem('user'));
         if (explicitOrg && cachedUser && cachedUser.organization_id && cachedUser.organization_id !== explicitOrg) {
@@ -233,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const payload = { login_code: code };
             if (urlOrgParam) {
                 payload.org_id = urlOrgParam;
-            } else if (currentOrgId && currentOrgId !== '18181818-1818-4818-8818-181818181818') {
+            } else if (currentOrgId) {
                 payload.org_id = currentOrgId;
             }
             if (guestId) payload.guest_id = guestId;
@@ -302,6 +309,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (data.user && data.user.organization_id) {
                         currentOrgId = data.user.organization_id;
                         localStorage.setItem('current_org_id', data.user.organization_id);
+                        try {
+                            localStorage.setItem('session_' + data.user.organization_id, JSON.stringify({
+                                access: data.access,
+                                refresh: data.refresh,
+                                user: data.user
+                            }));
+                        } catch(e) {}
                     }
 
                     // Hide overlay
@@ -3769,6 +3783,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
+            if (currentOrgId) {
+                try {
+                    localStorage.removeItem('session_' + currentOrgId);
+                } catch(e) {}
+            }
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
             localStorage.removeItem('user');

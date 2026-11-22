@@ -1,8 +1,10 @@
 /**
  * Multi-tenant Theme & Organization Helper for Wesele App
  */
-const DEFAULT_ORG_ID = '18181818-1818-4818-8818-181818181818';
-const LEGACY_DEFAULT_ORG_ID = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
+const WEDDING_ORG_ID = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d';
+const PARTY_ORG_ID = '18181818-1818-4818-8818-181818181818';
+const DEFAULT_ORG_ID = PARTY_ORG_ID;
+const LEGACY_DEFAULT_ORG_ID = WEDDING_ORG_ID;
 
 const THEME_PRESETS = {
     classic_gold: {
@@ -174,68 +176,136 @@ function ensureGoogleFontLoaded(fontFamily) {
 
 /**
  * Detect the organization ID from query params, path, or localStorage.
+ * Rules:
+ *  - On /wesele (path contains wesele): default to wedding organization (WEDDING_ORG_ID)
+ *  - On /party (path contains party): default to 18-stka organization (PARTY_ORG_ID)
+ *  - Query param (?org= or ?org_id=) overrides path defaults.
+ *  - Sessions are safely isolated per tenant so /wesele and /party never leak into each other.
  */
 function detectOrganizationId() {
-    // 1. Query parameter: ?org=UUID or ?org_id=UUID
-    const urlParams = new URLSearchParams(window.location.search);
-    const orgFromParam = urlParams.get('org') || urlParams.get('org_id');
-    if (orgFromParam) {
-        localStorage.setItem('current_org_id', orgFromParam);
-        // Clear stale session if user was logged into a different organization (only on public guest pages, never on admin.html)
+    function syncSessionForTenant(targetOrg) {
+        if (!targetOrg) return;
         try {
             const userRaw = localStorage.getItem('user');
-            if (userRaw && !window.location.pathname.includes('admin.html')) {
+            if (userRaw) {
                 const user = JSON.parse(userRaw);
-                if (user && user.organization_id && user.organization_id !== orgFromParam) {
-                    console.log('[Theme] Switching organization via URL, clearing stale user credentials:', user.organization_id, '->', orgFromParam);
+                if (user && user.organization_id && user.organization_id !== targetOrg) {
+                    // Stash current active credentials under their own organization
+                    const currentAccess = localStorage.getItem('access_token');
+                    const currentRefresh = localStorage.getItem('refresh_token');
+                    if (currentAccess) {
+                        try {
+                            localStorage.setItem('session_' + user.organization_id, JSON.stringify({
+                                access: currentAccess,
+                                refresh: currentRefresh,
+                                user: user
+                            }));
+                        } catch(e) {}
+                    }
+                    // Try to restore saved session for the target organization if exists
+                    const savedSessionRaw = localStorage.getItem('session_' + targetOrg);
+                    if (savedSessionRaw) {
+                        try {
+                            const saved = JSON.parse(savedSessionRaw);
+                            if (saved && saved.access && saved.user) {
+                                localStorage.setItem('access_token', saved.access);
+                                localStorage.setItem('refresh_token', saved.refresh || '');
+                                localStorage.setItem('user', JSON.stringify(saved.user));
+                                return;
+                            }
+                        } catch(e) {}
+                    }
+                    // If no valid session for target tenant, clear stale tokens
                     localStorage.removeItem('access_token');
                     localStorage.removeItem('refresh_token');
                     localStorage.removeItem('user');
                 }
+            } else {
+                // If no active user, check if there is a saved session for targetOrg
+                const savedSessionRaw = localStorage.getItem('session_' + targetOrg);
+                if (savedSessionRaw) {
+                    try {
+                        const saved = JSON.parse(savedSessionRaw);
+                        if (saved && saved.access && saved.user) {
+                            localStorage.setItem('access_token', saved.access);
+                            localStorage.setItem('refresh_token', saved.refresh || '');
+                            localStorage.setItem('user', JSON.stringify(saved.user));
+                        }
+                    } catch(e) {}
+                }
             }
         } catch(e) {}
+    }
+
+    // 1. Query parameter: ?org=UUID or ?org_id=UUID (also accepts aliases 'wesele', 'party', etc.)
+    const urlParams = new URLSearchParams(window.location.search);
+    let orgFromParam = (urlParams.get('org') || urlParams.get('org_id') || '').trim();
+    if (orgFromParam) {
+        const lowerParam = orgFromParam.toLowerCase();
+        if (lowerParam === 'wesele' || lowerParam === 'wedding' || lowerParam === 'zuzia-i-kamil') {
+            orgFromParam = WEDDING_ORG_ID;
+        } else if (lowerParam === 'party' || lowerParam === 'pawel-18' || lowerParam === '18') {
+            orgFromParam = PARTY_ORG_ID;
+        }
+        localStorage.setItem('current_org_id', orgFromParam);
+        syncSessionForTenant(orgFromParam);
         return orgFromParam;
     }
 
-    // 2. Pathname check: /UUID/ or /org/UUID/
+    // 2. Pathname check:
+    const path = (window.location.pathname || '').toLowerCase();
+    const isWeselePath = /(?:^|\/)wesele(?:\/|$)/.test(path);
+    const isPartyPath = /(?:^|\/)party(?:\/|$)/.test(path);
     const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
     const match = window.location.pathname.match(uuidRegex);
+
+    let targetOrgFromPath = null;
     if (match) {
-        const orgFromPath = match[0];
-        localStorage.setItem('current_org_id', orgFromPath);
-        return orgFromPath;
+        targetOrgFromPath = match[0];
+    } else if (isWeselePath) {
+        targetOrgFromPath = WEDDING_ORG_ID;
+    } else if (isPartyPath) {
+        targetOrgFromPath = PARTY_ORG_ID;
     }
 
-    // 3. Authenticated user stored in localStorage (active session defines the tenant)
-    try {
-        const userRaw = localStorage.getItem('user');
-        if (userRaw) {
-            const user = JSON.parse(userRaw);
-            // If the user belongs to the legacy default org and no org param was specified, clear stale session so main page opens 18-stka Pawła
-            if (user && user.organization_id && user.organization_id === LEGACY_DEFAULT_ORG_ID && !window.location.pathname.includes('admin.html')) {
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
-                localStorage.removeItem('user');
-                localStorage.removeItem('current_org_id');
-            } else if (user && user.organization_id) {
-                localStorage.setItem('current_org_id', user.organization_id);
-                return user.organization_id;
-            }
-        }
-    } catch(e) {}
-
-    // 4. Stored in localStorage
-    const storedOrg = localStorage.getItem('current_org_id');
-    if (storedOrg && storedOrg !== LEGACY_DEFAULT_ORG_ID) {
-        return storedOrg;
-    }
-    if (storedOrg === LEGACY_DEFAULT_ORG_ID) {
-        localStorage.removeItem('current_org_id');
+    if (targetOrgFromPath) {
+        localStorage.setItem('current_org_id', targetOrgFromPath);
+        syncSessionForTenant(targetOrgFromPath);
+        return targetOrgFromPath;
     }
 
-    // 5. Default to 18-stka Pawła
-    return DEFAULT_ORG_ID;
+    // 3. Main root page without tenant path / parameter -> return null (Not Found)
+    return null;
 }
+
+/**
+ * Display clean 404 Not Found page when accessed on root / main without tenant.
+ */
+function showNotFoundPage() {
+    document.title = '404 Not Found';
+    const notFoundHtml = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #ffffff; color: #222222; text-align: center;">
+            <h1 style="font-size: 2.5rem; margin: 0 0 10px 0; font-weight: 500;">404 Not Found</h1>
+            <p style="margin: 0; color: #666666; font-size: 1rem;">The requested URL was not found on this server.</p>
+        </div>
+    `;
+    const render = () => {
+        if (document.body) {
+            document.body.innerHTML = notFoundHtml;
+            document.body.style.margin = '0';
+            document.body.style.background = '#ffffff';
+        }
+        document.documentElement.setAttribute('data-org-ready', 'true');
+        document.documentElement.removeAttribute('data-theme');
+    };
+    if (document.body) {
+        render();
+    } else {
+        document.addEventListener('DOMContentLoaded', render);
+    }
+    document.documentElement.setAttribute('data-org-ready', 'true');
+}
+window.showNotFoundPage = showNotFoundPage;
 
 /**
  * Apply theme styling dynamically to :root and the DOM.
@@ -577,6 +647,11 @@ function applyTheme(config) {
  */
 (function preloadThemeSynchronously() {
     try {
+        const orgId = detectOrganizationId();
+        if (!orgId) {
+            showNotFoundPage();
+            return;
+        }
         if (window.location.pathname.includes('admin.html')) {
             document.documentElement.removeAttribute('data-theme');
             if (document.body) {
@@ -585,7 +660,6 @@ function applyTheme(config) {
             document.documentElement.setAttribute('data-org-ready', 'true');
             return;
         }
-        const orgId = detectOrganizationId();
         const cached = localStorage.getItem('wedding_config_' + orgId);
         if (cached) {
             const config = JSON.parse(cached);
@@ -599,6 +673,11 @@ function applyTheme(config) {
  * Fetch public configuration before login, apply theme, and persist cache.
  */
 async function initOrganizationTheme(apiUrl) {
+    const orgId = detectOrganizationId();
+    if (!orgId) {
+        showNotFoundPage();
+        return null;
+    }
     if (window.location.pathname.includes('admin.html')) {
         document.documentElement.removeAttribute('data-theme');
         if (document.body) {
@@ -607,7 +686,6 @@ async function initOrganizationTheme(apiUrl) {
         document.documentElement.setAttribute('data-org-ready', 'true');
         return null;
     }
-    const orgId = detectOrganizationId();
 
     // Safety timeout to ensure body is never permanently hidden if network lags
     const safetyTimer = setTimeout(() => {
