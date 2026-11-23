@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" width="48" height="48">
+  <defs>
+    <linearGradient id="goldGrad" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E5C77D"/>
+      <stop offset="50%" stop-color="#C59E47"/>
+      <stop offset="100%" stop-color="#9A7426"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Viewfinder Frame Corner Brackets -->
+  <path d="M7 15V9C7 7.89543 7.89543 7 9 7H15" stroke="url(#goldGrad)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M33 7H39C40.1046 7 41 7.89543 41 9V15" stroke="url(#goldGrad)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M41 33V39C41 40.1046 40.1046 41 39 41H33" stroke="url(#goldGrad)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M15 41H9C7.89543 41 7 40.1046 7 39V33" stroke="url(#goldGrad)" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Camera Body Silhouette -->
+  <rect x="11" y="14" width="26" height="20" rx="4" stroke="currentColor" stroke-width="2" fill="none"/>
+  <!-- Camera Shutter Bump / Top Rangefinder -->
+  <path d="M18 14V12.5C18 11.6716 18.6716 11 19.5 11H23.5C24.3284 11 25 11.6716 25 12.5V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Flash Dot -->
+  <circle cx="31.5" cy="17.5" r="1.2" fill="url(#goldGrad)"/>
+
+  <!-- Central Camera Lens & Aperture -->
+  <circle cx="24" cy="24" r="6" stroke="currentColor" stroke-width="1.8"/>
+  <circle cx="24" cy="24" r="3.2" stroke="url(#goldGrad)" stroke-width="1.5" stroke-dasharray="3.5 2"/>
+  <circle cx="24" cy="24" r="1.2" fill="url(#goldGrad)"/>
+</svg>

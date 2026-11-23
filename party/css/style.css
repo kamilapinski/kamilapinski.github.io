@@ -923,12 +923,65 @@ button {
 .grid-item {
     aspect-ratio: 1 / 1;
     background-color: var(--color-beige);
-    background-size: cover;
-    background-position: center;
-    transition: opacity 0.3s;
-    position: relative; /* for video indicator */
+    position: relative;
     min-width: 0;
     overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    contain: content;
+    border-radius: 2px;
+}
+
+.grid-item.loading-shimmer {
+    background: linear-gradient(110deg, var(--color-beige) 8%, var(--color-beige-light) 24%, var(--color-beige) 40%);
+    background-size: 200% 100%;
+    animation: gridShimmer 1.5s ease-in-out infinite;
+}
+
+[data-theme="dark"] .grid-item.loading-shimmer,
+body.dark-theme .grid-item.loading-shimmer {
+    background: linear-gradient(110deg, #18181c 8%, #282830 24%, #18181c 40%);
+    background-size: 200% 100%;
+    animation: gridShimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes gridShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.grid-item-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.22s ease-out;
+    pointer-events: none;
+}
+
+.grid-item-img.loaded {
+    opacity: 1;
+}
+
+.grid-item-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+}
+
+.grid-item-video-badge {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    color: #ffffff;
+    font-size: 1.25rem;
+    z-index: 6;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+    pointer-events: none;
+    line-height: 1;
 }
 
 .grid-item:nth-child(even) {
@@ -6017,14 +6070,24 @@ body.no-scroll .couple-hero-card {
     flex-shrink: 0;
     border: none;
     background: transparent;
-    padding: 8px 16px;
+    padding: 8px 14px;
     border-radius: 20px;
     cursor: pointer;
     color: var(--color-graphite-light);
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
     transition: all 0.2s;
+}
+
+.admin-tab-nav-btn span {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 600;
 }
 
 .admin-tab-nav-btn i {

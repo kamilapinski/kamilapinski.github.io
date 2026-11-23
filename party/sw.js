@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wesele-cache-v38';
+const CACHE_NAME = 'wesele-cache-v39';
 const urlsToCache = [
   './',
   './index.html',
@@ -30,7 +30,16 @@ self.addEventListener('fetch', event => {
         if (response) {
           return response;
         }
-        return fetch(event.request).catch(err => {
+        return fetch(event.request).then(networkResponse => {
+          // Cache thumbnails dynamically for instantaneous repeat rendering & scrolling
+          if (networkResponse && networkResponse.status === 200 && event.request.url.includes('/thumbnail/')) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return networkResponse;
+        }).catch(err => {
           // If network fetch fails (e.g. offline, CORS or broken 3rd party URL), don't crash with uncaught promise rejection
           console.warn('SW fetch failed for:', event.request.url);
           return new Response('', { status: 408, statusText: 'Fetch failed' });

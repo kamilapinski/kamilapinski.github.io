@@ -13,6 +13,7 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="js/theme.js?v=3.4"></script>
+    <script src="js/metrics.js?v=1.0"></script>
     <script>
         (function() {
             document.documentElement.setAttribute('data-org-ready', 'true');
@@ -155,13 +156,29 @@
         <div style="font-family: 'Playfair Display', serif; font-size: 1.1rem; font-style: italic;">Ładowanie panelu...</div>
     </div>
 
-    <!-- AUTH ERROR SCREEN -->
+    <!-- AUTH ERROR / LOGIN SCREEN -->
     <div id="auth-error">
-        <i class="ph ph-lock-key"></i>
-        <h2>Brak dostępu</h2>
-        <p>Ta strona jest dostępna tylko dla Pary Młodej.</p>
-        <a href="index.html" class="auth-btn">Wróć do strony głównej</a>
-        <p id="debug-auth-info" style="color: #555; font-size: 0.75rem; margin-top: 20px; font-family: monospace; max-width: 400px; word-break: break-all;"></p>
+        <i class="ph ph-shield-check" style="font-size: 3.5rem; color: #d4af37;"></i>
+        <h2>Panel Organizatora</h2>
+        <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 8px;">Zaloguj się adresem e-mail i hasłem, aby zarządzać wydarzeniem.</p>
+        
+        <form id="admin-login-form" style="display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 360px; text-align: left;">
+            <div id="admin-login-error" style="color: #fca5a5; font-size: 0.85rem; background: rgba(239,68,68,0.15); padding: 8px 12px; border-radius: 8px; display: none;"></div>
+            <div>
+                <label style="font-size: 0.82rem; color: #cbd5e1; display: block; margin-bottom: 4px;">Adres E-mail</label>
+                <input type="email" id="admin-login-email" placeholder="twoj@email.com" required style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #1c1f2d; color: #fff; font-size: 0.95rem;">
+            </div>
+            <div>
+                <label style="font-size: 0.82rem; color: #cbd5e1; display: block; margin-bottom: 4px;">Hasło</label>
+                <input type="password" id="admin-login-password" placeholder="Hasło" required style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: #1c1f2d; color: #fff; font-size: 0.95rem;">
+            </div>
+            <button type="submit" id="admin-login-submit-btn" class="auth-btn" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem; margin-top: 4px;">
+                <i class="ph ph-sign-in"></i> Zaloguj się
+            </button>
+        </form>
+
+        <a href="index.html" class="auth-btn" style="background: transparent; color: #94a3b8; border: 1px solid rgba(255,255,255,0.1);">Wróć do aplikacji</a>
+        <p id="debug-auth-info" style="color: #555; font-size: 0.75rem; margin-top: 10px; font-family: monospace; max-width: 400px; word-break: break-all;"></p>
     </div>
 
     <!-- MAIN UI CONTAINER -->
@@ -175,16 +192,17 @@
             </div>
             
             <div class="admin-tabs-nav">
-                <button class="admin-tab-nav-btn active" data-tab="admin-tab-guests" title="Goście"><i class="ph-fill ph-users"></i></button>
-                <button class="admin-tab-nav-btn" data-tab="admin-tab-seating" title="Sala"><i class="ph-fill ph-layout"></i></button>
-                <button class="admin-tab-nav-btn" data-tab="admin-tab-timeline" title="Plan Wesela"><i class="ph-fill ph-calendar"></i></button>
-                <button class="admin-tab-nav-btn" data-tab="admin-tab-info" title="Informacje"><i class="ph-fill ph-info"></i></button>
-                <button class="admin-tab-nav-btn" data-tab="admin-tab-couple-page" title="Para Młoda"><i class="ph-fill ph-heart"></i></button>
-                <button class="admin-tab-nav-btn" data-tab="admin-tab-header" title="Nagłówek"><i class="ph-fill ph-flag"></i></button>
-                <button class="admin-tab-nav-btn" data-tab="admin-tab-witness" title="Świadek"><i class="ph-fill ph-shield"></i></button>
-                <button class="admin-tab-nav-btn" data-tab="admin-tab-notifications" title="Powiadomienia"><i class="ph-fill ph-bell-ringing"></i></button>
-                <button class="admin-tab-nav-btn" data-tab="admin-tab-theme" title="Wygląd & Motyw"><i class="ph-fill ph-palette"></i></button>
-                <button class="admin-tab-nav-btn" data-tab="admin-tab-organization" title="Organizacja i Link"><i class="ph-fill ph-buildings"></i></button>
+                <button class="admin-tab-nav-btn active" data-tab="admin-tab-guests" title="Goście"><i class="ph-fill ph-users"></i> <span>Goście</span></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-seating" title="Sala"><i class="ph-fill ph-layout"></i> <span>Sala</span></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-timeline" title="Plan Wydarzenia"><i class="ph-fill ph-calendar"></i> <span>Harmonogram</span></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-info" title="Miejsca & Informacje"><i class="ph-fill ph-info"></i> <span>Miejsca</span></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-couple-page" title="Gospodarze"><i class="ph-fill ph-heart"></i> <span>Gospodarze</span></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-header" title="Nagłówek"><i class="ph-fill ph-flag"></i> <span>Nagłówek</span></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-witness" title="Uprawnienia"><i class="ph-fill ph-shield"></i> <span>Uprawnienia</span></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-notifications" title="Powiadomienia"><i class="ph-fill ph-bell-ringing"></i> <span>Powiadomienia</span></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-theme" title="Wygląd & Motyw"><i class="ph-fill ph-palette"></i> <span>Motyw</span></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-organization" title="Organizacja i Ustawienia"><i class="ph-fill ph-buildings"></i> <span>Ustawienia</span></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-metrics" title="Metryki i Wydajność"><i class="ph-fill ph-chart-line-up"></i> <span>Metryki</span></button>
             </div>
             
             <div class="admin-panel-content">
@@ -249,16 +267,31 @@
                     </div>
                 </div>
 
-                <!-- TAB 3: PLAN WESELA -->
+                <!-- TAB 3: PLAN WESELA / HARMONOGRAM -->
                 <div id="admin-tab-timeline" class="admin-tab-content">
-                    <div class="admin-section-header">
-                        <h3>Plan Wesela (Oś Czasu)</h3>
-                        <button id="admin-add-event-btn" class="admin-btn-primary"><i class="ph ph-plus"></i> Dodaj Wydarzenie</button>
+                    <div class="admin-section-header" style="flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h3>Harmonogram Wydarzenia (Oś Czasu)</h3>
+                            <p class="admin-section-desc">Zarządzaj punktami programu lub wybierz gotowy szablon dla typu Twojej imprezy.</p>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <div class="schedule-presets-dropdown-wrapper" style="display: flex; gap: 6px; align-items: center;">
+                                <select id="admin-timeline-preset-select" style="padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--color-border); background: var(--color-surface); color: var(--color-text); font-size: 0.9rem; font-weight: 500; cursor: pointer;">
+                                    <option value="">-- Załaduj gotowy szablon --</option>
+                                    <option value="wedding">💍 Wesele (Ślub, Obiad, Tort, Oczepiny...)</option>
+                                    <option value="birthday">🎉 18-stka / Urodziny (Start, Toast, Tort, DJ...)</option>
+                                    <option value="corporate">💼 Event Firmowy / Bankiet (Networking, Prezentacja, Kolacja...)</option>
+                                    <option value="party">🥳 Impreza Klubowa / Domówka</option>
+                                </select>
+                                <button type="button" id="admin-apply-preset-btn" class="admin-btn-secondary" style="padding: 9px 14px; font-size: 0.88rem; display: flex; align-items: center; gap: 5px;" title="Wstaw wybrany szablon"><i class="ph ph-magic-wand"></i> Załaduj</button>
+                            </div>
+                            <button id="admin-add-event-btn" class="admin-btn-primary"><i class="ph ph-plus"></i> Dodaj Punkt</button>
+                        </div>
                     </div>
                     <div id="admin-timeline-list" class="admin-list-container">
                         <!-- Timeline items list -->
                     </div>
-                    <button id="admin-save-timeline-btn" class="admin-btn-primary-big">Zapisz Plan Wesela</button>
+                    <button id="admin-save-timeline-btn" class="admin-btn-primary-big">Zapisz Harmonogram</button>
                 </div>
 
                 <!-- TAB 4: SEKCOJA INFORMACJE -->
@@ -566,18 +599,31 @@
                     <!-- Organization Info Form -->
                     <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;">
                         <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
-                            <label for="admin-org-wedding-name" style="font-weight: 600;">Nazwa Wesela / Organizacji</label>
-                            <input type="text" id="admin-org-wedding-name" placeholder="np. Wesele Zuzi i Kamila" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; background: var(--color-surface); color: var(--color-text);">
+                            <label for="admin-org-event-type" style="font-weight: 700; color: var(--color-primary); display: flex; align-items: center; gap: 6px;">
+                                <i class="ph-fill ph-sparkle"></i> Typ Wydarzenia / Imprezy
+                            </label>
+                            <select id="admin-org-event-type" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; background: var(--color-surface); color: var(--color-text); font-weight: 600; font-size: 0.95rem;">
+                                <option value="wedding">💍 Wesele / Ślub</option>
+                                <option value="birthday">🎉 18-stka / Urodziny</option>
+                                <option value="party">🥳 Impreza okolicznościowa / Klub / Domówka</option>
+                                <option value="corporate">💼 Wydarzenie firmowe / Bankiet</option>
+                                <option value="other">✨ Inne wydarzenie</option>
+                            </select>
+                        </div>
+
+                        <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                            <label for="admin-org-wedding-name" style="font-weight: 600;" id="label-org-event-name">Nazwa Wydarzenia / Imprezy</label>
+                            <input type="text" id="admin-org-wedding-name" placeholder="np. Wesele Zuzi i Kamila lub 18-stka Pawła" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; background: var(--color-surface); color: var(--color-text);">
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                             <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
-                                <label for="admin-org-partner1" style="font-weight: 600;">Imię Partnera 1</label>
-                                <input type="text" id="admin-org-partner1" placeholder="np. Zuzia" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; background: var(--color-surface); color: var(--color-text);">
+                                <label for="admin-org-partner1" style="font-weight: 600;" id="label-org-p1">Gospodarz / Partner 1</label>
+                                <input type="text" id="admin-org-partner1" placeholder="np. Paweł lub Zuzia" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; background: var(--color-surface); color: var(--color-text);">
                             </div>
                             <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
-                                <label for="admin-org-partner2" style="font-weight: 600;">Imię Partnera 2</label>
-                                <input type="text" id="admin-org-partner2" placeholder="np. Kamil" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; background: var(--color-surface); color: var(--color-text);">
+                                <label for="admin-org-partner2" style="font-weight: 600;" id="label-org-p2">Partner 2 (opcjonalnie)</label>
+                                <input type="text" id="admin-org-partner2" placeholder="np. Kamil (puste jeśli 1 gospodarz)" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; background: var(--color-surface); color: var(--color-text);">
                             </div>
                         </div>
 
@@ -642,6 +688,14 @@
                                     <input type="checkbox" id="admin-org-wishes-enabled-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
                                     <label for="admin-org-wishes-enabled-checkbox" style="font-weight: 600; cursor: pointer; user-select: none;">Włącz Skrzynkę Życzeń (składanie i przeglądanie życzeń)</label>
                                 </div>
+                                <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-left: 24px;">
+                                    <input type="checkbox" id="admin-org-wishes-audio-checkbox" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                    <label for="admin-org-wishes-audio-checkbox" style="font-size: 0.9rem; font-weight: 500; cursor: pointer; user-select: none;">Zezwalaj na nagrania głosowe (Audio) w życzeniach</label>
+                                </div>
+                                <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-left: 24px;">
+                                    <input type="checkbox" id="admin-org-wishes-video-checkbox" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                    <label for="admin-org-wishes-video-checkbox" style="font-size: 0.9rem; font-weight: 500; cursor: pointer; user-select: none;">Zezwalaj na nagrania wideo w życzeniach</label>
+                                </div>
                                 <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                                     <input type="checkbox" id="admin-org-seating-enabled-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
                                     <label for="admin-org-seating-enabled-checkbox" style="font-weight: 600; cursor: pointer; user-select: none;">Włącz Plan Stołów / Salę (widok rozmieszczenia gości)</label>
@@ -653,65 +707,19 @@
                             </div>
                         </div>
 
-                        <!-- Konfiguracja Rang i Uprawnień per Organizacja -->
+                        <!-- Kreator Rang i Uprawnień per Organizacja (Dynamic Custom Roles Builder) -->
                         <div style="border-top: 1px dashed var(--color-border); padding-top: 16px; margin-top: 6px;">
-                            <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; color: var(--color-primary); display: flex; align-items: center; gap: 6px;">
-                                <i class="ph ph-identification-badge"></i> Nazwy i Dostępność Rang
-                            </h4>
-                            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px;">
-                                <!-- Rola: para_mloda (Główny organizator / Jubilat) -->
-                                <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; background: rgba(0,0,0,0.02); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--color-border);">
-                                    <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 4px;">
-                                        <label for="admin-role-label-para-mloda" style="font-size: 0.8rem; font-weight: 600; color: #888;">Główny organizator / Para Młoda (klucz: para_mloda)</label>
-                                        <input type="text" id="admin-role-label-para-mloda" placeholder="np. Para Młoda lub Jubilat" style="padding: 8px 12px; border: 1.5px solid #dcd1c4; border-radius: 8px; background: var(--color-surface); color: var(--color-text);">
-                                    </div>
-                                    <div style="display: flex; flex-direction: column; gap: 6px;">
-                                        <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px;">
-                                            <input type="checkbox" id="admin-role-enabled-para-mloda" checked disabled style="width: 17px; height: 17px;">
-                                            <label for="admin-role-enabled-para-mloda" style="font-size: 0.8rem; font-weight: 600; cursor: default;">Zawsze aktywna</label>
-                                        </div>
-                                        <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                            <input type="checkbox" id="admin-role-require-phone-para-mloda" checked style="width: 17px; height: 17px; cursor: pointer;">
-                                            <label for="admin-role-require-phone-para-mloda" style="font-size: 0.8rem; font-weight: 600; cursor: pointer; user-select: none;">Wymagaj telefonu</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Rola: swiadek (Pomocnik / Świadek / Moderator) -->
-                                <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; background: rgba(0,0,0,0.02); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--color-border);">
-                                    <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 4px;">
-                                        <label for="admin-role-label-swiadek" style="font-size: 0.8rem; font-weight: 600; color: #888;">Świadek / Moderator (klucz: swiadek)</label>
-                                        <input type="text" id="admin-role-label-swiadek" placeholder="np. Świadek/Świadkowa lub Moderator" style="padding: 8px 12px; border: 1.5px solid #dcd1c4; border-radius: 8px; background: var(--color-surface); color: var(--color-text);">
-                                    </div>
-                                    <div style="display: flex; flex-direction: column; gap: 6px;">
-                                        <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                            <input type="checkbox" id="admin-role-enabled-swiadek" checked style="width: 17px; height: 17px; cursor: pointer;">
-                                            <label for="admin-role-enabled-swiadek" style="font-size: 0.8rem; font-weight: 600; cursor: pointer; user-select: none;">Dostępna</label>
-                                        </div>
-                                        <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                            <input type="checkbox" id="admin-role-require-phone-swiadek" checked style="width: 17px; height: 17px; cursor: pointer;">
-                                            <label for="admin-role-require-phone-swiadek" style="font-size: 0.8rem; font-weight: 600; cursor: pointer; user-select: none;">Wymagaj telefonu</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Rola: gosc (Gość) -->
-                                <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; background: rgba(0,0,0,0.02); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--color-border);">
-                                    <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 4px;">
-                                        <label for="admin-role-label-gosc" style="font-size: 0.8rem; font-weight: 600; color: #888;">Gość (klucz: gosc)</label>
-                                        <input type="text" id="admin-role-label-gosc" placeholder="np. Gość lub Uczestnik" style="padding: 8px 12px; border: 1.5px solid #dcd1c4; border-radius: 8px; background: var(--color-surface); color: var(--color-text);">
-                                    </div>
-                                    <div style="display: flex; flex-direction: column; gap: 6px;">
-                                        <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                            <input type="checkbox" id="admin-role-enabled-gosc" checked style="width: 17px; height: 17px; cursor: pointer;">
-                                            <label for="admin-role-enabled-gosc" style="font-size: 0.8rem; font-weight: 600; cursor: pointer; user-select: none;">Dostępna</label>
-                                        </div>
-                                        <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                            <input type="checkbox" id="admin-role-require-phone-gosc" checked style="width: 17px; height: 17px; cursor: pointer;">
-                                            <label for="admin-role-require-phone-gosc" style="font-size: 0.8rem; font-weight: 600; cursor: pointer; user-select: none;">Wymagaj telefonu</label>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                                <h4 style="font-size: 0.95rem; font-weight: 700; margin: 0; color: var(--color-primary); display: flex; align-items: center; gap: 6px;">
+                                    <i class="ph ph-identification-badge"></i> Kreator Rang i Uprawnień (Role & Uprawnienia)
+                                </h4>
+                                <button type="button" id="admin-add-custom-role-btn" class="admin-btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                    <i class="ph ph-plus"></i> Dodaj Własną Rolę
+                                </button>
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-bottom: 12px;">Definiuj role gości (np. Świadek, DJ, Fotograf, Ochrona, VIP, Rodzic), ich kolor odznaki oraz szczegółowe uprawnienia w systemie.</p>
+                            <div id="admin-roles-builder-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 6px;">
+                                <!-- Role items generated dynamically by JS -->
                             </div>
                         </div>
                     </div>
@@ -739,23 +747,131 @@
                             </select>
                         </div>
 
-                        <!-- Create New Org Form (collapsible) -->
+                        <!-- Create New Org Form (collapsible / Quick-Setup Wizard) -->
                         <div id="admin-create-org-form-container" style="display: none; background: var(--color-surface); border: 1.5px solid var(--color-border); border-radius: 12px; padding: 18px; margin-top: 14px;">
-                            <h5 style="margin: 0 0 12px 0; font-size: 0.95rem; font-weight: 700;">Utwórz Nowe Wesele (Kolejną Organizację)</h5>
-                            <div style="display: flex; flex-direction: column; gap: 10px;">
-                                <input type="text" id="new-org-name" placeholder="Nazwa wesela (np. Wesele Ani i Piotra)" style="padding: 10px; border: 1px solid #dcd1c4; border-radius: 8px; font-size: 0.9rem;">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                    <input type="text" id="new-org-p1" placeholder="Imię Partnera 1" style="padding: 10px; border: 1px solid #dcd1c4; border-radius: 8px; font-size: 0.9rem;">
-                                    <input type="text" id="new-org-p2" placeholder="Imię Partnera 2" style="padding: 10px; border: 1px solid #dcd1c4; border-radius: 8px; font-size: 0.9rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <h5 style="margin: 0; font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                                    <i class="ph ph-magic-wand" style="color: var(--color-primary);"></i> Kreator Wydarzenia (Quick-Setup Wizard)
+                                </h5>
+                                <span style="font-size: 0.75rem; background: var(--color-surface2); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--color-border);">Krok 1 z 1</span>
+                            </div>
+                            <p style="font-size: 0.8rem; color: #888; margin-bottom: 14px;">Wybierz charakter imprezy, aby system automatycznie skonfigurował motyw graficzny, szablony ról, harmonogram i etykiety.</p>
+
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <!-- Event Type Preset Selector Cards -->
+                                <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                                    <label style="font-weight: 600; font-size: 0.85rem;">Typ Imprezy (Preset onboardingowy)</label>
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px;" id="wizard-event-type-cards">
+                                        <label class="wizard-type-card active" style="border: 2px solid var(--color-primary); border-radius: 10px; padding: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; background: rgba(0,0,0,0.03);">
+                                            <input type="radio" name="wizard-event-type" value="wedding" checked style="display: none;">
+                                            <span style="font-size: 1.4rem;">💍</span>
+                                            <strong style="font-size: 0.82rem;">Wesele</strong>
+                                            <span style="font-size: 0.68rem; opacity: 0.7;">Złoty motyw, ślub, oczepiny</span>
+                                        </label>
+                                        <label class="wizard-type-card" style="border: 1px solid var(--color-border); border-radius: 10px; padding: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; background: var(--color-surface);">
+                                            <input type="radio" name="wizard-event-type" value="birthday" style="display: none;">
+                                            <span style="font-size: 1.4rem;">🎉</span>
+                                            <strong style="font-size: 0.82rem;">18-stka / Urodziny</strong>
+                                            <span style="font-size: 0.68rem; opacity: 0.7;">Czarno-złoty, toast, DJ</span>
+                                        </label>
+                                        <label class="wizard-type-card" style="border: 1px solid var(--color-border); border-radius: 10px; padding: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; background: var(--color-surface);">
+                                            <input type="radio" name="wizard-event-type" value="corporate" style="display: none;">
+                                            <span style="font-size: 1.4rem;">💼</span>
+                                            <strong style="font-size: 0.82rem;">Event Firmowy</strong>
+                                            <span style="font-size: 0.68rem; opacity: 0.7;">Modern, gala, networking</span>
+                                        </label>
+                                    </div>
                                 </div>
-                                <input type="datetime-local" id="new-org-date" style="padding: 10px; border: 1px solid #dcd1c4; border-radius: 8px; font-size: 0.9rem;">
+
+                                <input type="text" id="new-org-name" placeholder="Nazwa wydarzenia (np. Wesele Ani i Piotra lub 18-stka Kamila)" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 8px; font-size: 0.9rem;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;" id="wizard-names-row">
+                                    <input type="text" id="new-org-p1" placeholder="Imię Organizatora / Partnera 1" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 8px; font-size: 0.9rem;">
+                                    <input type="text" id="new-org-p2" placeholder="Imię Partnera 2 (opcjonalnie)" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 8px; font-size: 0.9rem;">
+                                </div>
+                                <input type="datetime-local" id="new-org-date" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 8px; font-size: 0.9rem;">
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                    <input type="text" id="new-org-login-code" placeholder="Kod Pary Młodej (np. ANIA2027)" style="padding: 10px; border: 1px solid #dcd1c4; border-radius: 8px; font-size: 0.9rem; text-transform: uppercase;">
-                                    <input type="password" id="new-org-password" placeholder="Hasło Pary Młodej" style="padding: 10px; border: 1px solid #dcd1c4; border-radius: 8px; font-size: 0.9rem;">
+                                    <input type="text" id="new-org-login-code" placeholder="Kod Organizatora (np. KAMIL2027)" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 8px; font-size: 0.9rem; text-transform: uppercase;">
+                                    <input type="password" id="new-org-password" placeholder="Hasło Organizatora" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 8px; font-size: 0.9rem;">
                                 </div>
                                 <button type="button" id="new-org-submit-btn" style="background: #2c4c38; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 6px;">
-                                    <i class="ph ph-check"></i> Utwórz Wesele i Przejdź
+                                    <i class="ph ph-magic-wand"></i> Utwórz Wydarzenie i Zastosuj Presety
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 11: METRYKI I WYDAJNOŚĆ -->
+                <div id="admin-tab-metrics" class="admin-tab-content">
+                    <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h3>Metryki i Wydajność Systemu</h3>
+                            <p class="admin-section-desc">Pomiary czasu ładowania części produktu, uploadu mediów i aktywności gości.</p>
+                        </div>
+                        <button type="button" id="admin-refresh-metrics-btn" class="admin-btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
+                            <i class="ph ph-arrows-clockwise"></i> Odśwież dane
+                        </button>
+                    </div>
+
+                    <!-- Metrics Grid -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-top: 20px;">
+                        <!-- Card 1: Czasy Ładowania Modułów -->
+                        <div style="background: var(--color-surface); border: 1px solid #dcd1c4; border-radius: 12px; padding: 20px;">
+                            <h4 style="margin: 0 0 14px 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; color: var(--color-text);">
+                                <i class="ph-fill ph-timer" style="color: #2563eb;"></i> Czas Ładowania Modułów
+                            </h4>
+                            <div id="metrics-part-loads-container">
+                                <p style="font-size: 0.85rem; color: #888;">Ładowanie metryk...</p>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Liczniki Wyświetleń Sekcji -->
+                        <div style="background: var(--color-surface); border: 1px solid #dcd1c4; border-radius: 12px; padding: 20px;">
+                            <h4 style="margin: 0 0 14px 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; color: var(--color-text);">
+                                <i class="ph-fill ph-eye" style="color: #10b981;"></i> Wyświetlenia Sekcji
+                            </h4>
+                            <div id="metrics-part-views-container">
+                                <p style="font-size: 0.85rem; color: #888;">Ładowanie metryk...</p>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Upload Mediów (Zdjęcia & Wideo) -->
+                        <div style="background: var(--color-surface); border: 1px solid #dcd1c4; border-radius: 12px; padding: 20px;">
+                            <h4 style="margin: 0 0 14px 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; color: var(--color-text);">
+                                <i class="ph-fill ph-cloud-arrow-up" style="color: #f59e0b;"></i> Upload Zdjęć i Wideo
+                            </h4>
+                            <div id="metrics-uploads-container">
+                                <p style="font-size: 0.85rem; color: #888;">Ładowanie metryk...</p>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Aktywność (Życzenia i Wpisy) -->
+                        <div style="background: var(--color-surface); border: 1px solid #dcd1c4; border-radius: 12px; padding: 20px;">
+                            <h4 style="margin: 0 0 14px 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; color: var(--color-text);">
+                                <i class="ph-fill ph-chat-teardrop-text" style="color: #8b5cf6;"></i> Wpisy i Życzenia
+                            </h4>
+                            <div id="metrics-posts-container">
+                                <p style="font-size: 0.85rem; color: #888;">Ładowanie metryk...</p>
+                            </div>
+                        </div>
+
+                        <!-- Card 5: Urządzenia i Typ Sieci -->
+                        <div style="background: var(--color-surface); border: 1px solid #dcd1c4; border-radius: 12px; padding: 20px;">
+                            <h4 style="margin: 0 0 14px 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; color: var(--color-text);">
+                                <i class="ph-fill ph-device-mobile" style="color: #06b6d4;"></i> Urządzenia i Połączenie
+                            </h4>
+                            <div id="metrics-devices-container">
+                                <p style="font-size: 0.85rem; color: #888;">Ładowanie metryk...</p>
+                            </div>
+                        </div>
+
+                        <!-- Card 6: Aktywność na Osi Czasu -->
+                        <div style="background: var(--color-surface); border: 1px solid #dcd1c4; border-radius: 12px; padding: 20px;">
+                            <h4 style="margin: 0 0 14px 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; color: var(--color-text);">
+                                <i class="ph-fill ph-clock-counter-clockwise" style="color: #ec4899;"></i> Aktywność na Osi Czasu
+                            </h4>
+                            <div id="metrics-timeline-container">
+                                <p style="font-size: 0.85rem; color: #888;">Ładowanie metryk...</p>
                             </div>
                         </div>
                     </div>

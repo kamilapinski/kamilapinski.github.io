@@ -126,6 +126,22 @@ function getRoleLabel(roleKey, defaultText = null) {
 window.getRoleLabel = getRoleLabel;
 
 /**
+ * Get badge color for a role key based on organization config.
+ */
+function getRoleBadgeColor(roleKey, defaultColor = '#6b7280') {
+    const config = window.__WEDDING_CONFIG || {};
+    const rolesConfig = config.roles_config;
+    if (rolesConfig && rolesConfig[roleKey] && rolesConfig[roleKey].badge_color) {
+        return rolesConfig[roleKey].badge_color;
+    }
+    if (roleKey === 'para_mloda') return '#fbbf24';
+    if (roleKey === 'swiadek') return '#a5b4fc';
+    if (roleKey === 'gosc') return '#8a8074';
+    return defaultColor;
+}
+window.getRoleBadgeColor = getRoleBadgeColor;
+
+/**
  * Check if a role is enabled in current organization.
  */
 function isRoleEnabled(roleKey) {
@@ -673,6 +689,9 @@ function applyTheme(config) {
  * Fetch public configuration before login, apply theme, and persist cache.
  */
 async function initOrganizationTheme(apiUrl) {
+    if (!apiUrl) {
+        apiUrl = getAppApiUrl();
+    }
     const orgId = detectOrganizationId();
     if (!orgId) {
         showNotFoundPage();
@@ -711,3 +730,33 @@ async function initOrganizationTheme(apiUrl) {
     clearTimeout(safetyTimer);
     return null;
 }
+
+/**
+ * Returns backend API URL based on host environment and query overrides (?backend=dev or ?backend=prod).
+ */
+function getAppApiUrl() {
+    if (window.location && window.location.origin && window.location.origin.includes('railway.app')) {
+        return `${window.location.origin}/api`;
+    }
+    const host = window.location.hostname || '127.0.0.1';
+    if (host === 'localhost' || host === '127.0.0.1') {
+        return `http://${host}:8000/api`;
+    }
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const backendEnv = urlParams.get('backend') || sessionStorage.getItem('wedding_backend_env');
+        if (backendEnv === 'dev') {
+            sessionStorage.setItem('wedding_backend_env', 'dev');
+            return 'https://frameworthyparty-dev.up.railway.app/api';
+        } else if (backendEnv === 'prod' || backendEnv === 'production') {
+            sessionStorage.setItem('wedding_backend_env', 'prod');
+            return 'https://frameworthyparty.up.railway.app/api';
+        }
+    } catch(e) {}
+
+    if (host.includes('dev')) {
+        return 'https://frameworthyparty-dev.up.railway.app/api';
+    }
+    return 'https://frameworthyparty.up.railway.app/api';
+}
+window.getAppApiUrl = getAppApiUrl;

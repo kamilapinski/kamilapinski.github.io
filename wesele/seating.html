@@ -14,6 +14,7 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="js/theme.js"></script>
+    <script src="js/metrics.js?v=1.0"></script>
 
     <style>
         /* ====== RESET & ROOT ====== */
@@ -1181,8 +1182,19 @@
                 </div>
                 <div class="add-table-controls">
                     <div class="form-row">
+                        <label>Typ strefy</label>
+                        <select class="form-input" id="new-table-type" style="width: 100%;">
+                            <option value="table">Stół tradycyjny</option>
+                            <option value="lounge">Loża klubowa</option>
+                            <option value="vip">Strefa VIP</option>
+                            <option value="chillout">Strefa Chillout</option>
+                            <option value="bar">Bar / Stolik koktajlowy</option>
+                            <option value="open_space">Strefa otwarta</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
                         <label>Nazwa</label>
-                        <input type="text" class="form-input" id="new-table-name" placeholder="Stolik 1" maxlength="30">
+                        <input type="text" class="form-input" id="new-table-name" placeholder="np. Stolik 1 lub Loża VIP" maxlength="30">
                     </div>
                     <div class="form-row">
                         <label>Miejsc</label>
@@ -1396,6 +1408,12 @@ window.fetch = function(url, options = {}) {
 };
 
 const API_URL = (() => {
+    if (typeof window.getAppApiUrl === 'function') {
+        return window.getAppApiUrl();
+    }
+    if (window.location && window.location.origin && window.location.origin.includes('railway.app')) {
+        return `${window.location.origin}/api`;
+    }
     const host = window.location.hostname || '127.0.0.1';
     if (host === 'localhost' || host === '127.0.0.1') {
         return `http://${host}:8000/api`;
@@ -1918,6 +1936,8 @@ document.getElementById('btn-distribute-v').addEventListener('click', () => dist
 
 // ── ADD TABLE ────────────────────────────────────────────────────────────────
 document.getElementById('btn-add-table').addEventListener('click', () => {
+    const typeSelect = document.getElementById('new-table-type');
+    const type = typeSelect ? typeSelect.value : 'table';
     const nameInput = document.getElementById('new-table-name');
     const seatsInput = document.getElementById('new-table-seats');
     const seats = Math.min(30, Math.max(1, parseInt(seatsInput.value) || 8));
@@ -1941,6 +1961,7 @@ document.getElementById('btn-add-table').addEventListener('click', () => {
     const tbl = {
         id: `t_${Date.now()}_${tableCounter}`,
         name,
+        type: type || 'table',
         shape: selectedShape,
         seats,
         x: cx - d.w / 2 + (Math.random() - 0.5) * 60,
@@ -2657,6 +2678,17 @@ function renderInspector() {
 
     inspectorBody.innerHTML = `
         <div class="inspector-group">
+            <label>Typ strefy / stołu</label>
+            <select class="form-input" id="inspector-type" style="width:100%;">
+                <option value="table" ${tbl.type==='table'||!tbl.type?'selected':''}>Stół tradycyjny</option>
+                <option value="lounge" ${tbl.type==='lounge'?'selected':''}>Loża klubowa</option>
+                <option value="vip" ${tbl.type==='vip'?'selected':''}>Strefa VIP</option>
+                <option value="chillout" ${tbl.type==='chillout'?'selected':''}>Strefa Chillout</option>
+                <option value="bar" ${tbl.type==='bar'?'selected':''}>Bar / Stolik koktajlowy</option>
+                <option value="open_space" ${tbl.type==='open_space'?'selected':''}>Strefa otwarta</option>
+            </select>
+        </div>
+        <div class="inspector-group">
             <label>Nazwa stołu</label>
             <input type="text" class="form-input" id="inspector-name" value="${tbl.name}" maxlength="30" style="width:100%;">
         </div>
@@ -2680,6 +2712,10 @@ function renderInspector() {
         </div>
     `;
 
+    document.getElementById('inspector-type').addEventListener('change', (e) => {
+        tbl.type = e.target.value;
+        renderTable(tbl); renderTableList(); markDirty();
+    });
     document.getElementById('inspector-name').addEventListener('change', (e) => {
         tbl.name = e.target.value.trim() || tbl.name;
         renderTable(tbl); renderTableList(); markDirty();
@@ -3066,8 +3102,12 @@ async function loadLayout() {
         const res = await fetch(`${API_URL}/seating/layout/`, {
             headers: { Authorization: `Bearer ${token}` }
         });
+        if (!res.ok) {
+            console.warn('Nie udało się pobrać layoutu:', res.status);
+            return;
+        }
         const data = await res.json();
-        if (data.layout && data.layout.tables) {
+        if (data && data.layout && data.layout.tables) {
             tables = data.layout.tables;
             tableCounter = data.layout.tableCounter || tables.length;
             tables.forEach(tbl => {
@@ -3100,19 +3140,33 @@ async function loadLayout() {
 
 // ── LOAD GUESTS ───────────────────────────────────────────────────────────────
 async function loadGuests() {
-    const res = await fetch(`${API_URL}/seating/guests/`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    const data = await res.json();
-    allGuests = data.map(g => ({ ...g, _assignedTo: null }));
-
-    // Build map: login_code → primary guest name (is_plus_one=false)
-    window._primaryByCode = {};
-    allGuests.forEach(g => {
-        if (!g.is_plus_one && g.login_code) {
-            window._primaryByCode[g.login_code] = g.name;
+    try {
+        const res = await fetch(`${API_URL}/seating/guests/`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) {
+            console.warn('Nie udało się pobrać gości do planu stołów:', res.status);
+            allGuests = [];
+            return;
         }
-    });
+        const data = await res.json();
+        if (!Array.isArray(data)) {
+            allGuests = [];
+            return;
+        }
+        allGuests = data.map(g => ({ ...g, _assignedTo: null }));
+
+        // Build map: login_code → primary guest name (is_plus_one=false)
+        window._primaryByCode = {};
+        allGuests.forEach(g => {
+            if (!g.is_plus_one && g.login_code) {
+                window._primaryByCode[g.login_code] = g.name;
+            }
+        });
+    } catch (err) {
+        console.warn('Błąd loadGuests:', err);
+        allGuests = [];
+    }
 }
 
 // ── INIT APP ──────────────────────────────────────────────────────────────────

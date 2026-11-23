@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FrameWorthy Party — Nowoczesna Platforma Wydarzeń i Galeria na Żywo</title>
+    
+    <!-- Meta tags for sharing -->
+    <meta name="description" content="Cyfrowy ekosystem dla Twoich gości. Wspólna galeria na żywo, interaktywny harmonogram i plan sali dostępny natychmiast przez kod QR. Bez instalowania aplikacji.">
+    <link rel="icon" type="image/svg+xml" href="assets/logo-frameworthy-icon.svg">
+    
+    <!-- Google Fonts & Phosphor Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        :root {
+            --bg-canvas: #090a0f;
+            --bg-surface: #11131a;
+            --bg-surface-elevated: #171a24;
+            --bg-subtle: rgba(255, 255, 255, 0.03);
+            --accent-gold: #c59e47;
+            --accent-gold-light: #e5c77d;
+            --accent-gold-dark: #8c6a21;
+            --text-primary: #f6f5f1;
+            --text-secondary: #9aa1b2;
+            --text-tertiary: #5f6677;
+            --border-hairline: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(229, 199, 125, 0.35);
+            --font-editorial: 'Cormorant Garamond', Georgia, serif;
+            --font-heading: 'Outfit', sans-serif;
+            --font-body: 'Plus Jakarta Sans', sans-serif;
+            --shadow-subtle: 0 10px 40px rgba(0, 0, 0, 0.5);
+            --modal-backdrop: rgba(6, 7, 10, 0.85);
+            --input-bg: #151821;
+        }
+
+        [data-theme="light"] {
+            --bg-canvas: #faf8f5;
+            --bg-surface: #ffffff;
+            --bg-surface-elevated: #f3f0e9;
+            --bg-subtle: rgba(0, 0, 0, 0.02);
+            --accent-gold: #9e792c;
+            --accent-gold-light: #bfa15c;
+            --accent-gold-dark: #7a5a1b;
+            --text-primary: #15181f;
+            --text-secondary: #5e6678;
+            --text-tertiary: #9299a8;
+            --border-hairline: rgba(0, 0, 0, 0.08);
+            --border-hover: rgba(158, 121, 44, 0.4);
+            --shadow-subtle: 0 10px 40px rgba(0, 0, 0, 0.06);
+            --modal-backdrop: rgba(18, 20, 26, 0.75);
+            --input-bg: #f5f3ef;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            line-height: 1.65;
+            letter-spacing: -0.01em;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Subtle ambient vignette background */
+        .ambient-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 15%, rgba(197, 158, 71, 0.06) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1240px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── NAVIGATION ── */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 28px 0;
+            border-bottom: 1px solid var(--border-hairline);
+        }
+
+        .brand-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .brand-logo-svg {
+            height: 38px;
+            width: auto;
+            display: block;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 36px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.92rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 22px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.92rem;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid transparent;
+            font-family: var(--font-body);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-primary);
+            border-color: var(--border-hairline);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-subtle);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-gold-light) 0%, var(--accent-gold) 100%);
+            color: #0c0d12;
+            box-shadow: 0 4px 18px rgba(197, 158, 71, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(197, 158, 71, 0.35);
+        }
+
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--border-hairline);
+            color: var(--text-secondary);
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--border-hover);
+            background: var(--bg-subtle);
+        }
+
+        /* ── HERO SECTION ── */
+        .hero {
+            padding: 100px 0 70px 0;
+            text-align: center;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .kicker {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--accent-gold);
+            margin-bottom: 22px;
+            max-width: 100%;
+        }
+
+        .kicker::before, .kicker::after {
+            content: '';
+            width: 24px;
+            height: 1px;
+            background: var(--accent-gold);
+            opacity: 0.6;
+        }
+
+        .hero h1 {
+            font-family: var(--font-heading);
+            font-size: 3.8rem;
+            font-weight: 700;
+            line-height: 1.12;
+            margin-bottom: 26px;
+            letter-spacing: -0.03em;
+        }
+
+        .hero h1 em {
+            font-family: var(--font-editorial);
+            font-weight: 400;
+            font-style: italic;
+            color: var(--accent-gold-light);
+            letter-spacing: normal;
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 1.22rem;
+            line-height: 1.7;
+            margin-bottom: 42px;
+            max-width: 780px;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: 400;
+        }
+
+        .hero-cta {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .hero-meta-bar {
+            display: flex;
+            justify-content: center;
+            gap: 36px;
+            margin-top: 54px;
+            padding-top: 36px;
+            border-top: 1px solid var(--border-hairline);
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+        }
+
+        .meta-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            letter-spacing: 0.02em;
+        }
+
+        .meta-bar-item i {
+            color: var(--accent-gold);
+            font-size: 1.1rem;
+        }
+
+        /* ── SECTION HEADER ── */
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 52px auto;
+        }
+
+        .section-kicker {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--accent-gold);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+            margin-bottom: 14px;
+        }
+
+        .section-header h2 em {
+            font-family: var(--font-editorial);
+            font-style: italic;
+            font-weight: 400;
+            color: var(--accent-gold);
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+
+        /* ── CURATED SHOWCASE (REPLACES OLD DEMO BLOCKS) ── */
+        .showcase-section {
+            padding: 80px 0;
+        }
+
+        /* Segmented Controller */
+        .showcase-nav {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .showcase-tab {
+            padding: 10px 24px;
+            border-radius: 30px;
+            border: 1px solid var(--border-hairline);
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .showcase-tab:hover {
+            border-color: var(--border-hover);
+            color: var(--text-primary);
+        }
+
+        .showcase-tab.active {
+            background: var(--text-primary);
+            color: var(--bg-canvas);
+            border-color: var(--text-primary);
+        }
+
+        [data-theme="light"] .showcase-tab.active {
+            background: #11131a;
+            color: #ffffff;
+            border-color: #11131a;
+        }
+
+        /* Showcase Stage Card */
+        .showcase-stage {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-hairline);
+            border-radius: 20px;
+            padding: 48px;
+            box-shadow: var(--shadow-subtle);
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 48px;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .showcase-info-kicker {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--accent-gold);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .showcase-info h3 {
+            font-family: var(--font-heading);
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .showcase-info p.lead {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.65;
+            margin-bottom: 28px;
+        }
+
+        .curated-feature-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 36px;
+        }
+
+        .curated-feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .curated-feature-list li i {
+            color: var(--accent-gold);
+            font-size: 1.15rem;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+
+        /* Mockup Frame */
+        .mockup-viewport {
+            background: var(--bg-canvas);
+            border: 1px solid var(--border-hairline);
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .mockup-viewport:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-hover);
+        }
+
+        .mockup-viewport img {
+            width: 100%;
+            height: 380px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .mockup-viewport-badge {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(12, 14, 20, 0.88);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── EDITORIAL WORKFLOW GRID (NON-AI STYLE) ── */
+        .workflow-section {
+            padding: 90px 0;
+            border-top: 1px solid var(--border-hairline);
+        }
+
+        .workflow-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-top: 48px;
+        }
+
+        .workflow-step {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-hairline);
+            border-radius: 16px;
+            padding: 32px 28px;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.25s ease, transform 0.25s ease;
+        }
+
+        .workflow-step:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-3px);
+        }
+
+        .workflow-step-num {
+            font-family: var(--font-editorial);
+            font-size: 2.2rem;
+            font-style: italic;
+            color: var(--accent-gold);
+            line-height: 1;
+            margin-bottom: 20px;
+        }
+
+        .workflow-step h4 {
+            font-family: var(--font-heading);
+            font-size: 1.18rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            letter-spacing: -0.01em;
+        }
+
+        .workflow-step p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* ── INNOVATIVE CALCULATOR / EXPERIENCE CONFIGURATOR ── */
+        .configurator-section {
+            padding: 80px 0;
+            border-top: 1px solid var(--border-hairline);
+        }
+
+        .configurator-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-hairline);
+            border-radius: 20px;
+            padding: 48px;
+            box-shadow: var(--shadow-subtle);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+
+        .config-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 12px;
+        }
+
+        .config-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 4px;
+            background: var(--border-hairline);
+            outline: none;
+            -webkit-appearance: none;
+            accent-color: var(--accent-gold);
+            cursor: pointer;
+            margin: 20px 0 32px 0;
+        }
+
+        .config-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .stat-item {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-hairline);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .stat-val {
+            font-family: var(--font-editorial);
+            font-size: 2rem;
+            color: var(--accent-gold-light);
+            line-height: 1.1;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+
+        /* ── OCCASIONS PILLS ── */
+        .occasions-section {
+            padding: 70px 0;
+            text-align: center;
+            border-top: 1px solid var(--border-hairline);
+        }
+
+        .occasions-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 32px;
+        }
+
+        .occasion-pill {
+            padding: 10px 22px;
+            border-radius: 24px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-hairline);
+            font-size: 0.92rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .occasion-pill:hover {
+            color: var(--text-primary);
+            border-color: var(--border-hover);
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            border-top: 1px solid var(--border-hairline);
+            padding: 48px 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .footer-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+
+        /* ── FULLSCREEN SCREENSHOT MODAL ── */
+        .screenshot-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--modal-backdrop);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .screenshot-modal-content {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-hairline);
+            border-radius: 20px;
+            max-width: 960px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 40px;
+            position: relative;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .screenshot-viewer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin-top: 28px;
+        }
+
+        .screenshot-viewer-item {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-hairline);
+            background: #000000;
+        }
+
+        .screenshot-viewer-item img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .screenshot-viewer-item .caption {
+            padding: 12px 14px;
+            font-size: 0.84rem;
+            color: var(--text-secondary);
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-hairline);
+            line-height: 1.45;
+        }
+
+        /* ── AUTH MODALS ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--modal-backdrop);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 24px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-hairline);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            animation: modalIn 0.22s ease-out;
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(0.96); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-content h3 {
+            font-family: var(--font-heading);
+            font-size: 1.7rem;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .modal-content p.subtitle {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: left;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.01em;
+        }
+
+        .form-input, .form-select {
+            padding: 12px 14px;
+            border-radius: 8px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-hairline);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .modal-btn {
+            width: 100%;
+            margin-top: 12px;
+            padding: 13px;
+            font-size: 0.98rem;
+            justify-content: center;
+        }
+
+        .modal-footer-switch {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .modal-footer-switch a {
+            color: var(--accent-gold);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .error-box {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 980px) {
+            .showcase-stage {
+                grid-template-columns: 1fr;
+                padding: 32px;
+                gap: 32px;
+            }
+            .workflow-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .configurator-card {
+                grid-template-columns: 1fr;
+                gap: 32px;
+                padding: 32px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 16px;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+            nav {
+                padding: 16px 0;
+                gap: 8px;
+            }
+            .brand-logo-svg {
+                height: 28px;
+                max-width: 140px;
+            }
+            .nav-actions {
+                gap: 6px;
+            }
+            .nav-actions .btn {
+                padding: 7px 11px;
+                font-size: 0.8rem;
+            }
+            #nav-register-btn {
+                display: none;
+            }
+            .theme-toggle-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 0.95rem;
+            }
+            .hero {
+                padding: 38px 0 28px 0;
+            }
+            .kicker {
+                font-size: 0.68rem;
+                letter-spacing: 0.08em;
+                gap: 6px;
+                margin-bottom: 14px;
+            }
+            .kicker::before, .kicker::after {
+                display: none;
+            }
+            .hero h1 {
+                font-size: 2.05rem;
+                line-height: 1.15;
+            }
+            .section-header h2 {
+                font-size: 1.85rem;
+                line-height: 1.25;
+            }
+            .hero p {
+                font-size: 0.95rem;
+                line-height: 1.55;
+                margin-bottom: 26px;
+            }
+            .hero-cta {
+                flex-direction: column;
+                width: 100%;
+            }
+            .hero-cta .btn {
+                width: 100%;
+                justify-content: center;
+                padding: 13px;
+            }
+            .nav-links {
+                display: none;
+            }
+            .workflow-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero-meta-bar {
+                flex-direction: column;
+                align-items: center;
+                gap: 14px;
+                padding-top: 24px;
+                margin-top: 36px;
+            }
+            .config-stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .showcase-stage {
+                padding: 24px 18px;
+            }
+            .mockup-viewport img {
+                height: 240px;
+            }
+            .configurator-card {
+                padding: 24px 18px;
+            }
+            .footer-inner {
+                flex-direction: column;
+                text-align: center;
+                gap: 16px;
+            }
+            .footer-links {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-glow"></div>
+
+    <div class="container">
+        <!-- Navigation -->
+        <nav>
+            <a href="./" class="brand-link" aria-label="FrameWorthy Party Strona Główna">
+                <svg class="brand-logo-svg" viewBox="0 0 290 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="navLogoGold" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#E5C77D"/>
+                            <stop offset="50%" stop-color="#C59E47"/>
+                            <stop offset="100%" stop-color="#9A7426"/>
+                        </linearGradient>
+                    </defs>
+                    <g transform="translate(0, 0)">
+                        <path d="M7 15V9C7 7.89543 7.89543 7 9 7H15" stroke="url(#navLogoGold)" stroke-width="2.4" stroke-linecap="round"/>
+                        <path d="M33 7H39C40.1046 7 41 7.89543 41 9V15" stroke="url(#navLogoGold)" stroke-width="2.4" stroke-linecap="round"/>
+                        <path d="M41 33V39C41 40.1046 40.1046 41 39 41H33" stroke="url(#navLogoGold)" stroke-width="2.4" stroke-linecap="round"/>
+                        <path d="M15 41H9C7.89543 41 7 40.1046 7 39V33" stroke="url(#navLogoGold)" stroke-width="2.4" stroke-linecap="round"/>
+                        <rect x="11" y="14" width="26" height="20" rx="3.5" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <path d="M18 14V12.5C18 11.6716 18.6716 11 19.5 11H23.5C24.3284 11 25 11.6716 25 12.5V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <circle cx="31.5" cy="17.5" r="1.2" fill="url(#navLogoGold)"/>
+                        <circle cx="24" cy="24" r="6" stroke="currentColor" stroke-width="1.8"/>
+                        <circle cx="24" cy="24" r="3.2" stroke="url(#navLogoGold)" stroke-width="1.4" stroke-dasharray="3.5 1.8"/>
+                        <circle cx="24" cy="24" r="1.2" fill="url(#navLogoGold)"/>
+                    </g>
+                    <text x="56" y="27" font-family="'Plus Jakarta Sans', -apple-system, sans-serif" font-size="16" font-weight="800" letter-spacing="1.8" fill="currentColor">FRAMEWORTHY</text>
+                    <text x="206" y="27" font-family="'Plus Jakarta Sans', -apple-system, sans-serif" font-size="16" font-weight="400" letter-spacing="3" fill="url(#navLogoGold)">PARTY</text>
+                    <text x="57" y="38" font-family="'Plus Jakarta Sans', -apple-system, sans-serif" font-size="7.5" font-weight="600" letter-spacing="2.8" fill="var(--text-tertiary)" text-transform="uppercase">EVENT GUEST EXPERIENCE</text>
+                </svg>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="#showcase">Doświadczenie</a></li>
+                <li><a href="#workflow">Jak to działa</a></li>
+                <li><a href="#configurator">Kalkulator</a></li>
+                <li><a href="#occasions">Wydarzenia</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <button class="theme-toggle-btn" id="theme-toggle" aria-label="Przełącz motyw" title="Przełącz tryb jasny / ciemny">
+                    <i class="ph ph-sun" id="theme-icon"></i>
+                </button>
+                <button class="btn btn-outline" id="nav-login-btn">
+                    <i class="ph ph-sign-in"></i> Zaloguj
+                </button>
+                <button class="btn btn-primary" id="nav-register-btn">
+                    <i class="ph ph-plus"></i> Stwórz Wydarzenie
+                </button>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <header class="hero">
+            <span class="kicker">Platforma Doświadczeń Eventowych</span>
+            <h1>
+                Wydarzenia, które <em>zapadają w pamięć</em>.
+            </h1>
+            <p>
+                Cyfrowy przewodnik i wspólna kronika Twojego wydarzenia. Goście natychmiast skanują kod QR przy wejściu, dzielą się zdjęciami bez kompresji i sprawdzają harmonogram na żywo. Bez pobierania aplikacji ze sklepu.
+            </p>
+            <div class="hero-cta">
+                <button class="btn btn-primary" id="hero-create-btn">
+                    <i class="ph ph-sparkle"></i> Załóż Wydarzenie Bez Opłat
+                </button>
+                <a href="#showcase" class="btn btn-outline">
+                    <i class="ph ph-eye"></i> Zobacz Przykłady Realizacji
+                </a>
+            </div>
+
+            <div class="hero-meta-bar">
+                <div class="meta-bar-item">
+                    <i class="ph ph-qr-code"></i> Dostęp przez przeglądarkę (PWA)
+                </div>
+                <div class="meta-bar-item">
+                    <i class="ph ph-lightning"></i> Miniaturki WebP i bufor offline
+                </div>
+                <div class="meta-bar-item">
+                    <i class="ph ph-shield-check"></i> Prywatność i pełna kontrola organizatora
+                </div>
+            </div>
+        </header>
+
+        <!-- Curated Interactive Showcase Section -->
+        <section class="showcase-section" id="showcase">
+            <div class="section-header">
+                <span class="section-kicker">Interaktywne Doświadczenie</span>
+                <h2>Każde wydarzenie ma swój <em>indywidualny styl</em></h2>
+                <p>Zobacz jak FrameWorthy Party dopasowuje oprawę, typografię i funkcje do charakteru uroczystości.</p>
+            </div>
+
+            <div class="showcase-nav">
+                <button class="showcase-tab active" data-target="wedding">Wesele & Ślub</button>
+                <button class="showcase-tab" data-target="party">Klub & Urodziny</button>
+                <button class="showcase-tab" data-target="corporate">Gala & Bankiet Firmowy</button>
+            </div>
+
+            <div class="showcase-stage" id="showcase-card">
+                <div class="showcase-info">
+                    <span class="showcase-info-kicker" id="stage-kicker">Ekskluzywna Uroczystość</span>
+                    <h3 id="stage-title">Wesele z Klasą</h3>
+                    <p class="lead" id="stage-lead">Dedykowany monogram pary młodej, odliczanie do ceremonii, interaktywny plan stołów z wyszukiwarką oraz wspólny album bez kompresji fotografii.</p>
+                    
+                    <ul class="curated-feature-list" id="stage-features">
+                        <li><i class="ph ph-check"></i> Indywidualny monogram i harmonogram toastów</li>
+                        <li><i class="ph ph-check"></i> Cyfrowy plan usadzenia gości z wyszukiwarką</li>
+                        <li><i class="ph ph-check"></i> Księga życzeń z możliwością nagrań audio i wideo</li>
+                        <li><i class="ph ph-check"></i> Błyskawiczny dostęp dla wszystkich pokoleń przez kod QR</li>
+                    </ul>
+
+                    <button type="button" class="btn btn-outline" id="stage-modal-btn">
+                        <i class="ph ph-arrows-out-simple"></i> Przeglądaj Pełne Zrzuty Ekranu
+                    </button>
+                </div>
+
+                <div class="mockup-viewport" id="stage-viewport">
+                    <img id="stage-image" src="img/couple.png" alt="Prezentacja Wydarzenia">
+                    <div class="mockup-viewport-badge">
+                        <i class="ph ph-magnifying-glass-plus"></i> Kliknij, aby powiększyć
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Editorial Workflow Section -->
+        <section class="workflow-section" id="workflow">
+            <div class="section-header">
+                <span class="section-kicker">Przemyślany Proces</span>
+                <h2>Komfort dla gości, <em>spokój dla organizatora</em></h2>
+                <p>Cztery fundamenty, które eliminują chaos organizacyjny i tworzą bezcenną pamiątkę.</p>
+            </div>
+
+            <div class="workflow-grid">
+                <div class="workflow-step">
+                    <div class="workflow-step-num">01</div>
+                    <h4>Jeden Kod QR</h4>
+                    <p>Gość kieruje aparat telefonu na kod przy wejściu lub na stole. Bez rejestracji w sklepach z aplikacjami, od razu wita go dedykowany ekran wydarzenia.</p>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="workflow-step-num">02</div>
+                    <h4>Wspólna Kronika</h4>
+                    <p>Wszystkie fotografie i relacje trafiają w czasie rzeczywistym do jednego eleganckiego feedu. Oryginalna jakość, bez kompresji znanej z komunikatorów.</p>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="workflow-step-num">03</div>
+                    <h4>Cyfrowy Konsjerż</h4>
+                    <p>Interaktywny plan usadzenia pozwala każdemu odnaleźć swoje miejsce. Powiadomienia push przypominają o torcie, toaście czy pamiątkowym zdjęciu.</p>
+                </div>
+
+                <div class="workflow-step">
+                    <div class="workflow-step-num">04</div>
+                    <h4>Wieczna Pamiątka</h4>
+                    <p>Po zakończeniu przyjęcia organizator jednym kliknięciem pobiera kompletne archiwum w pełnej rozdzielczości wraz z życzeniami i wpisami gości.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Innovative Interactive Configurator -->
+        <section class="configurator-section" id="configurator">
+            <div class="section-header">
+                <span class="section-kicker">Kalkulator Wydarzenia</span>
+                <h2>Dopasuj do <em>swojego formatu</em></h2>
+                <p>Przesuń suwak i sprawdź estymowaną dynamikę relacji oraz rekomendowane ustawienia platformy.</p>
+            </div>
+
+            <div class="configurator-card">
+                <div>
+                    <div class="config-label-row">
+                        <span style="font-weight: 600; font-size: 0.95rem;">Liczba Gości na Wydarzeniu</span>
+                        <span id="guest-count-display" style="font-family: var(--font-editorial); font-size: 1.8rem; color: var(--accent-gold);">120 gości</span>
+                    </div>
+                    <input type="range" min="20" max="400" step="10" value="120" class="config-slider" id="guest-slider">
+
+                    <p style="color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6;">
+                        Średnio każdy uczestnik dodaje od 4 do 8 unikalnych ujęć z perspektywy gościa, których nie uchwyci nawet najlepszy fotograf.
+                    </p>
+                </div>
+
+                <div class="config-stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-val" id="stat-photos">~720</div>
+                        <div class="stat-label">Szacowane zdjęcia w kronice</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-val" id="stat-seating">&lt; 15s</div>
+                        <div class="stat-label">Średni czas odnalezienia stołu</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-val" id="stat-bandwidth">98.4%</div>
+                        <div class="stat-label">Gości korzystających bez instalacji</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-val" id="stat-retention">Bez limitu</div>
+                        <div class="stat-label">Czas przechowywania archiwum</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Occasions Section -->
+        <section class="occasions-section" id="occasions">
+            <div class="section-header" style="margin-bottom: 24px;">
+                <span class="section-kicker">Elastyczność Platformy</span>
+                <h2>Formaty uroczystości</h2>
+            </div>
+            <div class="occasions-row">
+                <div class="occasion-pill"><i class="ph ph-heart"></i> Śluby i Wesela</div>
+                <div class="occasion-pill"><i class="ph ph-cake"></i> 18-stki i Urodziny</div>
+                <div class="occasion-pill"><i class="ph ph-buildings"></i> Jubileusze i Gale Firmowe</div>
+                <div class="occasion-pill"><i class="ph ph-music-notes"></i> Bankiety i Wydarzenia Klubowe</div>
+                <div class="occasion-pill"><i class="ph ph-house"></i> Przyjęcia Kameralne</div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-inner">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="assets/logo-frameworthy-icon.svg" alt="FrameWorthy Party" style="width: 24px; height: 24px;">
+                    <span>&copy; 2026 FrameWorthy Party. Sztuka nowoczesnych wydarzeń.</span>
+                </div>
+                <ul class="footer-links">
+                    <li><a href="#showcase">Doświadczenie</a></li>
+                    <li><a href="#workflow">Workflow</a></li>
+                    <li><a href="#configurator">Kalkulator</a></li>
+                    <li><a href="#occasions">Wydarzenia</a></li>
+                </ul>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Registration Modal -->
+    <div class="modal-overlay" id="register-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="register-close-btn" aria-label="Zamknij">&times;</button>
+            <h3>Stwórz Swoje Wydarzenie</h3>
+            <p class="subtitle">Załóż bezpłatne konto organizatora i rozpocznij konfigurację.</p>
+            
+            <div class="error-box" id="register-error"></div>
+
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="reg-email">Adres E-mail</label>
+                    <input type="email" id="reg-email" class="form-input" placeholder="np. kontakt@organizator.pl" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Hasło dostępowe (min. 6 znaków)</label>
+                    <input type="password" id="reg-password" class="form-input" placeholder="Wprowadź bezpieczne hasło" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="reg-event-type">Charakter Wydarzenia</label>
+                    <select id="reg-event-type" class="form-select">
+                        <option value="wedding">Wesele / Przyjęcie Ślubne</option>
+                        <option value="birthday" selected>Urodziny / 18-stka</option>
+                        <option value="party">Wydarzenie Okolicznościowe / Klub</option>
+                        <option value="corporate">Gala Firmowa / Bankiet</option>
+                        <option value="other">Inna Uroczystość</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reg-org-name">Tytuł Wydarzenia</label>
+                    <input type="text" id="reg-org-name" class="form-input" placeholder="np. Wesele Aleksandry i Piotra" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-host-name">Imię Gospodarza lub Pary Młodej</label>
+                    <input type="text" id="reg-host-name" class="form-input" placeholder="np. Aleksandra i Piotr" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-date">Data Uroczystości (opcjonalnie)</label>
+                    <input type="datetime-local" id="reg-date" class="form-input">
+                </div>
+                
+                <button type="submit" class="btn btn-primary modal-btn" id="reg-submit-btn">
+                    <i class="ph ph-check"></i> Zainicjuj Wydarzenie i Przejdź do Panelu
+                </button>
+            </form>
+
+            <div class="modal-footer-switch">
+                Posiadasz już konto organizatora? <a href="#" id="switch-to-login">Zaloguj się</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="login-close-btn" aria-label="Zamknij">&times;</button>
+            <h3>Panel Organizatora</h3>
+            <p class="subtitle">Zaloguj się danymi organizatora, aby zarządzać relacją.</p>
+
+            <div class="error-box" id="login-error"></div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Adres E-mail</label>
+                    <input type="email" id="login-email" class="form-input" placeholder="np. kontakt@organizator.pl" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Hasło</label>
+                    <input type="password" id="login-password" class="form-input" placeholder="Wprowadź hasło" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary modal-btn" id="login-submit-btn">
+                    <i class="ph ph-sign-in"></i> Zaloguj do Panelu
+                </button>
+            </form>
+
+            <div class="modal-footer-switch">
+                Organizujesz nowe przyjęcie? <a href="#" id="switch-to-register">Stwórz bez opłat</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Screenshots Viewer Modal -->
+    <div id="screenshot-modal" class="screenshot-modal">
+        <div class="screenshot-modal-content">
+            <button id="screenshot-modal-close" style="position: absolute; top: 24px; right: 24px; background: none; border: none; font-size: 1.6rem; cursor: pointer; color: var(--text-secondary);">&times;</button>
+            <h3 id="screenshot-modal-title" style="font-family: var(--font-heading); font-size: 1.6rem; margin-bottom: 8px;">Galeria Zrzutów Ekranu</h3>
+            <p id="screenshot-modal-desc" style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 20px;"></p>
+            <div id="screenshot-viewer-grid" class="screenshot-viewer-grid"></div>
+        </div>
+    </div>
+
+    <!-- Script: Logic, Theme, Showcase & Configurator -->
+    <script>
+        // ── API URL RESOLUTION ─────────────────────────────────────────
+        const getApiUrl = () => {
+            if (window.location && window.location.origin && window.location.origin.includes('railway.app')) {
+                return `${window.location.origin}/api`;
+            }
+            const host = window.location.hostname || '127.0.0.1';
+            if (host === 'localhost' || host === '127.0.0.1') {
+                return 'http://127.0.0.1:8000/api';
+            }
+            const urlParams = new URLSearchParams(window.location.search);
+            const backendParam = urlParams.get('backend') || sessionStorage.getItem('wedding_backend_env');
+            if (backendParam === 'dev' || host.includes('dev')) {
+                return 'https://frameworthyparty-dev.up.railway.app/api';
+            }
+            return 'https://frameworthyparty.up.railway.app/api';
+        };
+
+        const API_URL = getApiUrl();
+
+        // ── THEME INITIALIZATION (LIGHT / DARK) ────────────────────────
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryTheme = urlParams.get('theme');
+        const savedTheme = localStorage.getItem('frameworthy_theme');
+        const systemPrefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+        
+        let activeTheme = 'dark';
+        if (queryTheme === 'light' || queryTheme === 'dark') {
+            activeTheme = queryTheme;
+        } else if (savedTheme) {
+            activeTheme = savedTheme;
+        } else if (systemPrefersLight) {
+            activeTheme = 'light';
+        }
+
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+
+        const applyTheme = (theme) => {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('frameworthy_theme', theme);
+            if (themeIcon) {
+                themeIcon.className = theme === 'light' ? 'ph ph-moon' : 'ph ph-sun';
+            }
+        };
+        applyTheme(activeTheme);
+
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                const current = document.documentElement.getAttribute('data-theme') || 'dark';
+                applyTheme(current === 'dark' ? 'light' : 'dark');
+            });
+        }
+
+        // ── CURATED SHOWCASE TABS ─────────────────────────────────────
+        const showcaseData = {
+            wedding: {
+                kicker: 'Ekskluzywna Uroczystość',
+                title: 'Wesele z Klasą',
+                lead: 'Dedykowany monogram pary młodej, odliczanie do ceremonii, interaktywny plan stołów z wyszukiwarką oraz wspólny album bez kompresji fotografii.',
+                features: [
+                    'Indywidualny monogram pary młodej i harmonogram toastów',
+                    'Cyfrowy plan usadzenia gości z wyszukiwarką imienną',
+                    'Księga życzeń z możliwością nagrań audio i wideo',
+                    'Błyskawiczny dostęp dla wszystkich pokoleń przez kod QR'
+                ],
+                image: 'img/couple.png',
+                galleryTitle: 'Wesele z Klasą — Zrzuty Ekranu & Interfejs',
+                galleryDesc: 'Cyfrowy przewodnik gościa weselnego w stonowanej, klasycznej oprawie złota i kości słoniowej.',
+                galleryItems: [
+                    { img: 'img/couple.png', caption: 'Ekran powitalny: Monogram Z&K, odliczanie i harmonogram ślubny' },
+                    { img: 'img/story_1.jpg', caption: 'Relacje Live: Zdjęcia i wideo z przygotowań i ceremonii zaślubin' },
+                    { img: 'img/story_2.jpg', caption: 'Wspólna Kronika: Błyskawiczny upload fotografii przez gości' },
+                    { img: 'assets/zk-logo.png', caption: 'Dedykowana oprawa graficzna i monogram na stoły weselne' }
+                ]
+            },
+            party: {
+                kicker: 'Wydarzenie Klubowe & Urodziny',
+                title: 'Klubowy Vibe & 18-stka',
+                lead: 'Ciemna, dynamiczna estetyka Deep Onyx z relacjami stories na żywo, harmonogramem setów DJ-skich i strefami lożowymi.',
+                features: [
+                    'Klubowy profil kolorystyczny z dynamicznym akcentem neonu',
+                    'Ekspresowy upload zdjęć i relacji z parkietu',
+                    'Harmonogram: toast powitalny, tort, set DJ-a i afterparty',
+                    'Proste 4-cyfrowe kody logowania dla uczestników imprezy'
+                ],
+                image: 'img/pawel_18_hero.jpg',
+                galleryTitle: 'Klubowy Vibe & 18-stka — Zrzuty Ekranu & Interfejs',
+                galleryDesc: 'Interaktywny panel imprezowy z harmonogramem atrakcji i relacją w czasie rzeczywistym.',
+                galleryItems: [
+                    { img: 'img/pawel_18_hero.jpg', caption: 'Widok główny: Hero baner, odliczanie do wejścia i status' },
+                    { img: 'img/story_3.jpg', caption: 'Galeria z parkietu: Wspólna relacja tworzona na żywo przez znajomych' },
+                    { img: 'img/pawel_18_logo.png', caption: 'Branding wydarzenia: Dedykowana identyfikacja wizualna' },
+                    { img: 'img/story_1.jpg', caption: 'Harmonogram: Set DJ-ski, tort urodzinowy i strefy klubowe' }
+                ]
+            },
+            corporate: {
+                kicker: 'Prestiżowy Event Firmowy',
+                title: 'Gala & Bankiet Biznesowy',
+                lead: 'Elegancka oprawa w kolorystyce szafiru i platyny z agendą prelekcji, mapą stref networkingowych oraz powiadomieniami push.',
+                features: [
+                    'Biznesowy design Sapphire & Platinum z logotypem firmy',
+                    'Dynamiczna agenda prelekcji z powiadomieniami push',
+                    'Strefy networkingowe i wyszukiwarka stolików bankietowych',
+                    'Bezpieczna, prywatna galeria dla pracowników i partnerów'
+                ],
+                image: 'img/story_2.jpg',
+                galleryTitle: 'Gala & Bankiet Firmowy — Zrzuty Ekranu & Interfejs',
+                galleryDesc: 'Dedykowana platforma eventowa dla gal jubileuszowych i konferencji korporacyjnych.',
+                galleryItems: [
+                    { img: 'img/story_2.jpg', caption: 'Agenda & Harmonogram: Przebieg wystąpień i powiadomienia push' },
+                    { img: 'img/story_1.jpg', caption: 'Strefy Networkingowe: Cyfrowy plan bankietu i strefy VIP' },
+                    { img: 'img/couple.png', caption: 'Transmisja & Gala: Oficjalna fotorelacja z wręczenia wyróżnień' },
+                    { img: 'img/story_3.jpg', caption: 'Księga pamiątkowa: Wpisy i gratulacje od gości i partnerów' }
+                ]
+            }
+        };
+
+        let currentShowcaseKey = 'wedding';
+        const showcaseTabs = document.querySelectorAll('.showcase-tab');
+        const stageKicker = document.getElementById('stage-kicker');
+        const stageTitle = document.getElementById('stage-title');
+        const stageLead = document.getElementById('stage-lead');
+        const stageFeatures = document.getElementById('stage-features');
+        const stageImage = document.getElementById('stage-image');
+
+        const updateShowcaseStage = (key) => {
+            currentShowcaseKey = key;
+            const data = showcaseData[key];
+            if (!data) return;
+
+            stageKicker.textContent = data.kicker;
+            stageTitle.textContent = data.title;
+            stageLead.textContent = data.lead;
+            stageFeatures.innerHTML = data.features.map(f => `<li><i class="ph ph-check"></i> ${f}</li>`).join('');
+            stageImage.src = data.image;
+
+            showcaseTabs.forEach(tab => {
+                if (tab.dataset.target === key) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+        };
+
+        showcaseTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                updateShowcaseStage(tab.dataset.target);
+            });
+        });
+
+        // ── SCREENSHOT GALLERY MODAL ──────────────────────────────────
+        const screenshotModal = document.getElementById('screenshot-modal');
+        const screenshotModalTitle = document.getElementById('screenshot-modal-title');
+        const screenshotModalDesc = document.getElementById('screenshot-modal-desc');
+        const screenshotViewerGrid = document.getElementById('screenshot-viewer-grid');
+        const screenshotModalClose = document.getElementById('screenshot-modal-close');
+
+        const openGalleryModal = (key) => {
+            const data = showcaseData[key] || showcaseData.wedding;
+            screenshotModalTitle.textContent = data.galleryTitle;
+            screenshotModalDesc.textContent = data.galleryDesc;
+            screenshotViewerGrid.innerHTML = data.galleryItems.map(item => `
+                <div class="screenshot-viewer-item">
+                    <img src="${item.img}" alt="${item.caption}">
+                    <div class="caption">${item.caption}</div>
+                </div>
+            `).join('');
+            screenshotModal.style.display = 'flex';
+        };
+
+        document.getElementById('stage-modal-btn').addEventListener('click', () => openGalleryModal(currentShowcaseKey));
+        document.getElementById('stage-viewport').addEventListener('click', () => openGalleryModal(currentShowcaseKey));
+
+        const closeGalleryModal = () => {
+            screenshotModal.style.display = 'none';
+        };
+        screenshotModalClose.addEventListener('click', closeGalleryModal);
+        screenshotModal.addEventListener('click', (e) => {
+            if (e.target === screenshotModal) closeGalleryModal();
+        });
+
+        // ── INTERACTIVE CONFIGURATOR SLIDER ────────────────────────────
+        const guestSlider = document.getElementById('guest-slider');
+        const guestCountDisplay = document.getElementById('guest-count-display');
+        const statPhotos = document.getElementById('stat-photos');
+
+        if (guestSlider) {
+            guestSlider.addEventListener('input', (e) => {
+                const count = parseInt(e.target.value, 10);
+                guestCountDisplay.textContent = `${count} gości`;
+                statPhotos.textContent = `~${Math.round(count * 6.2)}`;
+            });
+        }
+
+        // ── MODAL AUTH TRIGGERS & HANDLING ─────────────────────────────
+        const regModal = document.getElementById('register-modal');
+        const loginModal = document.getElementById('login-modal');
+        const regError = document.getElementById('register-error');
+        const loginError = document.getElementById('login-error');
+
+        const openRegister = () => {
+            regError.style.display = 'none';
+            loginModal.classList.remove('active');
+            regModal.classList.add('active');
+        };
+
+        const openLogin = () => {
+            loginError.style.display = 'none';
+            regModal.classList.remove('active');
+            loginModal.classList.add('active');
+        };
+
+        document.getElementById('nav-register-btn').addEventListener('click', openRegister);
+        document.getElementById('hero-create-btn').addEventListener('click', openRegister);
+        document.getElementById('nav-login-btn').addEventListener('click', openLogin);
+
+        document.getElementById('register-close-btn').addEventListener('click', () => regModal.classList.remove('active'));
+        document.getElementById('login-close-btn').addEventListener('click', () => loginModal.classList.remove('active'));
+
+        document.getElementById('switch-to-login').addEventListener('click', (e) => {
+            e.preventDefault();
+            openLogin();
+        });
+        document.getElementById('switch-to-register').addEventListener('click', (e) => {
+            e.preventDefault();
+            openRegister();
+        });
+
+        [regModal, loginModal].forEach(m => {
+            m.addEventListener('click', (e) => {
+                if (e.target === m) m.classList.remove('active');
+            });
+        });
+
+        // Register Submission
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            regError.style.display = 'none';
+            const submitBtn = document.getElementById('reg-submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Rejestracja...';
+
+            const payload = {
+                email: document.getElementById('reg-email').value.trim(),
+                password: document.getElementById('reg-password').value.trim(),
+                event_type: document.getElementById('reg-event-type').value,
+                organization_name: document.getElementById('reg-org-name').value.trim(),
+                host_name: document.getElementById('reg-host-name').value.trim(),
+                event_date: document.getElementById('reg-date').value || null
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/auth/owner/register/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('access_token', data.access);
+                    localStorage.setItem('refresh_token', data.refresh);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    localStorage.setItem('current_org_id', data.organization.id);
+                    localStorage.setItem('session_' + data.organization.id, JSON.stringify({
+                        token: data.access,
+                        user: data.user
+                    }));
+                    window.location.href = `party/admin.html?org=${data.organization.id}`;
+                } else {
+                    regError.textContent = data.error || 'Wystąpił błąd podczas rejestracji.';
+                    regError.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="ph ph-check"></i> Zainicjuj Wydarzenie i Przejdź do Panelu';
+                }
+            } catch (err) {
+                regError.textContent = 'Błąd połączenia z serwerem: ' + err.message;
+                regError.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="ph ph-check"></i> Zainicjuj Wydarzenie i Przejdź do Panelu';
+            }
+        });
+
+        // Login Submission
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loginError.style.display = 'none';
+            const submitBtn = document.getElementById('login-submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Logowanie...';
+
+            const payload = {
+                email: document.getElementById('login-email').value.trim(),
+                password: document.getElementById('login-password').value.trim()
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/auth/owner/login/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('access_token', data.access);
+                    localStorage.setItem('refresh_token', data.refresh);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    const orgId = data.organization ? data.organization.id : data.user.organization_id;
+                    if (orgId) {
+                        localStorage.setItem('current_org_id', orgId);
+                        localStorage.setItem('session_' + orgId, JSON.stringify({
+                            token: data.access,
+                            user: data.user
+                        }));
+                    }
+                    window.location.href = `party/admin.html?org=${orgId}`;
+                } else {
+                    loginError.textContent = data.error || 'Nieprawidłowy e-mail lub hasło.';
+                    loginError.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="ph ph-sign-in"></i> Zaloguj do Panelu';
+                }
+            } catch (err) {
+                loginError.textContent = 'Błąd połączenia: ' + err.message;
+                loginError.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="ph ph-sign-in"></i> Zaloguj do Panelu';
+            }
+        });
+    </script>
+</body>
+</html>

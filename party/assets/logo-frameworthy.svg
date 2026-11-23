@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 290 48" fill="none" width="290" height="48">
+  <defs>
+    <linearGradient id="logoGold" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E5C77D"/>
+      <stop offset="50%" stop-color="#C59E47"/>
+      <stop offset="100%" stop-color="#9A7426"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Viewfinder Frame Corner Brackets -->
+  <g transform="translate(0, 0)">
+    <path d="M7 15V9C7 7.89543 7.89543 7 9 7H15" stroke="url(#logoGold)" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M33 7H39C40.1046 7 41 7.89543 41 9V15" stroke="url(#logoGold)" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M41 33V39C41 40.1046 40.1046 41 39 41H33" stroke="url(#logoGold)" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M15 41H9C7.89543 41 7 40.1046 7 39V33" stroke="url(#logoGold)" stroke-width="2.4" stroke-linecap="round"/>
+
+    <!-- Camera Silhouette -->
+    <rect x="11" y="14" width="26" height="20" rx="3.5" stroke="currentColor" stroke-width="2" fill="none"/>
+    <path d="M18 14V12.5C18 11.6716 18.6716 11 19.5 11H23.5C24.3284 11 25 11.6716 25 12.5V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="31.5" cy="17.5" r="1.2" fill="url(#logoGold)"/>
+
+    <!-- Central Lens & Aperture -->
+    <circle cx="24" cy="24" r="6" stroke="currentColor" stroke-width="1.8"/>
+    <circle cx="24" cy="24" r="3.2" stroke="url(#logoGold)" stroke-width="1.4" stroke-dasharray="3.5 1.8"/>
+    <circle cx="24" cy="24" r="1.2" fill="url(#logoGold)"/>
+  </g>
+
+  <!-- Text: FRAMEWORTHY -->
+  <text x="56" y="27" font-family="'Plus Jakarta Sans', 'Outfit', -apple-system, sans-serif" font-size="17" font-weight="800" letter-spacing="1.8" fill="currentColor">FRAMEWORTHY</text>
+
+  <!-- Text: PARTY (Styled in Gold Accent) -->
+  <text x="210" y="27" font-family="'Plus Jakarta Sans', 'Outfit', -apple-system, sans-serif" font-size="17" font-weight="400" letter-spacing="3" fill="url(#logoGold)">PARTY</text>
+  
+  <!-- Sub-label / Tagline -->
+  <text x="57" y="38" font-family="'Plus Jakarta Sans', -apple-system, sans-serif" font-size="7.5" font-weight="600" letter-spacing="2.8" fill="#8892a4" text-transform="uppercase">EVENT GUEST EXPERIENCE</text>
+</svg>

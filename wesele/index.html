@@ -36,11 +36,11 @@
     </style>
 
     <!-- Theme & Multi-tenant Init -->
-    <script src="js/theme.js?v=3.5"></script>
+    <script src="js/theme.js?v=3.6"></script>
+    <script src="js/metrics.js?v=1.0"></script>
     <script>
         (function() {
-            const host = window.location.hostname || '127.0.0.1';
-            const apiUrl = (host === 'localhost' || host === '127.0.0.1') ? `http://${host}:8000/api` : 'https://frameworthyparty.up.railway.app/api';
+            const apiUrl = (typeof window.getAppApiUrl === 'function') ? window.getAppApiUrl() : 'https://frameworthyparty.up.railway.app/api';
             initOrganizationTheme(apiUrl);
         })();
     </script>
@@ -715,6 +715,10 @@
                         </div>
                     </div>
                     <div style="display: flex; gap: 12px; align-items: center;">
+                        <button class="story-close-btn" id="wishes-fs-pin-btn"
+                            style="display: none; background: rgba(0,0,0,0.5); border: none; border-radius: 50%; width: 38px; height: 38px; align-items: center; justify-content: center; cursor: pointer; color: #fff; font-size: 1.2rem;" title="Przypnij wpis">
+                            <i class="ph ph-push-pin" id="wishes-fs-pin-icon"></i>
+                        </button>
                         <button class="story-close-btn" id="wishes-fs-mute-btn"
                             style="display: none; background: rgba(0,0,0,0.5); border: none; border-radius: 50%; width: 38px; height: 38px; align-items: center; justify-content: center; cursor: pointer; color: #fff; font-size: 1.2rem;" title="Dźwięk">
                             <i class="ph ph-speaker-slash" id="wishes-fs-mute-icon"></i>

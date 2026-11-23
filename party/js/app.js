@@ -46,6 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const getApiUrl = () => {
+        if (typeof window.getAppApiUrl === 'function') {
+            return window.getAppApiUrl();
+        }
+        if (window.location && window.location.origin && window.location.origin.includes('railway.app')) {
+            return `${window.location.origin}/api`;
+        }
         const host = window.location.hostname || '127.0.0.1';
         if (host === 'localhost' || host === '127.0.0.1') {
             return `http://${host}:8000/api`;
@@ -115,12 +121,29 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function getTableName(tableNumber) {
         if (tableNumber === 0 || tableNumber === '0') {
-            return 'Stół Pary Młodej';
+            const isBirthday = window.weddingConfig && window.weddingConfig.event_type === 'birthday';
+            return isBirthday ? 'Loża Jubilata' : 'Stół Pary Młodej';
+        }
+        if (window._activeLayout && window._activeLayout.tables) {
+            const tbl = window._activeLayout.tables.find(t => t.table_number == tableNumber || t.id == tableNumber);
+            if (tbl) {
+                if (tbl.name || tbl.label) return tbl.name || tbl.label;
+                const type = tbl.type || 'table';
+                if (type === 'lounge') return `Loża ${tableNumber}`;
+                if (type === 'vip') return `Strefa VIP ${tableNumber}`;
+                if (type === 'chillout') return `Strefa Chillout ${tableNumber}`;
+                if (type === 'bar') return `Bar / Stolik ${tableNumber}`;
+                if (type === 'open_space') return `Strefa Otwarta ${tableNumber}`;
+            }
+        }
+        if (typeof tablesData !== 'undefined' && Array.isArray(tablesData)) {
+            const tblData = tablesData.find(t => t.table_number == tableNumber);
+            if (tblData && tblData.label) return tblData.label;
         }
         if (tableNumber !== null && tableNumber !== undefined && tableNumber !== '') {
             return `Stolik ${tableNumber}`;
         }
-        return 'Brak stolika';
+        return 'Brak przypisania';
     }
     
     function customConfirm(onConfirm) {
@@ -563,8 +586,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const targetId = item.getAttribute('data-target');
             document.getElementById(targetId).classList.add('active');
 
+            if (window.MetricsTracker) {
+                const cleanTab = targetId.replace(/^tab-/, '');
+                window.MetricsTracker.trackPartView(cleanTab);
+            }
+
             if (targetId === 'tab-info' && (!tablesData || tablesData.length === 0)) {
-                loadTables();
+                const cfg = window.__WEDDING_CONFIG || weddingConfig || {};
+                if (cfg.seating_enabled !== false) {
+                    loadTables();
+                }
             }
             
             const fab = document.getElementById('fab-add-photo');
@@ -606,6 +637,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const token = localStorage.getItem('access_token');
         if (!token) return;
 
+        const cfg = window.__WEDDING_CONFIG || weddingConfig || {};
+        if (cfg.seating_enabled === false) {
+            const wrapper = document.getElementById('seating-plan-section-wrapper');
+            const planHeader = document.getElementById('plan-sali-header');
+            if (wrapper) wrapper.style.display = 'none';
+            if (planHeader) planHeader.style.display = 'none';
+            tablesData = [];
+            initSearch();
+            updateFilterButtonVisibility();
+            updateProfileUI();
+            return;
+        }
+
+        const _tablesStart = performance.now();
         try {
             const response = await fetch(`${API_URL}/tables/`, {
                 headers: {
@@ -619,6 +664,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 initSearch();
             } else {
                 renderVenueMap();
+            }
+
+            if (window.MetricsTracker) {
+                const _dur = Math.round((performance.now() - _tablesStart) * 10) / 10;
+                window.MetricsTracker.trackPartLoad('seating', _dur, { count: (tablesData || []).length });
             }
         } catch (error) {
             console.error("Błąd ładowania układu sali:", error);
@@ -646,15 +696,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             });
-        } else {
+        } else if (Array.isArray(tablesData) && tablesData.length > 0) {
             // fallback old logic
             tablesData.forEach(table => {
-                table.guests.forEach(guest => {
-                    allGuestsFlat.push({
-                        ...guest,
-                        table_number: table.table_number
+                if (table && Array.isArray(table.guests)) {
+                    table.guests.forEach(guest => {
+                        allGuestsFlat.push({
+                            ...guest,
+                            table_number: table.table_number
+                        });
                     });
-                });
+                }
             });
         }
 
@@ -766,6 +818,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function renderVenueMap() {
+        const cfg = window.__WEDDING_CONFIG || weddingConfig || {};
+        const wrapper = document.getElementById('seating-plan-section-wrapper');
+        const planHeader = document.getElementById('plan-sali-header');
+
+        if (cfg.seating_enabled === false) {
+            if (wrapper) wrapper.style.display = 'none';
+            if (planHeader) planHeader.style.display = 'none';
+            initSearch();
+            updateFilterButtonVisibility();
+            updateProfileUI();
+            return;
+        }
+
         // Try to load the seating layout from the creator
         const token = localStorage.getItem('access_token');
         let seatingLayout = null;
@@ -782,24 +847,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             if (resGuests.ok) {
-                guestsList = await resGuests.json();
+                const guestsJson = await resGuests.json();
+                if (Array.isArray(guestsJson)) {
+                    guestsList = guestsJson;
+                }
             }
         } catch(e) { /* fallback to old layout */ }
 
         // Expose layout globally for initSearch
         window._activeLayout = seatingLayout;
         window._seatingGuests = guestsList;
-
-        const wrapper = document.getElementById('seating-plan-section-wrapper');
-        const planHeader = document.getElementById('plan-sali-header');
-
-        if (window.__WEDDING_CONFIG && window.__WEDDING_CONFIG.seating_enabled === false) {
-            if (wrapper) wrapper.style.display = 'none';
-            if (planHeader) planHeader.style.display = 'none';
-            updateFilterButtonVisibility();
-            updateProfileUI();
-            return;
-        }
 
         if (seatingLayout && seatingLayout.isReady) {
             if (wrapper) wrapper.style.display = 'block';
@@ -1239,6 +1296,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const token = localStorage.getItem('access_token');
         if (!token) return;
 
+        const _storiesStart = performance.now();
         try {
             const response = await fetch(`${API_URL}/gallery/stories/?t=${Date.now()}`, {
                 headers: {
@@ -1267,6 +1325,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 backendStories = Object.values(grouped);
                 renderStoryRings();
+
+                if (window.MetricsTracker) {
+                    const _dur = Math.round((performance.now() - _storiesStart) * 10) / 10;
+                    window.MetricsTracker.trackPartLoad('stories', _dur, { count: storiesList.length });
+                }
             }
         } catch (error) {
             console.error("Błąd ładowania relacji:", error);
@@ -1319,6 +1382,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadPhotos() {
         const token = localStorage.getItem('access_token');
         if (!token) return;
+
+        const _photosStart = performance.now();
         try {
             const res = await fetch(`${API_URL}/gallery/photos/?t=${Date.now()}`, {
                 headers: {
@@ -1345,6 +1410,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateFavoritesBadge();
 
                 applyFiltersAndRender();
+
+                if (window.MetricsTracker) {
+                    const _dur = Math.round((performance.now() - _photosStart) * 10) / 10;
+                    window.MetricsTracker.trackPartLoad('gallery', _dur, { count: backendPhotos.length });
+                }
             } else if (res.status === 401) {
                 handleUnauthorized();
             }
@@ -1476,62 +1546,165 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    let galleryLazyObserver = null;
+    function getGalleryLazyObserver() {
+        if (!galleryLazyObserver && 'IntersectionObserver' in window) {
+            galleryLazyObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const div = entry.target;
+                        const img = div.querySelector('img.grid-item-img');
+                        const vid = div.querySelector('video.grid-item-video');
+                        if (img && img.dataset.src) {
+                            img.src = img.dataset.src;
+                            img.removeAttribute('data-src');
+                        }
+                        if (vid && vid.dataset.src) {
+                            vid.src = vid.dataset.src;
+                            vid.removeAttribute('data-src');
+                        }
+                        observer.unobserve(div);
+                    }
+                });
+            }, {
+                rootMargin: '350px 0px 350px 0px',
+                threshold: 0.01
+            });
+        }
+        return galleryLazyObserver;
+    }
+
+    function createGridItemElement(photo, index) {
+        const div = document.createElement('div');
+        div.className = photo.is_seen ? 'grid-item' : 'grid-item unseen-photo';
+        div.id = `photo-item-${photo.id}`;
+        div.classList.add('loading-shimmer');
+
+        const isVideo = photo.media_type === 'video';
+        const thumbSrc = (!isVideo && photo.thumbnail) ? photo.thumbnail : photo.image;
+        const fullSrc = photo.image.startsWith('http') ? photo.image : `http://127.0.0.1:8000${photo.image}`;
+        const displaySrc = thumbSrc.startsWith('http') ? thumbSrc : `http://127.0.0.1:8000${thumbSrc}`;
+
+        if (isVideo) {
+            const vid = document.createElement('video');
+            vid.className = 'grid-item-video';
+            vid.dataset.src = fullSrc;
+            vid.preload = 'metadata';
+            vid.muted = true;
+            vid.playsInline = true;
+            div.appendChild(vid);
+
+            const playBadge = document.createElement('div');
+            playBadge.className = 'grid-item-video-badge';
+            playBadge.innerHTML = '<i class="ph-fill ph-play-circle"></i>';
+            div.appendChild(playBadge);
+
+            vid.onloadedmetadata = () => {
+                div.classList.remove('loading-shimmer');
+            };
+        } else {
+            const img = document.createElement('img');
+            img.className = 'grid-item-img';
+            img.alt = 'Zdjęcie z wesela';
+            img.loading = 'lazy';
+            img.decoding = 'async';
+            img.dataset.src = displaySrc;
+            img.onload = () => {
+                img.classList.add('loaded');
+                div.classList.remove('loading-shimmer');
+            };
+            img.onerror = () => {
+                if (img.src !== fullSrc) {
+                    img.src = fullSrc;
+                } else {
+                    div.classList.remove('loading-shimmer');
+                }
+            };
+            div.appendChild(img);
+        }
+
+        const avatarUrl = photo.guest_avatar 
+            ? (photo.guest_avatar.startsWith('http') ? photo.guest_avatar : `http://127.0.0.1:8000${photo.guest_avatar}`) 
+            : `https://ui-avatars.com/api/?name=${encodeURIComponent(getInitials(photo.guest_name, photo.guest_last_name))}&background=EAE0D5&color=000`;
+
+        const avatarImg = document.createElement('img');
+        avatarImg.loading = 'lazy';
+        avatarImg.decoding = 'async';
+        avatarImg.src = avatarUrl;
+        avatarImg.className = 'grid-item-avatar';
+        if (photo.guest_role === 'para_mloda') {
+            avatarImg.classList.add('gold-highlight-avatar');
+            const crownIcon = document.createElement('i');
+            crownIcon.className = 'ph-fill ph-crown crown-highlight';
+            div.appendChild(crownIcon);
+        } else if (photo.guest_role === 'swiadek') {
+            avatarImg.classList.add('silver-highlight-avatar');
+        }
+        div.appendChild(avatarImg);
+
+        if (photo.is_favorite || isPhotoFavorite(photo.id)) {
+            const favBadge = document.createElement('div');
+            favBadge.className = 'grid-item-fav-badge';
+            favBadge.innerHTML = '<i class="ph-fill ph-heart"></i>';
+            div.appendChild(favBadge);
+        }
+
+        div.addEventListener('click', () => {
+            const globalIndex = backendPhotos.findIndex(p => p.id === photo.id);
+            openPhotoViewer(globalIndex > -1 ? globalIndex : index);
+        });
+
+        const observer = getGalleryLazyObserver();
+        if (observer) {
+            observer.observe(div);
+        } else {
+            const img = div.querySelector('img.grid-item-img');
+            const vid = div.querySelector('video.grid-item-video');
+            if (img && img.dataset.src) { img.src = img.dataset.src; }
+            if (vid && vid.dataset.src) { vid.src = vid.dataset.src; }
+        }
+
+        return div;
+    }
+
     function renderPhotos(photosList, container) {
         if (!container) return;
         container.innerHTML = '';
-        photosList.forEach((photo, index) => {
-            const div = document.createElement('div');
-            div.className = photo.is_seen ? 'grid-item' : 'grid-item unseen-photo';
-            div.id = `photo-item-${photo.id}`;
-            
-            const isVideo = photo.media_type === 'video';
-            const src = photo.image.startsWith('http') ? photo.image : `http://127.0.0.1:8000${photo.image}`;
-            
-            if (isVideo) {
-                const vid = document.createElement('video');
-                vid.src = src;
-                vid.style.width = '100%';
-                vid.style.height = '100%';
-                vid.style.objectFit = 'cover';
-                vid.muted = true;
-                vid.playsInline = true;
-                div.appendChild(vid);
-                div.style.backgroundImage = 'none';
-            } else {
-                div.style.backgroundImage = `url('${src}')`;
-            }
-            
-            const avatarUrl = photo.guest_avatar 
-                ? (photo.guest_avatar.startsWith('http') ? photo.guest_avatar : `http://127.0.0.1:8000${photo.guest_avatar}`) 
-                : `https://ui-avatars.com/api/?name=${encodeURIComponent(getInitials(photo.guest_name, photo.guest_last_name))}&background=EAE0D5&color=000`;
-            
-            const avatarImg = document.createElement('img');
-            avatarImg.src = avatarUrl;
-            avatarImg.className = 'grid-item-avatar';
-            if (photo.guest_role === 'para_mloda') {
-                avatarImg.classList.add('gold-highlight-avatar');
-                
-                const crownIcon = document.createElement('i');
-                crownIcon.className = 'ph-fill ph-crown crown-highlight';
-                div.appendChild(crownIcon);
-            } else if (photo.guest_role === 'swiadek') {
-                avatarImg.classList.add('silver-highlight-avatar');
-            }
-            div.appendChild(avatarImg);
+        if (!photosList || photosList.length === 0) return;
 
-            if (photo.is_favorite || isPhotoFavorite(photo.id)) {
-                const favBadge = document.createElement('div');
-                favBadge.className = 'grid-item-fav-badge';
-                favBadge.innerHTML = '<i class="ph-fill ph-heart"></i>';
-                div.appendChild(favBadge);
-            }
-            
-            div.addEventListener('click', () => {
-                const globalIndex = backendPhotos.findIndex(p => p.id === photo.id);
-                openPhotoViewer(globalIndex > -1 ? globalIndex : index);
+        const CHUNK_SIZE = 30;
+        let renderedCount = 0;
+
+        function renderNextChunk() {
+            const fragment = document.createDocumentFragment();
+            const chunk = photosList.slice(renderedCount, renderedCount + CHUNK_SIZE);
+            chunk.forEach((photo, idx) => {
+                const el = createGridItemElement(photo, renderedCount + idx);
+                fragment.appendChild(el);
             });
-            container.appendChild(div);
-        });
+            renderedCount += chunk.length;
+            container.appendChild(fragment);
+
+            if (renderedCount < photosList.length) {
+                const sentinel = document.createElement('div');
+                sentinel.className = 'grid-chunk-sentinel';
+                sentinel.style.gridColumn = '1 / -1';
+                sentinel.style.height = '60px';
+                sentinel.style.pointerEvents = 'none';
+                container.appendChild(sentinel);
+
+                const sentinelObserver = new IntersectionObserver((entries, obs) => {
+                    if (entries[0].isIntersecting) {
+                        obs.disconnect();
+                        if (sentinel.parentNode) sentinel.remove();
+                        renderNextChunk();
+                    }
+                }, { rootMargin: '600px 0px 600px 0px' });
+                sentinelObserver.observe(sentinel);
+            }
+        }
+
+        renderNextChunk();
     }
 
     function renderStoryRings() {
@@ -2074,6 +2247,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     formData.append('duration_hours', duration);
                 }
 
+                const _uploadStart = performance.now();
                 const response = await fetch(`${API_URL}/gallery/stories/`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
@@ -2081,12 +2255,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (response.ok) {
+                    if (window.MetricsTracker) {
+                        const _dur = Math.round((performance.now() - _uploadStart) * 10) / 10;
+                        window.MetricsTracker.trackUpload(mediaType === 'video' ? 'video' : 'image', _dur, {
+                            context: 'story',
+                            size: finalBlob ? finalBlob.size : 0
+                        });
+                    }
                     loadStories();
                 } else {
                     alert("Wystąpił błąd podczas wgrywania relacji.");
                 }
             } else if (currentCameraContext === 'gallery') {
                 formData.append('image', finalBlob, `photo_${Date.now()}.${ext}`);
+                const _uploadStart = performance.now();
                 const response = await fetch(`${API_URL}/gallery/photos/`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` },
@@ -2094,6 +2276,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (response.ok) {
+                    if (window.MetricsTracker) {
+                        const _dur = Math.round((performance.now() - _uploadStart) * 10) / 10;
+                        window.MetricsTracker.trackUpload(mediaType === 'video' ? 'video' : 'image', _dur, {
+                            context: 'gallery',
+                            size: finalBlob ? finalBlob.size : 0
+                        });
+                    }
                     loadPhotos();
                 } else {
                     alert("Wystąpił błąd podczas wgrywania zdjęcia.");
@@ -2753,6 +2942,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         formData.append('duration_hours', duration);
                     }
 
+                    const _uploadStart = performance.now();
                     const response = await fetch(`${API_URL}/gallery/stories/`, {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${token}` },
@@ -2760,6 +2950,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
 
                     if (response.ok) {
+                        if (window.MetricsTracker) {
+                            const _dur = Math.round((performance.now() - _uploadStart) * 10) / 10;
+                            window.MetricsTracker.trackUpload(capturedBlob.media_type === 'video' ? 'video' : 'image', _dur, {
+                                context: 'story',
+                                size: finalBlob ? finalBlob.size : 0
+                            });
+                        }
                         closeCamera();
                         loadStories();
                     } else {
@@ -2767,6 +2964,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else if (currentCameraContext === 'gallery') {
                     formData.append('image', finalBlob, `photo_${Date.now()}.${ext}`);
+                    const _uploadStart = performance.now();
                     const response = await fetch(`${API_URL}/gallery/photos/`, {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${token}` },
@@ -2774,6 +2972,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
 
                     if (response.ok) {
+                        if (window.MetricsTracker) {
+                            const _dur = Math.round((performance.now() - _uploadStart) * 10) / 10;
+                            window.MetricsTracker.trackUpload(capturedBlob.media_type === 'video' ? 'video' : 'image', _dur, {
+                                context: 'gallery',
+                                size: finalBlob ? finalBlob.size : 0
+                            });
+                        }
                         const newPhoto = await response.json();
                         loadPhotos();
                         closeCamera();
@@ -3274,6 +3479,20 @@ document.addEventListener('DOMContentLoaded', () => {
             // Update favorite button state
             const isFav = isPhotoFavorite(currentPhoto.id);
             updatePhotoFavButton(isFav);
+
+            // Preload adjacent images for instant next/prev swiping
+            try {
+                [currentPhotoIndex - 1, currentPhotoIndex + 1].forEach(idx => {
+                    const adjIdx = (idx + backendPhotos.length) % backendPhotos.length;
+                    const adjPhoto = backendPhotos[adjIdx];
+                    if (adjPhoto && adjPhoto.media_type !== 'video' && adjPhoto.image) {
+                        const preImg = new Image();
+                        preImg.src = adjPhoto.image.startsWith('http') ? adjPhoto.image : `http://127.0.0.1:8000${adjPhoto.image}`;
+                    }
+                });
+            } catch (e) {
+                // Ignore preloading errors
+            }
         }
     }
 
@@ -3663,22 +3882,29 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const cfg = window.__WEDDING_CONFIG || weddingConfig || {};
             const userTableCard = document.getElementById('user-table-card');
+            const userTableLabel = document.querySelector('#user-table-card .info-card-label');
             if (cfg.seating_enabled === false) {
                 if (userTableCard) userTableCard.style.display = 'none';
             } else {
                 if (userTableCard) userTableCard.style.display = 'flex';
+                if (userTableLabel) {
+                    const eventType = cfg.event_type || 'wedding';
+                    const customAreaLabel = (cfg.custom_labels && cfg.custom_labels.seating_area_label) 
+                        || (eventType === 'party' ? 'Twoja Loża / Strefa' : (eventType === 'birthday' ? 'Twoja Loża / Stolik' : 'Miejsce przy stoliku'));
+                    userTableLabel.textContent = customAreaLabel;
+                }
                 if (userTableInfo) {
                     const isLayoutReady = window._activeLayout && window._activeLayout.isReady;
                     if (!isLayoutReady) {
-                        userTableInfo.textContent = 'Plan stołów jest jeszcze niedostępny';
+                        userTableInfo.textContent = 'Plan sali jest jeszcze niedostępny';
+                    } else if (user.seating_display) {
+                        userTableInfo.innerHTML = `<strong>${user.seating_display}</strong>`;
                     } else if (user.table_number !== null && user.table_number !== undefined && user.table_number !== '') {
-                        const tableLabel = (user.table_number === 0 || user.table_number === '0') 
-                            ? 'Stół Pary Młodej' 
-                            : `Stolik <strong>${user.table_number}</strong>`;
-                        userTableInfo.innerHTML = tableLabel + 
-                            (user.seat_number ? ` &bull; Miejsce ${user.seat_number}` : '');
+                        const tableLabel = getTableName(user.table_number);
+                        userTableInfo.innerHTML = `<strong>${tableLabel}</strong>` + 
+                            (user.seat_number ? ` &bull; Miejsce ${user.seat_number}` : ' (dowolne miejsce w strefie)');
                     } else {
-                        userTableInfo.textContent = 'Brak przypisanego stolika';
+                        userTableInfo.textContent = 'Brak przypisanego miejsca';
                     }
                 }
             }
@@ -4325,6 +4551,7 @@ document.addEventListener('DOMContentLoaded', () => {
             sendDirectSubmitBtn.disabled = true;
             sendDirectSubmitBtn.textContent = 'Wysyłanie...';
 
+            const _wishSubmitStart = performance.now();
             try {
                 const res = await fetch(`${API_URL}/wishes/`, {
                     method: 'POST',
@@ -4347,6 +4574,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const errData = await res.json().catch(() => ({}));
                     alert(errData.error || errData.detail || 'Nie udało się wysłać życzeń. Spróbuj ponownie.');
                     return;
+                }
+
+                if (window.MetricsTracker) {
+                    const _dur = Math.round((performance.now() - _wishSubmitStart) * 10) / 10;
+                    const pType = isVideoMode ? 'wish_video' : (isTextMode ? 'wish_text' : 'wish_audio');
+                    window.MetricsTracker.trackPost(pType, _dur, { success: true });
                 }
 
                 showToast(isVideoMode ? 'Dziękujemy! Nagranie wideo zostało wysłane do Zuzi i Kamila! 🎬❤️' : (isTextMode ? 'Dziękujemy! Twoje życzenia trafiły prosto do Zuzi i Kamila! ❤️' : 'Dziękujemy! Nagranie głosowe zostało wysłane do Zuzi i Kamila! 🎙️❤️'));
@@ -4407,28 +4640,116 @@ document.addEventListener('DOMContentLoaded', () => {
     let forceScheduleMode = false;
     let simulatedEventIndex = null;
 
+    // Helper to parse time string like "18:00" into minutes from start of event day or 00:00
+    function parseEventMinutes(timeStr) {
+        if (!timeStr) return 0;
+        const parts = timeStr.trim().split(':');
+        if (parts.length >= 2) {
+            const h = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10);
+            if (!isNaN(h) && !isNaN(m)) {
+                return h * 60 + m;
+            }
+        }
+        return 0;
+    }
+
     function renderHeaderSchedule() {
         const container = document.getElementById('schedule-items-container');
-        if (!container) return;
+        if (!container || !SCHEDULE_EVENTS || SCHEDULE_EVENTS.length === 0) return;
 
         const now = new Date();
-        let currentMinutes = (now.getHours() * 60 + now.getMinutes());
+        const currentRealMinutes = (now.getHours() * 60 + now.getMinutes());
 
-        if (simulatedEventIndex !== null && SCHEDULE_EVENTS[simulatedEventIndex]) {
-            currentMinutes = SCHEDULE_EVENTS[simulatedEventIndex].startMin + 5;
+        // Calculate minutes window for each event dynamically if not provided
+        const parsedEvents = SCHEDULE_EVENTS.map((evt, idx) => {
+            const start = (evt.startMin !== undefined && evt.startMin !== null) 
+                ? Number(evt.startMin) 
+                : parseEventMinutes(evt.time);
+            return {
+                ...evt,
+                _startMin: start,
+                _origIdx: idx
+            };
+        });
+
+        // Determine endMin for each event (either next event start or +60/120 min)
+        for (let i = 0; i < parsedEvents.length; i++) {
+            const evt = parsedEvents[i];
+            if (evt.endMin !== undefined && evt.endMin !== null) {
+                evt._endMin = Number(evt.endMin);
+            } else {
+                if (i < parsedEvents.length - 1) {
+                    const nextStart = parsedEvents[i + 1]._startMin;
+                    // Handle overnight cross-over (e.g. 23:00 to 01:00)
+                    evt._endMin = (nextStart < evt._startMin) ? (nextStart + 1440) : nextStart;
+                } else {
+                    evt._endMin = evt._startMin + 90; // default 1.5h duration for last event
+                }
+            }
+        }
+
+        let targetMinutes = currentRealMinutes;
+        if (simulatedEventIndex !== null && parsedEvents[simulatedEventIndex]) {
+            targetMinutes = parsedEvents[simulatedEventIndex]._startMin + 5;
+        }
+
+        // Determine which event is active
+        // 1. Direct match: targetMinutes falls into [startMin, endMin]
+        let activeIdx = -1;
+        for (let i = 0; i < parsedEvents.length; i++) {
+            const evt = parsedEvents[i];
+            const start = evt._startMin;
+            const end = evt._endMin;
+            // Handle day wrapping if event spans midnight
+            let inRange = false;
+            if (end > 1440 && targetMinutes < start) {
+                // e.g. start=23:00 (1380), end=01:00 (1500), target=00:30 (30) => targetMinutes + 1440
+                if ((targetMinutes + 1440) >= start && (targetMinutes + 1440) <= end) inRange = true;
+            } else if (targetMinutes >= start && targetMinutes <= end) {
+                inRange = true;
+            }
+
+            if (inRange) {
+                activeIdx = i;
+                break;
+            }
+        }
+
+        // 2. If no event currently active and simulated is null:
+        // Find nearest upcoming event or fallback to first event if before event starts
+        if (activeIdx === -1 && simulatedEventIndex === null) {
+            let smallestDiff = Infinity;
+            let nearestUpcoming = -1;
+            for (let i = 0; i < parsedEvents.length; i++) {
+                const diff = parsedEvents[i]._startMin - targetMinutes;
+                if (diff >= 0 && diff < smallestDiff) {
+                    smallestDiff = diff;
+                    nearestUpcoming = i;
+                }
+            }
+            if (nearestUpcoming !== -1) {
+                activeIdx = nearestUpcoming;
+            } else {
+                // If all events passed today, highlight last one as passed/active
+                activeIdx = parsedEvents.length - 1;
+            }
+        } else if (simulatedEventIndex !== null) {
+            activeIdx = simulatedEventIndex;
         }
 
         container.innerHTML = '';
         let activeNodeEl = null;
 
-        SCHEDULE_EVENTS.forEach((evt, idx) => {
+        parsedEvents.forEach((evt, idx) => {
             const node = document.createElement('div');
             node.className = 'schedule-node';
 
-            const isPassed = currentMinutes > evt.endMin;
-            const isActive = (currentMinutes >= evt.startMin && currentMinutes <= evt.endMin) || 
-                             (simulatedEventIndex === idx) ||
-                             (simulatedEventIndex === null && idx === 0 && currentMinutes < evt.startMin);
+            const isActive = (idx === activeIdx);
+            const isPassed = !isActive && (
+                (idx < activeIdx) ||
+                (targetMinutes > evt._endMin && (evt._endMin <= 1440 || (targetMinutes + 1440) > evt._endMin))
+            );
 
             if (isActive) {
                 node.classList.add('active');
@@ -4437,9 +4758,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 node.classList.add('passed');
             }
 
+            const iconClass = evt.icon ? (evt.icon.includes('ph-') ? evt.icon : `ph-fill ph-${evt.icon}`) : 'ph-fill ph-star';
+
             node.innerHTML = `
-                <div class="node-dot"><i class="ph-fill ${evt.icon}"></i></div>
-                <div class="node-time">${evt.time}</div>
+                <div class="node-dot"><i class="${iconClass}"></i></div>
+                <div class="node-time">${evt.time || ''}</div>
             `;
 
             node.addEventListener('click', () => {
@@ -4622,6 +4945,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const token = localStorage.getItem('access_token');
         if (!token) return;
 
+        const _wishesStart = performance.now();
         try {
             const response = await fetch(`${API_URL}/wishes/`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -4630,6 +4954,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 allWishes = await response.json();
                 updateWishesUI();
                 applyWishesFeedFilters();
+
+                if (window.MetricsTracker) {
+                    const _dur = Math.round((performance.now() - _wishesStart) * 10) / 10;
+                    window.MetricsTracker.trackPartLoad('wishes', _dur, { count: allWishes.length });
+                }
             }
         } catch (err) {
             console.error('Błąd pobierania życzeń:', err);
@@ -4761,10 +5090,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 typeEmoji = '🎙️';
             }
 
+            const pinBadge = wish.is_pinned ? `<span style="color: #f59e0b; margin-left: 6px; font-size: 0.85rem;" title="Przypięty wpis"><i class="ph-fill ph-push-pin"></i></span>` : '';
             row.innerHTML = `
                 <img src="${avatarSrc}" class="wish-list-avatar" alt="${guestName}">
                 <div class="wish-list-info">
-                    <span class="wish-list-name">${guestName}</span>
+                    <span class="wish-list-name">${guestName}${pinBadge}</span>
                 </div>
                 <span class="wish-list-type-emoji">${typeEmoji}</span>
             `;
@@ -4952,6 +5282,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch(e) {
                 wishesFsTime.textContent = '';
+            }
+        }
+
+        let currentUser = null;
+        try { currentUser = JSON.parse(localStorage.getItem('user')); } catch(e){}
+        const isMod = currentUser && (currentUser.role === 'para_mloda' || currentUser.is_staff || (currentUser.role === 'swiadek' && witnessPermissions.can_see_wishes));
+
+        const wishesFsDeleteBtn = document.getElementById('wishes-fs-delete-btn');
+        if (wishesFsDeleteBtn) {
+            wishesFsDeleteBtn.style.display = (isMod || (currentUser && currentUser.id === wish.guest_id)) ? 'flex' : 'none';
+        }
+
+        const wishesFsPinBtn = document.getElementById('wishes-fs-pin-btn');
+        const wishesFsPinIcon = document.getElementById('wishes-fs-pin-icon');
+        if (wishesFsPinBtn) {
+            wishesFsPinBtn.style.display = isMod ? 'flex' : 'none';
+            if (wishesFsPinIcon) {
+                wishesFsPinIcon.className = wish.is_pinned ? 'ph-fill ph-push-pin' : 'ph ph-push-pin';
+                wishesFsPinBtn.style.color = wish.is_pinned ? '#f59e0b' : '#fff';
+                wishesFsPinBtn.title = wish.is_pinned ? 'Odepnij wpis' : 'Przypnij wpis na górze';
             }
         }
 
@@ -5337,6 +5687,30 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    const wishesFsPinBtn = document.getElementById('wishes-fs-pin-btn');
+    if (wishesFsPinBtn) {
+        wishesFsPinBtn.addEventListener('click', async () => {
+            if (filteredWishes.length === 0) return;
+            const wish = filteredWishes[currentFsWishIndex];
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch(`${API_URL}/wishes/${wish.id}/pin/`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    wish.is_pinned = data.is_pinned;
+                    showToast(data.message || (data.is_pinned ? 'Wpis przypięty na górze 📌' : 'Wpis odpięty'));
+                    renderFsWish();
+                    applyWishesFeedFilters();
+                }
+            } catch (err) {
+                console.error('Błąd przypinania wpisu:', err);
+            }
+        });
+    }
 
     if (wishesFsDeleteBtn) {
         wishesFsDeleteBtn.addEventListener('click', () => {
@@ -5807,7 +6181,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     witnessPermissions = { ...witnessPermissions, ...config.witness_permissions };
                 }
 
-                // Wishes enabled/locked UI handling
+                // Wishes enabled/locked & customizable labels UI handling
+                const wishesLabels = config.custom_labels || {};
+                const wishesBtnText = wishesLabels.wishes_cta_button || (config.event_type === 'birthday' ? 'Zostaw wpis' : (config.event_type === 'party' ? 'Napisz na tablicy' : 'Złóż życzenia'));
+                const wishesModTitle = wishesLabels.wishes_module_title || (config.event_type === 'birthday' ? 'Księga Gości' : (config.event_type === 'party' ? 'Tablica Pamiątkowa' : 'Księga Życzeń'));
+                const wishesPlaceholder = wishesLabels.wishes_placeholder || (config.event_type === 'birthday' ? 'Napisz coś miłego dla jubilata...' : 'Napisz coś od serca...');
+
+                const directModalTitle = document.getElementById('direct-modal-title');
+                if (directModalTitle) directModalTitle.textContent = wishesModTitle;
+                const wishesPageTitle = document.getElementById('wishes-page-title');
+                if (wishesPageTitle) wishesPageTitle.textContent = wishesModTitle;
+                const directTextInput = document.getElementById('direct-text-input');
+                if (directTextInput) directTextInput.placeholder = wishesPlaceholder;
+
+                // Audio & Video feature flags per organization
+                const tabVoice = document.getElementById('tab-direct-voice');
+                if (tabVoice) tabVoice.style.display = (config.wishes_audio_enabled !== false) ? 'flex' : 'none';
+                const tabVideo = document.getElementById('tab-direct-video');
+                if (tabVideo) tabVideo.style.display = (config.wishes_video_enabled !== false) ? 'flex' : 'none';
+
                 const openWishesBtn = document.getElementById('open-direct-msg-btn');
                 if (openWishesBtn) {
                     if (config.wishes_enabled === false) {
@@ -5815,15 +6207,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         openWishesBtn.style.display = 'inline-flex';
                         if (config.wishes_locked === true) {
-                            openWishesBtn.disabled = false; // Musi być klikalny, by wywołać toast
+                            openWishesBtn.disabled = false;
                             openWishesBtn.dataset.locked = 'true';
-                            openWishesBtn.innerHTML = `<i class="ph-fill ph-chat-circle-dots"></i> Złóż życzenia`;
+                            openWishesBtn.innerHTML = `<i class="ph-fill ph-chat-circle-dots"></i> ${wishesBtnText}`;
                             openWishesBtn.style.opacity = '0.5';
                             openWishesBtn.style.background = '#888';
                         } else {
                             openWishesBtn.disabled = false;
                             openWishesBtn.dataset.locked = 'false';
-                            openWishesBtn.innerHTML = `<i class="ph-fill ph-chat-circle-dots"></i> Złóż życzenia`;
+                            openWishesBtn.innerHTML = `<i class="ph-fill ph-chat-circle-dots"></i> ${wishesBtnText}`;
                             openWishesBtn.style.opacity = '1';
                             openWishesBtn.style.background = '';
                         }

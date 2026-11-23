@@ -43,6 +43,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     const getApiUrl = () => {
+        if (typeof window.getAppApiUrl === 'function') {
+            return window.getAppApiUrl();
+        }
+        if (window.location && window.location.origin && window.location.origin.includes('railway.app')) {
+            return `${window.location.origin}/api`;
+        }
         const host = window.location.hostname || '127.0.0.1';
         if (host === 'localhost' || host === '127.0.0.1') {
             return `http://${host}:8000/api`;
@@ -89,6 +95,59 @@ document.addEventListener('DOMContentLoaded', async () => {
         const debugEl = document.getElementById('debug-auth-info');
         if (debugEl) {
             debugEl.textContent = `Debug info: ${details}`;
+        }
+
+        const adminLoginForm = document.getElementById('admin-login-form');
+        if (adminLoginForm) {
+            adminLoginForm.onsubmit = async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('admin-login-email').value.trim();
+                const password = document.getElementById('admin-login-password').value.trim();
+                const errBox = document.getElementById('admin-login-error');
+                const submitBtn = document.getElementById('admin-login-submit-btn');
+                if (errBox) errBox.style.display = 'none';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Logowanie...';
+                }
+                try {
+                    const res = await fetch(`${API_URL}/auth/owner/login/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password, organization_id: currentOrgId })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        localStorage.setItem('access_token', data.access);
+                        localStorage.setItem('refresh_token', data.refresh);
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                        const orgId = data.organization ? data.organization.id : data.user.organization_id;
+                        if (orgId) {
+                            localStorage.setItem('current_org_id', orgId);
+                            localStorage.setItem('session_' + orgId, JSON.stringify({
+                                token: data.access,
+                                user: data.user
+                            }));
+                        }
+                        window.location.reload();
+                    } else {
+                        if (errBox) {
+                            errBox.textContent = data.error || 'Nieprawidłowy e-mail lub hasło.';
+                            errBox.style.display = 'block';
+                        }
+                    }
+                } catch(err) {
+                    if (errBox) {
+                        errBox.textContent = 'Błąd połączenia: ' + err.message;
+                        errBox.style.display = 'block';
+                    }
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="ph ph-sign-in"></i> Zaloguj się';
+                    }
+                }
+            };
         }
     }
 
@@ -153,6 +212,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else if (tabId === 'admin-tab-organization') {
                     if (weddingConfigRaw) populateOrganizationTab(weddingConfigRaw);
                     loadAdminConfigForm();
+                } else if (tabId === 'admin-tab-metrics') {
+                    loadAdminMetricsSummary();
                 }
             });
         });
@@ -249,8 +310,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Badges details
             const roleName = (typeof getRoleLabel === 'function') ? getRoleLabel(g.role) : (g.role === 'para_mloda' ? 'Para Młoda' : (g.role === 'swiadek' ? 'Świadek' : 'Gość'));
-            const roleColor = g.role === 'para_mloda' ? '#fbbf24' : (g.role === 'swiadek' ? '#a5b4fc' : '#8a8074');
-            const roleBg = g.role === 'para_mloda' ? 'rgba(251, 191, 36, 0.15)' : (g.role === 'swiadek' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255, 255, 255, 0.05)');
+            const roleColor = (typeof getRoleBadgeColor === 'function') ? getRoleBadgeColor(g.role) : (g.role === 'para_mloda' ? '#fbbf24' : (g.role === 'swiadek' ? '#a5b4fc' : '#8a8074'));
+            const roleBg = g.role === 'para_mloda' ? 'rgba(251, 191, 36, 0.15)' : (g.role === 'swiadek' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255, 255, 255, 0.08)');
 
             const mainTableLabel = (weddingConfigRaw && weddingConfigRaw.custom_labels && weddingConfigRaw.custom_labels.main_table_label)
                 ? weddingConfigRaw.custom_labels.main_table_label
@@ -1007,6 +1068,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // 2. Organization Info Form
+        const orgEventType = document.getElementById('admin-org-event-type');
+        const customLabels = cfg.custom_labels || {};
+        const eventTypeVal = customLabels.event_type || cfg.event_type || 'wedding';
+        if (orgEventType) {
+            orgEventType.value = eventTypeVal;
+        }
+
         const orgWeddingName = document.getElementById('admin-org-wedding-name');
         if (orgWeddingName) orgWeddingName.value = cfg.wedding_name || cfg.organization_name || '';
 
@@ -1042,56 +1110,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         const orgWishesCheckbox = document.getElementById('admin-org-wishes-enabled-checkbox');
         if (orgWishesCheckbox) orgWishesCheckbox.checked = cfg.wishes_enabled !== false;
 
+        const orgWishesAudioCheckbox = document.getElementById('admin-org-wishes-audio-checkbox');
+        if (orgWishesAudioCheckbox) orgWishesAudioCheckbox.checked = cfg.wishes_audio_enabled !== false;
+
+        const orgWishesVideoCheckbox = document.getElementById('admin-org-wishes-video-checkbox');
+        if (orgWishesVideoCheckbox) orgWishesVideoCheckbox.checked = cfg.wishes_video_enabled !== false;
+
         const orgSeatingCheckbox = document.getElementById('admin-org-seating-enabled-checkbox');
         if (orgSeatingCheckbox) orgSeatingCheckbox.checked = cfg.seating_enabled !== false;
 
         const orgSimpleCodesCheckbox = document.getElementById('admin-org-simple-codes-checkbox');
         if (orgSimpleCodesCheckbox) orgSimpleCodesCheckbox.checked = Boolean(cfg.simple_codes_enabled);
 
-        // 5. Roles configuration
+        // 5. Roles configuration & dynamic builder
         const roles = cfg.roles_config || {};
         const isSingle = !cfg.partner2_name || !cfg.partner2_name.trim();
 
-        const roleParaMlodaInput = document.getElementById('admin-role-label-para-mloda');
-        if (roleParaMlodaInput) {
-            roleParaMlodaInput.value = roles.para_mloda?.label || (isSingle ? 'Jubilat' : 'Para Młoda');
-        }
-
-        const roleSwiadekInput = document.getElementById('admin-role-label-swiadek');
-        if (roleSwiadekInput) {
-            roleSwiadekInput.value = roles.swiadek?.label || (isSingle ? 'Moderator' : 'Świadek/Świadkowa');
-        }
-
-        const roleGoscInput = document.getElementById('admin-role-label-gosc');
-        if (roleGoscInput) {
-            roleGoscInput.value = roles.gosc?.label || 'Gość';
-        }
-
-        const roleSwiadekEnabled = document.getElementById('admin-role-enabled-swiadek');
-        if (roleSwiadekEnabled) {
-            roleSwiadekEnabled.checked = roles.swiadek?.enabled !== false;
-        }
-
-        const roleGoscEnabled = document.getElementById('admin-role-enabled-gosc');
-        if (roleGoscEnabled) {
-            roleGoscEnabled.checked = roles.gosc?.enabled !== false;
-        }
-
-        const roleParaMlodaPhone = document.getElementById('admin-role-require-phone-para-mloda');
-        if (roleParaMlodaPhone) {
-            roleParaMlodaPhone.checked = roles.para_mloda?.require_phone !== false;
-        }
-
-        const roleSwiadekPhone = document.getElementById('admin-role-require-phone-swiadek');
-        if (roleSwiadekPhone) {
-            roleSwiadekPhone.checked = roles.swiadek?.require_phone !== false;
-        }
-
-        const roleGoscPhone = document.getElementById('admin-role-require-phone-gosc');
-        if (roleGoscPhone) {
-            roleGoscPhone.checked = roles.gosc?.require_phone !== false;
-        }
-
+        renderRolesBuilder(roles, isSingle);
         updateRoleDropdowns(roles, isSingle);
 
         const adminHeaderTitle = document.getElementById('admin-header-title');
@@ -1699,6 +1734,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ── TIMELINE TAB ───────────────────────────────────────────────────────────
+    const SCHEDULE_PRESETS = {
+        wedding: [
+            { time: '16:00', label: '16:00 Ślub', title: 'Ceremonia Zaślubin', desc: 'Uroczysta ceremonia złożenia przysięgi małżeńskiej.', location: 'Kościół / Urząd Stanu Cywilnego', icon: 'ph-fill ph-church' },
+            { time: '17:30', label: '17:30 Życzenia i Toast', title: 'Powitanie i Toast Powitalny', desc: 'Przybycie na salę, powitanie chlebem i solą, uroczysty toast i składanie życzeń.', location: 'Sala Główna', icon: 'ph-fill ph-champagne' },
+            { time: '18:30', label: '18:30 Obiad', title: 'Uroczysty Obiad Weselny', desc: 'Ciepły posiłek i deser na rozpoczęcie biesiady.', location: 'Sala Bankietowa', icon: 'ph-fill ph-fork-knife' },
+            { time: '20:00', label: '20:00 Pierwszy Taniec', title: 'Pierwszy Taniec & Otwarcie Parkietu', desc: 'Rozpoczęcie tanecznej zabawy przez Parę Młodą.', location: 'Parkiet', icon: 'ph-fill ph-music-notes' },
+            { time: '22:00', label: '22:00 Tort', title: 'Tort Weselny', desc: 'Krojenie tortu weselnego oraz słodki poczęstunek.', location: 'Sala Główna', icon: 'ph-fill ph-cake' },
+            { time: '00:00', label: '00:00 Oczepiny', title: 'Tradycyjne Oczepiny i Zabawy', desc: 'Gry, rzucanie bukietem i muszką oraz zabawa do białego rana.', location: 'Parkiet', icon: 'ph-fill ph-confetti' }
+        ],
+        birthday: [
+            { time: '19:00', label: '19:00 Start & Welcome', title: 'Welcome Drink & Zbiórka Gości', desc: 'Powitalne drinki, rejestracja gości i pamiątkowe zdjęcia na ściance.', location: 'Strefa Wejściowa / Lounge', icon: 'ph-fill ph-martini' },
+            { time: '20:30', label: '20:30 Toast', title: 'Uroczysty Toast za Jubilata', desc: 'Przemówienie, życzenia i wzniesienie toastu za solenizanta.', location: 'Sala Główna', icon: 'ph-fill ph-champagne' },
+            { time: '21:30', label: '21:30 Tort Urodzinowy', title: 'Tort Urodzinowy & Sto Lat', desc: 'Dmuchanie świeczek, gromkie Sto Lat i słodki poczęstunek.', location: 'Strefa Słodka', icon: 'ph-fill ph-cake' },
+            { time: '22:30', label: '22:30 DJ Set & Parkiet', title: 'DJ Set & Otwarcie Parkietu', desc: 'Start ostrej imprezy, najlepsze klubowe hity i pokazy świateł.', location: 'Parkiet / Main Stage', icon: 'ph-fill ph-music-notes' },
+            { time: '01:00', label: '01:00 Nocny Posiłek', title: 'Ciepły Nocny Poczęstunek', desc: 'Nocna pizza, street food i doładowanie energii przed dalszą zabawą.', location: 'Strefa Gastro', icon: 'ph-fill ph-cooking-pot' }
+        ],
+        corporate: [
+            { time: '17:00', label: '17:00 Rejestracja', title: 'Rejestracja & Welcome Coffee', desc: 'Powitanie uczestników, networking przy kawie i przekąskach.', location: 'Foyer / Strefa VIP', icon: 'ph-fill ph-coffee' },
+            { time: '18:00', label: '18:00 Otwarcie i Gala', title: 'Oficjalne Otwarcie & Prezentacja', desc: 'Podsumowanie roku, przemówienie zarządu i wręczenie nagród firmowych.', location: 'Audytorium / Sala Konferencyjna', icon: 'ph-fill ph-microphone-stage' },
+            { time: '19:30', label: '19:30 Kolacja', title: 'Uroczysta Kolacja Bankietowa', desc: 'Ciepły bufet, wykwintne dania i luźne rozmowy biznesowe.', location: 'Sala Bankietowa', icon: 'ph-fill ph-fork-knife' },
+            { time: '21:00', label: '21:00 Atrakcja Wieczoru', title: 'Występ Artystyczny / Live Music', desc: 'Koncert na żywo lub pokaz artystyczny.', location: 'Scena Główna', icon: 'ph-fill ph-sparkles' },
+            { time: '22:30', label: '22:30 Afterparty', title: 'Networking Afterparty & DJ Set', desc: 'Luźna integracja, open bar i parkiet do nocy.', location: 'Bar & Parkiet', icon: 'ph-fill ph-beer-bottle' }
+        ],
+        party: [
+            { time: '20:00', label: '20:00 Start Party', title: 'Otwarcie Drzwi & Chillout', desc: 'Rozgrzewka muzyczna, pierwsze drinki i zbiórka ekipy.', location: 'Lounge Area', icon: 'ph-fill ph-martini' },
+            { time: '22:00', label: '22:00 Peak Time', title: 'Gorący Parkiet & Konfetti', desc: 'Maksymalny ogień na parkiecie!', location: 'Parkiet', icon: 'ph-fill ph-confetti' },
+            { time: '00:00', label: '00:00 Północny Toast', title: 'Północny Toast & Niespodzianka', desc: 'Wspólny toast z ekipą i pamiątkowe wideo.', location: 'Bar', icon: 'ph-fill ph-champagne' },
+            { time: '02:00', label: '02:00 Late Night Snacks', title: 'Nocne Przekąski', desc: 'Czas na coś pożywnego.', location: 'Kuchnia / Bar', icon: 'ph-fill ph-cooking-pot' }
+        ]
+    };
+
     function renderAdminTimelineForm(events) {
         const container = document.getElementById('admin-timeline-list');
         if (!container) return;
@@ -1758,6 +1824,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function initTimelineFormListeners() {
+        const presetSelect = document.getElementById('admin-timeline-preset-select');
+        const applyPresetBtn = document.getElementById('admin-apply-preset-btn');
+        if (applyPresetBtn && presetSelect) {
+            applyPresetBtn.addEventListener('click', () => {
+                const presetKey = presetSelect.value;
+                if (!presetKey || !SCHEDULE_PRESETS[presetKey]) {
+                    showToast('Wybierz szablon z listy rozwijanej.', 'error');
+                    return;
+                }
+                const currentCount = document.querySelectorAll('#admin-timeline-list .admin-list-item').length;
+                if (currentCount > 0) {
+                    if (!confirm('Załadowanie szablonu zastąpi aktualną listę punktów harmonogramu w formularzu. Czy chcesz kontynuować?')) {
+                        return;
+                    }
+                }
+                // Deep copy the preset
+                const template = JSON.parse(JSON.stringify(SCHEDULE_PRESETS[presetKey]));
+                renderAdminTimelineForm(template);
+                showToast(`Załadowano szablon harmonogramu (${presetSelect.options[presetSelect.selectedIndex].text.split(' ')[1] || 'preset'}). Pamiętaj, aby zapisać zmiany!`, 'success');
+            });
+        }
+
         const addEventBtn = document.getElementById('admin-add-event-btn');
         if (addEventBtn) {
             addEventBtn.addEventListener('click', () => {
@@ -2438,44 +2526,283 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // ── DYNAMIC ROLES & PERMISSIONS BUILDER ──────────────────────────────────────
+    function renderRolesBuilder(rolesConfig, isSingle = false) {
+        const container = document.getElementById('admin-roles-builder-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        rolesConfig = rolesConfig || {};
+
+        // Merge defaults if not present
+        const mergedRoles = {
+            para_mloda: {
+                label: rolesConfig.para_mloda?.label || (isSingle ? 'Jubilat' : 'Para Młoda'),
+                badge_color: rolesConfig.para_mloda?.badge_color || '#b8860b',
+                enabled: true,
+                require_phone: rolesConfig.para_mloda?.require_phone !== false,
+                permissions: {
+                    can_delete_photos: true,
+                    can_delete_videos: true,
+                    can_see_wishes: true,
+                    can_moderate_wishes: true,
+                    can_send_push: true,
+                    can_edit_schedule: true
+                }
+            },
+            swiadek: {
+                label: rolesConfig.swiadek?.label || (isSingle ? 'Moderator' : 'Świadek/Świadkowa'),
+                badge_color: rolesConfig.swiadek?.badge_color || '#2563eb',
+                enabled: rolesConfig.swiadek?.enabled !== false,
+                require_phone: rolesConfig.swiadek?.require_phone !== false,
+                permissions: {
+                    can_delete_photos: rolesConfig.swiadek?.permissions?.can_delete_photos ?? false,
+                    can_delete_videos: rolesConfig.swiadek?.permissions?.can_delete_videos ?? false,
+                    can_see_wishes: rolesConfig.swiadek?.permissions?.can_see_wishes ?? true,
+                    can_moderate_wishes: rolesConfig.swiadek?.permissions?.can_moderate_wishes ?? true,
+                    can_send_push: rolesConfig.swiadek?.permissions?.can_send_push ?? false,
+                    can_edit_schedule: rolesConfig.swiadek?.permissions?.can_edit_schedule ?? false
+                }
+            },
+            gosc: {
+                label: rolesConfig.gosc?.label || 'Gość',
+                badge_color: rolesConfig.gosc?.badge_color || '#6b7280',
+                enabled: rolesConfig.gosc?.enabled !== false,
+                require_phone: rolesConfig.gosc?.require_phone !== false,
+                permissions: {
+                    can_delete_photos: false,
+                    can_delete_videos: false,
+                    can_see_wishes: false,
+                    can_moderate_wishes: false,
+                    can_send_push: false,
+                    can_edit_schedule: false
+                }
+            }
+        };
+
+        // Add any custom defined roles
+        Object.keys(rolesConfig).forEach(key => {
+            if (!['para_mloda', 'swiadek', 'gosc'].includes(key)) {
+                const r = rolesConfig[key];
+                mergedRoles[key] = {
+                    label: r.label || key,
+                    badge_color: r.badge_color || '#8b5cf6',
+                    enabled: r.enabled !== false,
+                    require_phone: Boolean(r.require_phone),
+                    permissions: {
+                        can_delete_photos: Boolean(r.permissions?.can_delete_photos),
+                        can_delete_videos: Boolean(r.permissions?.can_delete_videos),
+                        can_see_wishes: Boolean(r.permissions?.can_see_wishes),
+                        can_moderate_wishes: Boolean(r.permissions?.can_moderate_wishes),
+                        can_send_push: Boolean(r.permissions?.can_send_push),
+                        can_edit_schedule: Boolean(r.permissions?.can_edit_schedule)
+                    }
+                };
+            }
+        });
+
+        Object.keys(mergedRoles).forEach(roleKey => {
+            const role = mergedRoles[roleKey];
+            const isSystem = ['para_mloda', 'swiadek', 'gosc'].includes(roleKey);
+            const isMaster = roleKey === 'para_mloda';
+
+            const card = document.createElement('div');
+            card.className = 'admin-role-card';
+            card.dataset.roleKey = roleKey;
+            card.style.cssText = `
+                border: 1px solid var(--color-border);
+                border-radius: 12px;
+                padding: 12px 14px;
+                background: var(--color-surface2, rgba(0,0,0,0.02));
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            `;
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="color" class="role-badge-color-input" value="${role.badge_color || '#8b5cf6'}" style="width: 28px; height: 28px; border: none; border-radius: 6px; cursor: pointer; padding: 0; background: none;" title="Wybierz kolor odznaki">
+                        <span style="font-weight: 700; font-size: 0.95rem; color: var(--color-text);">${role.label}</span>
+                        <span style="font-size: 0.75rem; font-family: monospace; opacity: 0.6; padding: 2px 6px; background: rgba(255,255,255,0.06); border-radius: 4px;">key: ${roleKey}</span>
+                        <span class="role-preview-badge" style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; color: #fff; background: ${role.badge_color || '#8b5cf6'};">Odznaka</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="display: flex; align-items: center; gap: 5px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                            <input type="checkbox" class="role-enabled-check" ${role.enabled ? 'checked' : ''} ${isMaster ? 'disabled checked' : ''} style="width: 16px; height: 16px;">
+                            ${isMaster ? 'Zawsze aktywna' : 'Włączona'}
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                            <input type="checkbox" class="role-req-phone-check" ${role.require_phone ? 'checked' : ''} style="width: 16px; height: 16px;">
+                            Wymagaj telefonu
+                        </label>
+                        ${!isSystem ? `
+                            <button type="button" class="admin-remove-role-btn" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1.1rem; padding: 2px 6px;" title="Usuń rolę">&times;</button>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                    <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 0.75rem; font-weight: 600; color: #888;">Nazwa wyświetlana roli</label>
+                        <input type="text" class="role-label-input" value="${role.label}" placeholder="np. DJ, Fotograf, Ochrona..." style="padding: 7px 10px; border: 1.5px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-text); font-size: 0.85rem;">
+                    </div>
+                </div>
+
+                <div style="border-top: 1px dashed var(--color-border); padding-top: 8px;">
+                    <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; color: var(--color-primary); display: block; margin-bottom: 6px;">Uprawnienia roli:</span>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px 12px;">
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; cursor: pointer;">
+                            <input type="checkbox" class="perm-check perm-del-photos" ${role.permissions.can_delete_photos ? 'checked' : ''} ${isMaster ? 'disabled checked' : ''}>
+                            Usuwanie zdjęć z galerii
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; cursor: pointer;">
+                            <input type="checkbox" class="perm-check perm-del-videos" ${role.permissions.can_delete_videos ? 'checked' : ''} ${isMaster ? 'disabled checked' : ''}>
+                            Usuwanie filmów wideo
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; cursor: pointer;">
+                            <input type="checkbox" class="perm-check perm-see-wishes" ${role.permissions.can_see_wishes ? 'checked' : ''} ${isMaster ? 'disabled checked' : ''}>
+                            Podgląd skrzynki życzeń
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; cursor: pointer;">
+                            <input type="checkbox" class="perm-check perm-mod-wishes" ${role.permissions.can_moderate_wishes ? 'checked' : ''} ${isMaster ? 'disabled checked' : ''}>
+                            Przypinanie życzeń (mod)
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; cursor: pointer;">
+                            <input type="checkbox" class="perm-check perm-send-push" ${role.permissions.can_send_push ? 'checked' : ''} ${isMaster ? 'disabled checked' : ''}>
+                            Wysyłanie powiadomień push
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; cursor: pointer;">
+                            <input type="checkbox" class="perm-check perm-edit-sched" ${role.permissions.can_edit_schedule ? 'checked' : ''} ${isMaster ? 'disabled checked' : ''}>
+                            Edycja harmonogramu imprezy
+                        </label>
+                    </div>
+                </div>
+            `;
+
+            // Live badge color sync
+            const colorInput = card.querySelector('.role-badge-color-input');
+            const previewBadge = card.querySelector('.role-preview-badge');
+            colorInput.addEventListener('input', () => {
+                previewBadge.style.backgroundColor = colorInput.value;
+            });
+
+            // Live label sync
+            const labelInput = card.querySelector('.role-label-input');
+            labelInput.addEventListener('input', () => {
+                const titleSpan = card.querySelector('span[style*="font-weight: 700"]');
+                if (titleSpan) titleSpan.textContent = labelInput.value || roleKey;
+            });
+
+            const removeBtn = card.querySelector('.admin-remove-role-btn');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', () => {
+                    if (confirm(`Czy na pewno chcesz usunąć rolę '${role.label}'?`)) {
+                        card.remove();
+                    }
+                });
+            }
+
+            container.appendChild(card);
+        });
+    }
+
+    function collectRolesConfigFromBuilder() {
+        const payload = {};
+        document.querySelectorAll('#admin-roles-builder-container .admin-role-card').forEach(card => {
+            const roleKey = card.dataset.roleKey;
+            const label = card.querySelector('.role-label-input')?.value.trim() || roleKey;
+            const badge_color = card.querySelector('.role-badge-color-input')?.value || '#6b7280';
+            const enabled = card.querySelector('.role-enabled-check')?.checked !== false;
+            const require_phone = Boolean(card.querySelector('.role-req-phone-check')?.checked);
+
+            const isMaster = roleKey === 'para_mloda';
+            const permissions = {
+                can_delete_photos: isMaster || Boolean(card.querySelector('.perm-del-photos')?.checked),
+                can_delete_videos: isMaster || Boolean(card.querySelector('.perm-del-videos')?.checked),
+                can_see_wishes: isMaster || Boolean(card.querySelector('.perm-see-wishes')?.checked),
+                can_moderate_wishes: isMaster || Boolean(card.querySelector('.perm-mod-wishes')?.checked),
+                can_send_push: isMaster || Boolean(card.querySelector('.perm-send-push')?.checked),
+                can_edit_schedule: isMaster || Boolean(card.querySelector('.perm-edit-sched')?.checked),
+            };
+
+            payload[roleKey] = {
+                label,
+                badge_color,
+                enabled,
+                require_phone,
+                permissions
+            };
+        });
+        return payload;
+    }
+
     // ── ROLE DROPDOWNS & BADGES HELPER ──────────────────────────────────────────
     function updateRoleDropdowns(rolesConfig, isSingle = false) {
         rolesConfig = rolesConfig || {};
         const filterRole = document.getElementById('filter-role');
         const guestRole = document.getElementById('admin-guest-role');
 
-        const paraMlodaLabel = rolesConfig.para_mloda?.label || (isSingle ? 'Jubilat' : 'Para Młoda');
-        const swiadekLabel = rolesConfig.swiadek?.label || (isSingle ? 'Moderator' : 'Świadek');
-        const goscLabel = rolesConfig.gosc?.label || 'Gość';
-
-        const swiadekEnabled = rolesConfig.swiadek?.enabled !== false;
-        const goscEnabled = rolesConfig.gosc?.enabled !== false;
-
         const currentFilterVal = filterRole ? filterRole.value : '';
         const currentGuestRoleVal = guestRole ? guestRole.value : 'gosc';
 
+        // Build list of all roles
+        const rolesList = [];
+        const systemKeys = ['para_mloda', 'swiadek', 'gosc'];
+        
+        systemKeys.forEach(k => {
+            const r = rolesConfig[k] || {};
+            const defLabel = (k === 'para_mloda') ? (isSingle ? 'Jubilat' : 'Para Młoda') : ((k === 'swiadek') ? (isSingle ? 'Moderator' : 'Świadek') : 'Gość');
+            rolesList.push({
+                key: k,
+                label: r.label || defLabel,
+                enabled: r.enabled !== false,
+                badge_color: r.badge_color || (k === 'para_mloda' ? '#fbbf24' : (k === 'swiadek' ? '#a5b4fc' : '#8a8074'))
+            });
+        });
+
+        // Add custom roles
+        Object.keys(rolesConfig).forEach(k => {
+            if (!systemKeys.includes(k)) {
+                const r = rolesConfig[k];
+                rolesList.push({
+                    key: k,
+                    label: r.label || k,
+                    enabled: r.enabled !== false,
+                    badge_color: r.badge_color || '#8b5cf6'
+                });
+            }
+        });
+
         if (filterRole) {
-            filterRole.innerHTML = `
-                <option value="">Rola: Wszystkie</option>
-                <option value="para_mloda">${paraMlodaLabel}</option>
-                ${swiadekEnabled ? `<option value="swiadek">${swiadekLabel}</option>` : ''}
-                ${goscEnabled ? `<option value="gosc">${goscLabel}</option>` : ''}
-            `;
+            let filterHtml = '<option value="">Rola: Wszystkie</option>';
+            rolesList.forEach(r => {
+                if (r.enabled) {
+                    filterHtml += `<option value="${r.key}">${r.label}</option>`;
+                }
+            });
+            filterRole.innerHTML = filterHtml;
             filterRole.value = currentFilterVal;
         }
 
         if (guestRole) {
-            guestRole.innerHTML = `
-                ${goscEnabled ? `<option value="gosc">${goscLabel}</option>` : ''}
-                ${swiadekEnabled ? `<option value="swiadek">${swiadekLabel}</option>` : ''}
-                <option value="para_mloda">${paraMlodaLabel}</option>
-            `;
+            let guestHtml = '';
+            rolesList.forEach(r => {
+                if (r.enabled) {
+                    guestHtml += `<option value="${r.key}">${r.label}</option>`;
+                }
+            });
+            guestRole.innerHTML = guestHtml;
             if (guestRole.querySelector(`option[value="${currentGuestRoleVal}"]`)) {
                 guestRole.value = currentGuestRoleVal;
             }
         }
 
         // Witness / Moderator tab
+        const swiadekRole = rolesList.find(r => r.key === 'swiadek');
+        const swiadekLabel = swiadekRole ? swiadekRole.label : (isSingle ? 'Moderator' : 'Świadek');
+        const swiadekEnabled = swiadekRole ? swiadekRole.enabled : true;
+
         const witnessTabNavBtn = document.querySelector('.admin-tab-nav-btn[data-target="admin-tab-witness"]');
         const witnessTabHeader = document.querySelector('#admin-tab-witness .admin-section-header h3');
         const witnessTabSaveBtn = document.getElementById('admin-save-witness-btn');
@@ -2497,6 +2824,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ── ORGANIZATION SETTINGS TAB ──────────────────────────────────────────────
     function initOrganizationSettingsListeners() {
+        const addCustomRoleBtn = document.getElementById('admin-add-custom-role-btn');
+        if (addCustomRoleBtn) {
+            addCustomRoleBtn.addEventListener('click', () => {
+                const roleName = prompt('Podaj nazwę nowej roli (np. DJ, Fotograf, Ochrona, VIP, Rodzic):');
+                if (!roleName || !roleName.trim()) return;
+                const cleanName = roleName.trim();
+                const key = cleanName.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+                if (!key) {
+                    alert('Nieprawidłowa nazwa roli.');
+                    return;
+                }
+                const existing = document.querySelector(`#admin-roles-builder-container .admin-role-card[data-role-key="${key}"]`);
+                if (existing) {
+                    alert(`Rola o identyfikatorze '${key}' już istnieje.`);
+                    return;
+                }
+                const currentRoles = collectRolesConfigFromBuilder();
+                currentRoles[key] = {
+                    label: cleanName,
+                    badge_color: '#8b5cf6',
+                    enabled: true,
+                    require_phone: false,
+                    permissions: {
+                        can_delete_photos: false,
+                        can_delete_videos: false,
+                        can_see_wishes: false,
+                        can_moderate_wishes: false,
+                        can_send_push: false,
+                        can_edit_schedule: false
+                    }
+                };
+                const isSingle = !weddingConfigRaw.partner2_name || !weddingConfigRaw.partner2_name.trim();
+                renderRolesBuilder(currentRoles, isSingle);
+                showToast(`Dodano rolę '${cleanName}'. Pamiętaj, aby zapisać ustawienia organizacji!`, 'success');
+            });
+        }
+
         const copyBtn = document.getElementById('admin-copy-direct-url-btn');
         if (copyBtn) {
             copyBtn.addEventListener('click', () => {
@@ -2526,6 +2890,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     formData.append('monogram_text', document.getElementById('admin-org-monogram').value.trim());
                     formData.append('date_display_text', document.getElementById('admin-org-date-text').value.trim());
 
+                    const eventTypeSelect = document.getElementById('admin-org-event-type');
+                    if (eventTypeSelect) {
+                        formData.append('event_type', eventTypeSelect.value);
+                    }
+
                     // Custom Labels per Organization
                     formData.append('admin_panel_title', document.getElementById('admin-org-admin-panel-title')?.value.trim() || '');
                     formData.append('contact_label', document.getElementById('admin-org-contact-label')?.value.trim() || '');
@@ -2536,6 +2905,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (orgWishesCheckbox) {
                         formData.append('wishes_enabled', orgWishesCheckbox.checked);
                     }
+                    const orgWishesAudioCheckbox = document.getElementById('admin-org-wishes-audio-checkbox');
+                    if (orgWishesAudioCheckbox) {
+                        formData.append('wishes_audio_enabled', orgWishesAudioCheckbox.checked);
+                    }
+                    const orgWishesVideoCheckbox = document.getElementById('admin-org-wishes-video-checkbox');
+                    if (orgWishesVideoCheckbox) {
+                        formData.append('wishes_video_enabled', orgWishesVideoCheckbox.checked);
+                    }
                     const orgSeatingCheckbox = document.getElementById('admin-org-seating-enabled-checkbox');
                     if (orgSeatingCheckbox) {
                         formData.append('seating_enabled', orgSeatingCheckbox.checked);
@@ -2545,24 +2922,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         formData.append('simple_codes_enabled', orgSimpleCodesCheckbox.checked);
                     }
 
-                    // Roles configuration per Organization
-                    const rolesConfigPayload = {
-                        para_mloda: {
-                            label: document.getElementById('admin-role-label-para-mloda')?.value.trim() || 'Para Młoda',
-                            enabled: true,
-                            require_phone: document.getElementById('admin-role-require-phone-para-mloda')?.checked !== false
-                        },
-                        swiadek: {
-                            label: document.getElementById('admin-role-label-swiadek')?.value.trim() || 'Świadek/Świadkowa',
-                            enabled: document.getElementById('admin-role-enabled-swiadek')?.checked !== false,
-                            require_phone: document.getElementById('admin-role-require-phone-swiadek')?.checked !== false
-                        },
-                        gosc: {
-                            label: document.getElementById('admin-role-label-gosc')?.value.trim() || 'Gość',
-                            enabled: document.getElementById('admin-role-enabled-gosc')?.checked !== false,
-                            require_phone: document.getElementById('admin-role-require-phone-gosc')?.checked !== false
-                        }
-                    };
+                    // Dynamic Roles configuration per Organization
+                    const rolesConfigPayload = collectRolesConfigFromBuilder();
                     formData.append('roles_config', JSON.stringify(rolesConfigPayload));
 
                     const wDate = document.getElementById('admin-org-wedding-date').value;
@@ -2594,9 +2955,46 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
+        // Quick-Setup Wizard Type Cards Toggle
+        const wizardCards = document.querySelectorAll('#wizard-event-type-cards .wizard-type-card');
+        wizardCards.forEach(card => {
+            card.addEventListener('click', () => {
+                wizardCards.forEach(c => {
+                    c.classList.remove('active');
+                    c.style.borderColor = 'var(--color-border)';
+                    c.style.background = 'var(--color-surface)';
+                });
+                card.classList.add('active');
+                card.style.borderColor = 'var(--color-primary)';
+                card.style.background = 'rgba(0,0,0,0.03)';
+                const radio = card.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    // Auto-adjust placeholder hints
+                    const nameInput = document.getElementById('new-org-name');
+                    const p1Input = document.getElementById('new-org-p1');
+                    const p2Input = document.getElementById('new-org-p2');
+                    if (radio.value === 'birthday') {
+                        if (nameInput) nameInput.placeholder = 'np. 18-stka Kamila lub Urodziny Oli';
+                        if (p1Input) p1Input.placeholder = 'Imię Jubilata (np. Kamil)';
+                        if (p2Input) p2Input.placeholder = 'Opcjonalnie drugi solenizant';
+                    } else if (radio.value === 'corporate') {
+                        if (nameInput) nameInput.placeholder = 'np. Gala Firmowa TechCorp 2027';
+                        if (p1Input) p1Input.placeholder = 'Nazwa Firmy / Koordynator';
+                        if (p2Input) p2Input.placeholder = 'Dział / Miasto (opcjonalnie)';
+                    } else {
+                        if (nameInput) nameInput.placeholder = 'np. Wesele Ani i Piotra';
+                        if (p1Input) p1Input.placeholder = 'Imię Partnera 1';
+                        if (p2Input) p2Input.placeholder = 'Imię Partnera 2';
+                    }
+                }
+            });
+        });
+
         const submitNewOrgBtn = document.getElementById('new-org-submit-btn');
         if (submitNewOrgBtn) {
             submitNewOrgBtn.addEventListener('click', async () => {
+                const eventType = document.querySelector('input[name="wizard-event-type"]:checked')?.value || 'wedding';
                 const name = document.getElementById('new-org-name').value.trim();
                 const p1 = document.getElementById('new-org-p1').value.trim();
                 const p2 = document.getElementById('new-org-p2').value.trim();
@@ -2604,13 +3002,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const code = document.getElementById('new-org-login-code').value.trim();
                 const pass = document.getElementById('new-org-password').value.trim();
 
-                if (!p1 || !p2) {
-                    alert('Wprowadź imiona Pary Młodej.');
+                if (!p1) {
+                    alert('Wprowadź imię gospodarza, jubilata lub nazwę firmy.');
                     return;
                 }
 
                 submitNewOrgBtn.disabled = true;
-                submitNewOrgBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Tworzenie...';
+                submitNewOrgBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Konfigurowanie i tworzenie...';
 
                 try {
                     const res = await fetch(`${API_URL}/admin/organizations/`, {
@@ -2620,6 +3018,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
+                            event_type: eventType,
                             name: name,
                             partner1_name: p1,
                             partner2_name: p2,
@@ -2631,18 +3030,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     if (res.ok) {
                         const data = await res.json();
-                        alert(`Nowe wesele zostało utworzone!\nKod pary młodej: ${data.organization.admin_login_code}`);
+                        alert(`Nowe wydarzenie zostało pomyślnie utworzone i skonfigurowane z presetami!\nKod dostępu organizatora: ${data.organization.admin_login_code}`);
                         localStorage.setItem('current_org_id', data.organization.id);
                         window.location.search = `?org=${data.organization.id}`;
                     } else {
                         const err = await res.json();
-                        alert(err.error || 'Wystąpił błąd podczas tworzenia wesela.');
+                        alert(err.error || 'Wystąpił błąd podczas tworzenia wydarzenia.');
                     }
                 } catch(e) {
                     alert('Błąd połączenia.');
                 } finally {
                     submitNewOrgBtn.disabled = false;
-                    submitNewOrgBtn.innerHTML = '<i class="ph ph-check"></i> Utwórz Wesele i Przejdź';
+                    submitNewOrgBtn.innerHTML = '<i class="ph ph-magic-wand"></i> Utwórz Wydarzenie i Zastosuj Presety';
                 }
             });
         }
@@ -2681,5 +3080,210 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch(e) {
             console.warn('Could not load organizations list:', e);
         }
+    }
+
+    async function loadAdminMetricsSummary() {
+        const loadsContainer = document.getElementById('metrics-part-loads-container');
+        const viewsContainer = document.getElementById('metrics-part-views-container');
+        const uploadsContainer = document.getElementById('metrics-uploads-container');
+        const postsContainer = document.getElementById('metrics-posts-container');
+        const devicesContainer = document.getElementById('metrics-devices-container');
+        const timelineContainer = document.getElementById('metrics-timeline-container');
+
+        if (!loadsContainer) return;
+
+        loadsContainer.innerHTML = '<p style="font-size:0.85rem; color:#888;">Pobieranie...</p>';
+        viewsContainer.innerHTML = '<p style="font-size:0.85rem; color:#888;">Pobieranie...</p>';
+        uploadsContainer.innerHTML = '<p style="font-size:0.85rem; color:#888;">Pobieranie...</p>';
+        postsContainer.innerHTML = '<p style="font-size:0.85rem; color:#888;">Pobieranie...</p>';
+        if (devicesContainer) devicesContainer.innerHTML = '<p style="font-size:0.85rem; color:#888;">Pobieranie...</p>';
+        if (timelineContainer) timelineContainer.innerHTML = '<p style="font-size:0.85rem; color:#888;">Pobieranie...</p>';
+
+        try {
+            const token = localStorage.getItem('access_token');
+            const res = await fetch(`${API_URL}/metrics/summary/`, {
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
+            });
+            if (!res.ok) throw new Error('Błąd ładowania metryk');
+            const data = await res.json();
+            const summary = data.summary || {};
+
+            const metricLabels = {
+                'initial_page': 'Strona Główna (Guest App)',
+                'admin_page': 'Panel Administratora',
+                'seating_creator_page': 'Kreator Planu Sali',
+                'landing_page': 'Strona Główna (Landing)',
+                'gallery': 'Galeria Zdjęć',
+                'stories': 'Relacje (Stories)',
+                'wishes': 'Księga Gości / Życzenia',
+                'seating': 'Plan Stołów',
+                'party': 'Sekcja Impreza',
+                'feed': 'Sekcja Życzenia',
+                'info': 'Sekcja Informacje',
+                'you': 'Profil Gościa',
+                'tab-party': 'Sekcja Impreza',
+                'tab-feed': 'Sekcja Życzenia',
+                'tab-info': 'Sekcja Informacje',
+                'tab-you': 'Profil Gościa',
+                'photo': 'Zdjęcie',
+                'video': 'Wideo'
+            };
+            const formatMetricName = (name) => metricLabels[name] || name;
+
+            // 1. Part loads
+            const partLoads = summary.part_loads || [];
+            if (partLoads.length === 0) {
+                loadsContainer.innerHTML = '<p style="font-size:0.85rem; color:#888;">Brak zarejestrowanych pomiarów ładowania.</p>';
+            } else {
+                loadsContainer.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        ${partLoads.map(item => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 0.88rem;">
+                                <span style="font-weight: 500;">${formatMetricName(item.part)}</span>
+                                <div style="text-align: right;">
+                                    <span style="font-weight: 700; color: #2563eb;">${item.avg_duration_ms} ms</span>
+                                    <span style="font-size: 0.75rem; color: #888; margin-left: 6px;">(${item.count} próbek)</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // 2. Part views
+            const partViews = summary.part_views || [];
+            if (partViews.length === 0) {
+                viewsContainer.innerHTML = '<p style="font-size:0.85rem; color:#888;">Brak zarejestrowanych wyświetleń.</p>';
+            } else {
+                viewsContainer.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        ${partViews.map(item => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 0.88rem;">
+                                <span style="font-weight: 500;">${formatMetricName(item.part)}</span>
+                                <span style="font-weight: 700; color: #10b981;">${item.count} wyśw.</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // 3. Media uploads
+            const mediaUploads = summary.media_uploads || [];
+            const uploadsByConn = summary.uploads_by_connection || [];
+            if (mediaUploads.length === 0) {
+                uploadsContainer.innerHTML = '<p style="font-size:0.85rem; color:#888;">Brak zarejestrowanych uploadów.</p>';
+            } else {
+                uploadsContainer.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        ${mediaUploads.map(item => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 0.88rem;">
+                                <span style="font-weight: 500; text-transform: capitalize;">${item.type}</span>
+                                <div style="text-align: right;">
+                                    <span style="font-weight: 700; color: #f59e0b;">${item.count} plików</span>
+                                    <span style="font-size: 0.75rem; color: #888; margin-left: 6px;">(śr. ${item.avg_duration_ms} ms)</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                        ${uploadsByConn.length > 0 ? `
+                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(0,0,0,0.1);">
+                                <span style="font-size: 0.78rem; text-transform: uppercase; color: #888; font-weight: 600;">Podział wg sieci:</span>
+                                ${uploadsByConn.map(c => `
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-top: 4px;">
+                                        <span style="color: #555;">${c.connection}</span>
+                                        <span style="font-weight: 600;">${c.count} szt. (śr. ${c.avg_duration_ms} ms)</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            // 4. Posts / wishes
+            const posts = summary.posts || [];
+            if (posts.length === 0) {
+                postsContainer.innerHTML = '<p style="font-size:0.85rem; color:#888;">Brak nowych wpisów.</p>';
+            } else {
+                postsContainer.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        ${posts.map(item => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 0.88rem;">
+                                <span style="font-weight: 500; text-transform: capitalize;">${item.type}</span>
+                                <div style="text-align: right;">
+                                    <span style="font-weight: 700; color: #8b5cf6;">${item.count} wpisów</span>
+                                    <span style="font-size: 0.75rem; color: #888; margin-left: 6px;">(śr. ${item.avg_duration_ms} ms)</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // 5. Devices
+            if (devicesContainer) {
+                const devs = summary.devices || {};
+                const totalDevs = (devs.mobile || 0) + (devs.desktop || 0) + (devs.tablet || 0);
+                if (totalDevs === 0) {
+                    devicesContainer.innerHTML = '<p style="font-size:0.85rem; color:#888;">Brak danych o urządzeniach.</p>';
+                } else {
+                    const mobPct = Math.round(((devs.mobile || 0) / totalDevs) * 100);
+                    const dskPct = Math.round(((devs.desktop || 0) / totalDevs) * 100);
+                    const tabPct = Math.round(((devs.tablet || 0) / totalDevs) * 100);
+                    devicesContainer.innerHTML = `
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.88rem;">
+                                <span><i class="ph ph-device-mobile"></i> Smartfony</span>
+                                <span style="font-weight: 700; color: #06b6d4;">${devs.mobile || 0} (${mobPct}%)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.88rem;">
+                                <span><i class="ph ph-desktop"></i> Komputery</span>
+                                <span style="font-weight: 700; color: #2563eb;">${devs.desktop || 0} (${dskPct}%)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.88rem;">
+                                <span><i class="ph ph-device-tablet"></i> Tablety</span>
+                                <span style="font-weight: 700; color: #8b5cf6;">${devs.tablet || 0} (${tabPct}%)</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            // 6. Activity Timeline
+            if (timelineContainer) {
+                const timeline = summary.activity_timeline || [];
+                if (timeline.length === 0) {
+                    timelineContainer.innerHTML = '<p style="font-size:0.85rem; color:#888;">Brak aktywności na osi czasu.</p>';
+                } else {
+                    const maxVal = Math.max(...timeline.map(t => t.count), 1);
+                    timelineContainer.innerHTML = `
+                        <div style="display: flex; align-items: flex-end; gap: 6px; height: 90px; padding-top: 10px;">
+                            ${timeline.map(t => {
+                                const hPct = Math.max(15, Math.round((t.count / maxVal) * 70));
+                                return `
+                                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                                        <span style="font-size: 0.7rem; font-weight: 700; color: #ec4899;">${t.count}</span>
+                                        <div style="width: 100%; height: ${hPct}px; background: linear-gradient(to top, #ec4899, #f472b6); border-radius: 4px;"></div>
+                                        <span style="font-size: 0.65rem; color: #777;">${t.hour}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }
+            }
+
+        } catch (err) {
+            console.error('Błąd pobierania metryk:', err);
+            loadsContainer.innerHTML = `<p style="font-size:0.85rem; color:red;">Nie udało się pobrać metryk: ${err.message}</p>`;
+        }
+    }
+
+    const refreshMetricsBtn = document.getElementById('admin-refresh-metrics-btn');
+    if (refreshMetricsBtn) {
+        refreshMetricsBtn.addEventListener('click', () => {
+            loadAdminMetricsSummary();
+        });
     }
 });
