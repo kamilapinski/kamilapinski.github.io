@@ -209,6 +209,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (tabId === 'admin-tab-notifications') {
                     loadPushNotifications();
+                } else if (tabId === 'admin-tab-tasks') {
+                    loadAdminPartyTasks();
+                    loadAdminPartyTaskAssignments();
                 } else if (tabId === 'admin-tab-organization') {
                     if (weddingConfigRaw) populateOrganizationTab(weddingConfigRaw);
                     loadAdminConfigForm();
@@ -242,6 +245,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         initPushNotificationsListeners();
         initThemeSettingsListeners();
         initOrganizationSettingsListeners();
+        initConfirmationRemindersListeners();
+        initPartyTasksListeners();
 
         // Attach search and filter event listeners
         const guestSearchInput = document.getElementById('admin-guest-search-input');
@@ -262,6 +267,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             if (res.ok) {
                 allGuestsData = await res.json();
+                updateConfirmationStats(allGuestsData);
                 renderAdminGuestsList(allGuestsData);
                 populateParentGuestSelect();
                 populateTableFilterSelect();
@@ -299,6 +305,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    function updateConfirmationStats(guests) {
+        if (!guests) return;
+        const total = guests.length;
+        const confirmed = guests.filter(g => g.confirmation_status === 'confirmed').length;
+        const pending = guests.filter(g => !g.confirmation_status || g.confirmation_status === 'pending').length;
+        const declined = guests.filter(g => g.confirmation_status === 'declined').length;
+        const offline = guests.filter(g => g.confirmation_status === 'confirmed_offline').length;
+
+        const elTotal = document.getElementById('stat-total-guests');
+        if (elTotal) elTotal.textContent = total;
+        const elConfirmed = document.getElementById('stat-confirmed-guests');
+        if (elConfirmed) {
+            const pct = total > 0 ? Math.round((confirmed / total) * 100) : 0;
+            elConfirmed.innerHTML = `${confirmed} <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.75;">(${pct}%)</span>`;
+        }
+        const elPending = document.getElementById('stat-pending-guests');
+        if (elPending) elPending.textContent = pending;
+        const elDeclined = document.getElementById('stat-declined-guests');
+        if (elDeclined) elDeclined.textContent = declined;
+        const elOffline = document.getElementById('stat-offline-guests');
+        if (elOffline) elOffline.textContent = offline;
+    }
+
     function renderAdminGuestsList(guests) {
         const container = document.getElementById('admin-guest-list');
         if (!container) return;
@@ -333,6 +362,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ? '<span class="admin-guest-meta-badge" style="background: rgba(94, 184, 122, 0.12); color: #5eb87a;"><i class="ph ph-chat-centered-text"></i> Opis: Tak</span>'
                 : '<span class="admin-guest-meta-badge" style="background: rgba(224, 85, 85, 0.06); color: rgba(224, 85, 85, 0.7); border: 1px dashed rgba(224, 85, 85, 0.3);"><i class="ph ph-warning-circle"></i> Brak opisu</span>';
 
+            // Confirmation status badge (Issue #22)
+            const cStatus = g.confirmation_status || 'pending';
+            let confBadge = '';
+            if (cStatus === 'confirmed') {
+                confBadge = '<span class="admin-guest-meta-badge" style="background: rgba(16, 185, 129, 0.15); color: #059669; font-weight: 600;"><i class="ph-fill ph-check-circle"></i> Obecność: Potwierdzona</span>';
+            } else if (cStatus === 'confirmed_offline') {
+                confBadge = '<span class="admin-guest-meta-badge" style="background: rgba(139, 92, 246, 0.15); color: #7c3aed; font-weight: 600;"><i class="ph-fill ph-check-circle"></i> Obecność: Poza aplikacją</span>';
+            } else if (cStatus === 'declined') {
+                confBadge = '<span class="admin-guest-meta-badge" style="background: rgba(239, 68, 68, 0.15); color: #dc2626; font-weight: 600;"><i class="ph-fill ph-x-circle"></i> Obecność: Odrzucona</span>';
+            } else {
+                confBadge = '<span class="admin-guest-meta-badge" style="background: rgba(245, 158, 11, 0.15); color: #d97706; font-weight: 600;"><i class="ph-fill ph-clock"></i> Obecność: Oczekuje</span>';
+            }
+
             const prefixText = g.prefix ? `<span style="opacity: 0.6; font-size: 0.8rem; font-style: italic;">(${g.prefix})</span> ` : '';
 
             row.innerHTML = `
@@ -342,12 +384,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <span class="admin-guest-meta-badge" style="background: ${roleBg}; color: ${roleColor}; font-weight: 600;">${roleName}</span>
                         <span class="admin-guest-meta-badge filter-by-code-btn" data-code="${g.login_code}" style="background: rgba(255,255,255,0.06); color: #ccc; cursor: pointer;" title="Kliknij, aby filtrować po tym kodzie">Kod: ${g.login_code}</span>
                         <span class="admin-guest-meta-badge ${g.table_number !== null ? 'filter-by-table-btn' : ''}" data-table="${g.table_number !== null ? g.table_number : ''}" style="${tableStyle} ${g.table_number !== null ? 'cursor: pointer;' : ''}" title="${g.table_number !== null ? 'Kliknij, aby filtrować po tym stoliku' : ''}">${tableText}</span>
+                        ${confBadge}
                         ${towBadge}
                         ${relBadge}
                         ${metBadge}
                     </div>
                 </div>
                 <div class="admin-guest-row-buttons" style="display: flex; align-items: center; gap: 8px;">
+                    <button class="toggle-offline-confirm-btn" data-id="${g.id}" title="${cStatus === 'confirmed_offline' ? 'Cofnij potwierdzenie offline' : 'Oznacz jako potwierdzony poza aplikacją'}" style="background: none; border: none; cursor: pointer; color: ${cStatus === 'confirmed_offline' ? '#7c3aed' : '#94a3b8'}; font-size: 1.25rem; display: flex; align-items: center;"><i class="ph ${cStatus === 'confirmed_offline' ? 'ph-check-square' : 'ph-square'}"></i></button>
                     <button class="download-qr-btn" data-url="${g.qr_png_url}" data-code="${g.login_code}" title="Pobierz QR PNG" style="background: none; border: none; cursor: pointer; color: #c9a84c; font-size: 1.25rem; display: flex; align-items: center;"><i class="ph ph-download-simple"></i></button>
                     <button class="edit-guest-btn" data-id="${g.id}"><i class="ph ph-pencil-simple"></i></button>
                     <button class="delete-btn delete-guest-btn" data-id="${g.id}"><i class="ph ph-trash"></i></button>
@@ -368,6 +412,37 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.addEventListener('click', () => {
                 const id = btn.getAttribute('data-id');
                 deleteGuest(id);
+            });
+        });
+
+        // Toggle offline confirmation status
+        container.querySelectorAll('.toggle-offline-confirm-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const id = btn.getAttribute('data-id');
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                try {
+                    const res = await fetch(`${API_URL}/admin/guests/${id}/confirm/`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    if (res.ok) {
+                        loadAdminGuests();
+                    } else {
+                        const err = await res.json();
+                        alert(err.error || 'Błąd aktualizacji statusu');
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                    }
+                } catch(err) {
+                    alert('Błąd połączenia: ' + err.message);
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }
             });
         });
 
@@ -417,6 +492,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const role = document.getElementById('filter-role')?.value || '';
         const table = document.getElementById('filter-table')?.value || '';
         const tow = document.getElementById('filter-tow')?.value || '';
+        const confirmation = document.getElementById('filter-confirmation')?.value || '';
         const missing = document.getElementById('filter-missing')?.value || '';
 
         console.log("Filter values:", { query, role, table, tow, missing });
@@ -451,6 +527,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             filtered = filtered.filter(g => !g.is_plus_one);
         } else if (tow === 'plus_one') {
             filtered = filtered.filter(g => g.is_plus_one);
+        }
+
+        // Confirmation status filter (Issue #22)
+        if (confirmation) {
+            filtered = filtered.filter(g => (g.confirmation_status || 'pending') === confirmation);
         }
 
         // Missing data filter
@@ -562,7 +643,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     seat_number: document.getElementById('admin-guest-seat').value || null,
                     relationship: document.getElementById('admin-guest-relationship').value,
                     phone: phoneVal,
-                    how_we_met: document.getElementById('admin-guest-how-met').value
+                    how_we_met: document.getElementById('admin-guest-how-met').value,
+                    confirmation_status: document.getElementById('admin-guest-confirmation-status')?.value || 'pending'
                 };
 
                 const url = id ? `${API_URL}/admin/guests/${id}/` : `${API_URL}/admin/guests/`;
@@ -996,6 +1078,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const relationshipField = document.getElementById('admin-guest-relationship');
         const phoneField = document.getElementById('admin-guest-phone');
         const howMetField = document.getElementById('admin-guest-how-met');
+        const confirmationStatusField = document.getElementById('admin-guest-confirmation-status');
 
         // Reset form
         idField.value = '';
@@ -1010,6 +1093,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         relationshipField.value = '';
         phoneField.value = '';
         howMetField.value = '';
+        if (confirmationStatusField) confirmationStatusField.value = 'pending';
 
         if (id) {
             titleEl.textContent = 'Edytuj Gościa';
@@ -1026,6 +1110,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 relationshipField.value = guest.relationship || '';
                 phoneField.value = guest.phone || '';
                 howMetField.value = guest.how_we_met || '';
+                if (confirmationStatusField) confirmationStatusField.value = guest.confirmation_status || 'pending';
 
                 // Set parent selection if they share code with someone else who was created before them
                 const parent = allGuestsData.find(o => o.login_code === guest.login_code && o.id !== guest.id);
@@ -1122,6 +1207,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         const orgSimpleCodesCheckbox = document.getElementById('admin-org-simple-codes-checkbox');
         if (orgSimpleCodesCheckbox) orgSimpleCodesCheckbox.checked = Boolean(cfg.simple_codes_enabled);
 
+        // Confirmations module (Issue #22)
+        const orgConfirmationsCheckbox = document.getElementById('admin-org-confirmations-enabled-checkbox');
+        if (orgConfirmationsCheckbox) orgConfirmationsCheckbox.checked = cfg.confirmations_enabled !== false;
+
+        const orgConfirmationsPopupCheckbox = document.getElementById('admin-org-confirmations-popup-checkbox');
+        if (orgConfirmationsPopupCheckbox) orgConfirmationsPopupCheckbox.checked = cfg.confirmations_popup_enabled !== false;
+
+        const orgConfPopupStart = document.getElementById('admin-org-conf-popup-start');
+        if (orgConfPopupStart) orgConfPopupStart.value = cfg.confirmations_popup_start_date ? cfg.confirmations_popup_start_date.slice(0, 16) : '';
+
+        const orgConfPopupEnd = document.getElementById('admin-org-conf-popup-end');
+        if (orgConfPopupEnd) orgConfPopupEnd.value = cfg.confirmations_popup_end_date ? cfg.confirmations_popup_end_date.slice(0, 16) : '';
+
+        // Confirmations reminders schedule (Issue #22)
+        const remindersRaw = cfg.confirmations_reminder_schedule || [];
+        adminConfReminders = Array.isArray(remindersRaw) ? [...remindersRaw] : [];
+        renderAdminConfReminders();
+
+        // Party Tasks module (Issue #21)
+        const orgPartyTasksCheckbox = document.getElementById('admin-org-party-tasks-enabled-checkbox');
+        if (orgPartyTasksCheckbox) orgPartyTasksCheckbox.checked = cfg.party_tasks_enabled !== false;
+
         // 5. Roles configuration & dynamic builder
         const roles = cfg.roles_config || {};
         const isSingle = !cfg.partner2_name || !cfg.partner2_name.trim();
@@ -1170,6 +1277,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // 2. Info Tab
                 try {
                     renderAdminInfoForm(weddingConfigRaw.info_places || []);
+
+                    // Populate Menu form (Issue #23)
+                    const menuEnabledCheckbox = document.getElementById('admin-menu-enabled-checkbox');
+                    if (menuEnabledCheckbox) {
+                        menuEnabledCheckbox.checked = weddingConfigRaw.menu_enabled !== false;
+                    }
+                    const menuMarkdownTextarea = document.getElementById('admin-menu-markdown-textarea');
+                    if (menuMarkdownTextarea) {
+                        menuMarkdownTextarea.value = weddingConfigRaw.menu_markdown || '';
+                    }
+                    const menuVisibleFromInput = document.getElementById('admin-menu-visible-from-input');
+                    if (menuVisibleFromInput) {
+                        menuVisibleFromInput.value = weddingConfigRaw.menu_visible_from ? weddingConfigRaw.menu_visible_from.slice(0, 16) : '';
+                    }
+                    updateAdminMenuPreview();
                 } catch(err) {
                     console.error("Info render error:", err);
                 }
@@ -2010,6 +2132,106 @@ document.addEventListener('DOMContentLoaded', async () => {
         bindIconPickers(container);
     }
 
+    // ── MARKDOWN TO HTML RENDERER (Issue #23) ─────────────────────────────────
+    function renderMarkdownToHtml(md) {
+        if (!md || typeof md !== 'string') return '';
+
+        let text = md
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+        const lines = text.split('\n');
+        let html = '';
+        let inList = false;
+
+        const parseInline = (str) => {
+            if (!str) return '';
+            return str
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/__(.*?)__/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/_(.*?)_/g, '<em>$1</em>')
+                .replace(/`([^`]+)`/g, '<code style="background: rgba(0,0,0,0.06); padding: 2px 5px; border-radius: 4px; font-size: 0.85em;">$1</code>');
+        };
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
+
+            if (!line) {
+                if (inList) {
+                    html += '</ul>\n';
+                    inList = false;
+                }
+                continue;
+            }
+
+            if (line.startsWith('### ')) {
+                if (inList) { html += '</ul>\n'; inList = false; }
+                html += `<h4 class="menu-heading-3">${parseInline(line.slice(4))}</h4>\n`;
+                continue;
+            }
+            if (line.startsWith('## ')) {
+                if (inList) { html += '</ul>\n'; inList = false; }
+                html += `<h3 class="menu-heading-2">${parseInline(line.slice(3))}</h3>\n`;
+                continue;
+            }
+            if (line.startsWith('# ')) {
+                if (inList) { html += '</ul>\n'; inList = false; }
+                html += `<h2 class="menu-heading-1">${parseInline(line.slice(2))}</h2>\n`;
+                continue;
+            }
+
+            if (line.startsWith('&gt; ')) {
+                if (inList) { html += '</ul>\n'; inList = false; }
+                html += `<blockquote class="menu-note">${parseInline(line.slice(5))}</blockquote>\n`;
+                continue;
+            }
+
+            if (/^(\-{3,}|\*{3,}|_{3,})$/.test(line)) {
+                if (inList) { html += '</ul>\n'; inList = false; }
+                html += `<hr class="menu-divider">\n`;
+                continue;
+            }
+
+            if (/^[-*]\s+/.test(line)) {
+                if (!inList) {
+                    html += '<ul class="menu-list">\n';
+                    inList = true;
+                }
+                const itemText = line.replace(/^[-*]\s+/, '');
+                html += `  <li class="menu-list-item">${parseInline(itemText)}</li>\n`;
+                continue;
+            }
+
+            if (inList) {
+                html += '</ul>\n';
+                inList = false;
+            }
+            html += `<p class="menu-text">${parseInline(line)}</p>\n`;
+        }
+
+        if (inList) {
+            html += '</ul>\n';
+        }
+
+        return html;
+    }
+
+    function updateAdminMenuPreview() {
+        const textarea = document.getElementById('admin-menu-markdown-textarea');
+        const previewEl = document.getElementById('admin-menu-preview-content');
+        if (!textarea || !previewEl) return;
+        const text = textarea.value.trim();
+        if (!text) {
+            previewEl.innerHTML = '<p style="color: #888; font-style: italic; margin: 0;">Brak wprowadzonej treści menu. Wpisz menu w edytorze lub użyj gotowego szablonu.</p>';
+        } else {
+            previewEl.innerHTML = renderMarkdownToHtml(text);
+        }
+    }
+
     function initInfoFormListeners() {
         const addPlaceBtn = document.getElementById('admin-add-place-btn');
         if (addPlaceBtn) {
@@ -2020,16 +2242,95 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
+        const editTabBtn = document.getElementById('admin-menu-tab-edit-btn');
+        const prevTabBtn = document.getElementById('admin-menu-tab-preview-btn');
+        const editorPane = document.getElementById('admin-menu-editor-pane');
+        const previewPane = document.getElementById('admin-menu-preview-pane');
+        const menuTextarea = document.getElementById('admin-menu-markdown-textarea');
+        const insertTemplateBtn = document.getElementById('admin-menu-insert-template-btn');
+
+        if (editTabBtn && prevTabBtn && editorPane && previewPane) {
+            editTabBtn.addEventListener('click', () => {
+                editorPane.style.display = 'block';
+                previewPane.style.display = 'none';
+                editTabBtn.style.border = '1.5px solid var(--color-primary)';
+                editTabBtn.style.color = 'var(--color-primary)';
+                editTabBtn.style.fontWeight = '700';
+                prevTabBtn.style.border = '1px solid var(--color-border)';
+                prevTabBtn.style.color = 'inherit';
+                prevTabBtn.style.fontWeight = 'normal';
+            });
+
+            prevTabBtn.addEventListener('click', () => {
+                updateAdminMenuPreview();
+                editorPane.style.display = 'none';
+                previewPane.style.display = 'block';
+                prevTabBtn.style.border = '1.5px solid var(--color-primary)';
+                prevTabBtn.style.color = 'var(--color-primary)';
+                prevTabBtn.style.fontWeight = '700';
+                editTabBtn.style.border = '1px solid var(--color-border)';
+                editTabBtn.style.color = 'inherit';
+                editTabBtn.style.fontWeight = 'normal';
+            });
+        }
+
+        if (menuTextarea) {
+            menuTextarea.addEventListener('input', () => {
+                if (previewPane && previewPane.style.display !== 'none') {
+                    updateAdminMenuPreview();
+                }
+            });
+        }
+
+        if (insertTemplateBtn && menuTextarea) {
+            insertTemplateBtn.addEventListener('click', () => {
+                if (menuTextarea.value.trim() && !confirm('Czy na pewno chcesz zastąpić obecną treść szablonem przykładowego menu?')) {
+                    return;
+                }
+                menuTextarea.value = `## 🥗 Przystawki
+- Carpaccio z pieczonego buraka z serem kozim i prażonymi orzechami
+- Tatar z łososia z awokado i cytrusową nutą
+
+## 🍲 Obiad Weselny
+- **Zupa**: Aromatyczny krem z białych warzyw z grzankami ziołowymi
+- **Danie główne**: Polędwiczki wieprzowe w sosie kurkowym podane z aksamitnym purée i pieczonymi warzywami
+- *Wersja wegetariańska*: Pieczony stek z kalafiora w sosie tahini z granatem
+
+## 🍰 Słodki Stół & Tort
+- Uroczyste podanie Tortu Weselnego (ok. godz. 21:30)
+- Mini pavlove z owocami leśnymi, monoporcje i cake pops
+
+## 🥘 Gorące Kolacje
+- **00:30**: Płonący udziec z pieczonymi ziemniakami i zasmażaną kapustą
+- **02:30**: Tradycyjny czerwony barszczyk z domowym pasztecikiem
+
+## 🍸 Napoje & Drink Bar
+- Kawa z ekspresu, szeroki wybór herbat liściastych
+- Domowa lemoniada cytrynowo-miętowa oraz woda mineralna
+- Drink bar z autorskimi koktajlami serwowanymi przez barmana`;
+                updateAdminMenuPreview();
+            });
+        }
+
         const saveInfoBtn = document.getElementById('admin-save-info-btn');
         if (saveInfoBtn) {
             saveInfoBtn.addEventListener('click', () => {
                 const list = getPlacesFromDOM();
                 const phoneGroom = document.getElementById('admin-phone-groom-input').value;
                 const phoneBride = document.getElementById('admin-phone-bride-input').value;
+
+                // Menu fields (Issue #23)
+                const menuEnabled = document.getElementById('admin-menu-enabled-checkbox')?.checked ?? true;
+                const menuMarkdown = document.getElementById('admin-menu-markdown-textarea')?.value ?? '';
+                const menuVisibleFrom = document.getElementById('admin-menu-visible-from-input')?.value || null;
+
                 patchWeddingConfig({ 
                     info_places: list,
                     phone_groom: phoneGroom,
-                    phone_bride: phoneBride
+                    phone_bride: phoneBride,
+                    menu_enabled: menuEnabled,
+                    menu_markdown: menuMarkdown,
+                    menu_visible_from: menuVisibleFrom
                 });
             });
         }
@@ -2922,6 +3223,45 @@ document.addEventListener('DOMContentLoaded', async () => {
                         formData.append('simple_codes_enabled', orgSimpleCodesCheckbox.checked);
                     }
 
+                    // Confirmations module (Issue #22)
+                    const orgConfirmationsCheckbox = document.getElementById('admin-org-confirmations-enabled-checkbox');
+                    if (orgConfirmationsCheckbox) {
+                        formData.append('confirmations_enabled', orgConfirmationsCheckbox.checked);
+                    }
+                    const orgConfirmationsPopupCheckbox = document.getElementById('admin-org-confirmations-popup-checkbox');
+                    if (orgConfirmationsPopupCheckbox) {
+                        formData.append('confirmations_popup_enabled', orgConfirmationsPopupCheckbox.checked);
+                    }
+                    const orgConfPopupStart = document.getElementById('admin-org-conf-popup-start');
+                    if (orgConfPopupStart && orgConfPopupStart.value) {
+                        formData.append('confirmations_popup_start_date', orgConfPopupStart.value);
+                    }
+                    const orgConfPopupEnd = document.getElementById('admin-org-conf-popup-end');
+                    if (orgConfPopupEnd && orgConfPopupEnd.value) {
+                        formData.append('confirmations_popup_end_date', orgConfPopupEnd.value);
+                    }
+
+                    // Confirmations reminder schedule (Issue #22)
+                    const recurringCheckbox = document.getElementById('admin-conf-recurring-enabled');
+                    const recurringDays = document.getElementById('admin-conf-recurring-days');
+                    const recurringUntil = document.getElementById('admin-conf-recurring-until');
+                    
+                    adminConfReminders = adminConfReminders.filter(r => !(r && typeof r === 'object' && r.type === 'recurring'));
+                    if (recurringCheckbox && recurringCheckbox.checked) {
+                        adminConfReminders.push({
+                            type: 'recurring',
+                            interval_days: parseInt(recurringDays?.value, 10) || 7,
+                            until: recurringUntil?.value || null
+                        });
+                    }
+                    formData.append('confirmations_reminder_schedule', JSON.stringify(adminConfReminders));
+
+                    // Party Tasks module (Issue #21)
+                    const orgPartyTasksCheckbox = document.getElementById('admin-org-party-tasks-enabled-checkbox');
+                    if (orgPartyTasksCheckbox) {
+                        formData.append('party_tasks_enabled', orgPartyTasksCheckbox.checked);
+                    }
+
                     // Dynamic Roles configuration per Organization
                     const rolesConfigPayload = collectRolesConfigFromBuilder();
                     formData.append('roles_config', JSON.stringify(rolesConfigPayload));
@@ -3285,5 +3625,635 @@ document.addEventListener('DOMContentLoaded', async () => {
         refreshMetricsBtn.addEventListener('click', () => {
             loadAdminMetricsSummary();
         });
+    }
+
+    // ── CONFIRMATIONS REMINDERS SCHEDULE (Issue #22) ─────────────────────────
+    let adminConfReminders = [];
+
+    function renderAdminConfReminders() {
+        const listEl = document.getElementById('admin-conf-reminders-list');
+        if (!listEl) return;
+
+        const singleReminders = adminConfReminders.filter(r => typeof r === 'string' || (r && r.type === 'specific'));
+        const recurringItem = adminConfReminders.find(r => r && typeof r === 'object' && r.type === 'recurring');
+
+        if (singleReminders.length === 0) {
+            listEl.innerHTML = '<p style="color: #94a3b8; font-size: 0.82rem; margin: 0;">Brak dodanych terminów.</p>';
+        } else {
+            listEl.innerHTML = '';
+            singleReminders.forEach((r, idx) => {
+                const dt = typeof r === 'string' ? r : r.datetime;
+                const itemDiv = document.createElement('div');
+                itemDiv.style.cssText = 'display: flex; align-items: center; justify-content: space-between; background: var(--color-surface); border: 1px solid var(--color-border); padding: 6px 10px; border-radius: 8px; font-size: 0.85rem;';
+                itemDiv.innerHTML = `
+                    <span><i class="ph ph-calendar" style="color: #6366f1;"></i> ${dt.replace('T', ' ')}</span>
+                    <button type="button" class="remove-conf-reminder-btn" data-idx="${idx}" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 2px;"><i class="ph ph-trash"></i></button>
+                `;
+                listEl.appendChild(itemDiv);
+            });
+
+            listEl.querySelectorAll('.remove-conf-reminder-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.getAttribute('data-idx'), 10);
+                    let currentSingleCount = -1;
+                    const realIndex = adminConfReminders.findIndex(r => {
+                        if (typeof r === 'string' || (r && r.type === 'specific')) {
+                            currentSingleCount++;
+                            return currentSingleCount === idx;
+                        }
+                        return false;
+                    });
+                    if (realIndex > -1) {
+                        adminConfReminders.splice(realIndex, 1);
+                        renderAdminConfReminders();
+                    }
+                });
+            });
+        }
+
+        const recurringCheckbox = document.getElementById('admin-conf-recurring-enabled');
+        const recurringFields = document.getElementById('admin-conf-recurring-fields');
+        const recurringDays = document.getElementById('admin-conf-recurring-days');
+        const recurringUntil = document.getElementById('admin-conf-recurring-until');
+
+        if (recurringItem) {
+            if (recurringCheckbox) recurringCheckbox.checked = true;
+            if (recurringFields) recurringFields.style.display = 'grid';
+            if (recurringDays) recurringDays.value = recurringItem.interval_days || 7;
+            if (recurringUntil) recurringUntil.value = recurringItem.until ? recurringItem.until.slice(0, 16) : '';
+        } else {
+            if (recurringCheckbox) recurringCheckbox.checked = false;
+            if (recurringFields) recurringFields.style.display = 'none';
+        }
+    }
+
+    function initConfirmationRemindersListeners() {
+        const addBtn = document.getElementById('admin-conf-add-reminder-btn');
+        const dateInput = document.getElementById('admin-conf-new-reminder-date');
+        if (addBtn && dateInput) {
+            addBtn.addEventListener('click', () => {
+                const val = dateInput.value;
+                if (!val) {
+                    alert('Proszę wybrać datę i godzinę przypomnienia.');
+                    return;
+                }
+                adminConfReminders.push({ type: 'specific', datetime: val });
+                dateInput.value = '';
+                renderAdminConfReminders();
+            });
+        }
+
+        const recurringCheckbox = document.getElementById('admin-conf-recurring-enabled');
+        const recurringFields = document.getElementById('admin-conf-recurring-fields');
+        if (recurringCheckbox && recurringFields) {
+            recurringCheckbox.addEventListener('change', () => {
+                recurringFields.style.display = recurringCheckbox.checked ? 'grid' : 'none';
+            });
+        }
+
+        const sendNowBtn = document.getElementById('admin-conf-send-now-btn');
+        const msgInput = document.getElementById('admin-conf-instant-message');
+        const resDiv = document.getElementById('admin-conf-send-result');
+
+        if (sendNowBtn) {
+            sendNowBtn.addEventListener('click', async () => {
+                const msg = msgInput?.value?.trim() || 'Prosimy o potwierdzenie swojej obecności na weselu w aplikacji!';
+                sendNowBtn.disabled = true;
+                sendNowBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Wysyłanie...';
+                if (resDiv) resDiv.style.display = 'none';
+
+                try {
+                    const res = await fetch(`${API_URL}/admin/confirmations/send-reminders/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ message: msg })
+                    });
+                    const data = await res.json();
+                    if (resDiv) {
+                        resDiv.style.display = 'block';
+                        if (res.ok) {
+                            resDiv.style.color = '#059669';
+                            resDiv.textContent = `✓ ${data.message} (Push: ${data.push_sent_count || 0})`;
+                        } else {
+                            resDiv.style.color = '#dc2626';
+                            resDiv.textContent = `✗ ${data.error || 'Błąd wysyłania przypomnienia.'}`;
+                        }
+                    }
+                } catch (e) {
+                    if (resDiv) {
+                        resDiv.style.display = 'block';
+                        resDiv.style.color = '#dc2626';
+                        resDiv.textContent = `✗ Błąd sieci: ${e.message}`;
+                    }
+                } finally {
+                    sendNowBtn.disabled = false;
+                    sendNowBtn.innerHTML = '<i class="ph-fill ph-paper-plane-tilt"></i> Wyślij teraz';
+                }
+            });
+        }
+    }
+
+    // ── PARTY TASKS TAB (Issue #21) ───────────────────────────────────────────
+    let adminPartyTasks = [];
+    let adminPartyAssignments = [];
+
+    async function loadAdminPartyTasks() {
+        const poolContainer = document.getElementById('admin-tasks-pool-list');
+        const tasksCountEl = document.getElementById('admin-tasks-count');
+        const taskSelectEl = document.getElementById('admin-assign-specific-task');
+        if (!poolContainer) return;
+
+        try {
+            const res = await fetch(`${API_URL}/gallery/admin/party-tasks/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                adminPartyTasks = await res.json();
+                if (tasksCountEl) tasksCountEl.textContent = `${adminPartyTasks.length} ${adminPartyTasks.length === 1 ? 'zadanie' : (adminPartyTasks.length >= 2 && adminPartyTasks.length <= 4 ? 'zadania' : 'zadań')}`;
+                
+                // Populate specific task select dropdown
+                if (taskSelectEl) {
+                    const currentVal = taskSelectEl.value;
+                    let optsHtml = '<option value="">Losowe z aktywnych w puli</option>';
+                    adminPartyTasks.filter(t => t.is_active).forEach(t => {
+                        optsHtml += `<option value="${t.id}">${t.title} ${t.requires_photo ? '📸' : '📝'}</option>`;
+                    });
+                    taskSelectEl.innerHTML = optsHtml;
+                    taskSelectEl.value = currentVal;
+                }
+
+                renderAdminPartyTasksPool();
+            } else {
+                poolContainer.innerHTML = '<p style="color: #e05555; font-size: 0.9rem;">Błąd podczas ładowania zadań weselnych.</p>';
+            }
+        } catch (e) {
+            console.error('Error loading party tasks:', e);
+            poolContainer.innerHTML = `<p style="color: #e05555; font-size: 0.9rem;">Błąd sieci: ${e.message}</p>`;
+        }
+    }
+
+    function renderAdminPartyTasksPool() {
+        const container = document.getElementById('admin-tasks-pool-list');
+        if (!container) return;
+
+        if (adminPartyTasks.length === 0) {
+            container.innerHTML = '<p style="color: #888; font-size: 0.9rem;">Brak zadań w puli. Kliknij "+ Dodaj Zadanie", aby stworzyć pierwsze wyzwanie dla gości!</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        adminPartyTasks.forEach(task => {
+            const card = document.createElement('div');
+            card.className = 'admin-guest-row';
+            card.style.display = 'flex';
+            card.style.justifyContent = 'space-between';
+            card.style.alignItems = 'center';
+            card.style.padding = '12px 16px';
+            card.style.background = 'var(--color-surface, #fff)';
+            card.style.border = '1px solid var(--color-border, #e2e8f0)';
+            card.style.borderRadius = '12px';
+            card.style.opacity = task.is_active ? '1' : '0.65';
+
+            const photoBadge = task.requires_photo 
+                ? '<span style="background: rgba(245, 158, 11, 0.15); color: #d97706; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;"><i class="ph-bold ph-camera"></i> Wymaga zdjęcia</span>'
+                : '<span style="background: rgba(148, 163, 184, 0.15); color: #64748b; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;"><i class="ph ph-check"></i> Dowolne</span>';
+
+            const activeBadge = task.is_active 
+                ? '<span style="background: rgba(16, 185, 129, 0.15); color: #059669; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;"><i class="ph-fill ph-check-circle"></i> Aktywne</span>'
+                : '<span style="background: rgba(239, 68, 68, 0.15); color: #dc2626; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;"><i class="ph ph-pause-circle"></i> Nieaktywne</span>';
+
+            card.innerHTML = `
+                <div style="flex: 1; min-width: 0; padding-right: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+                        <strong style="font-size: 0.95rem; color: var(--color-text, #111);">${task.title}</strong>
+                        ${photoBadge}
+                        ${activeBadge}
+                    </div>
+                    <p style="margin: 0; font-size: 0.84rem; color: #64748b; line-height: 1.35; word-break: break-word;">${task.description || 'Brak dodatkowego opisu'}</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <button class="toggle-task-active-btn" data-id="${task.id}" title="${task.is_active ? 'Dezaktywuj zadanie' : 'Aktywuj zadanie'}" style="background: none; border: none; cursor: pointer; color: ${task.is_active ? '#059669' : '#94a3b8'}; font-size: 1.25rem; display: flex; align-items: center;"><i class="ph ${task.is_active ? 'ph-toggle-right' : 'ph-toggle-left'}"></i></button>
+                    <button class="edit-task-btn" data-id="${task.id}" style="background: none; border: 1px solid var(--color-border); border-radius: 8px; padding: 6px 10px; cursor: pointer; color: var(--color-text);"><i class="ph ph-pencil"></i></button>
+                    <button class="delete-task-btn" data-id="${task.id}" style="background: none; border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; padding: 6px 10px; cursor: pointer; color: #dc2626;"><i class="ph ph-trash"></i></button>
+                </div>
+            `;
+
+            container.appendChild(card);
+        });
+
+        // Attach listeners for tasks
+        container.querySelectorAll('.edit-task-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.getAttribute('data-id');
+                const task = adminPartyTasks.find(t => t.id == id);
+                if (task) openPartyTaskModal(task);
+            });
+        });
+
+        container.querySelectorAll('.toggle-task-active-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-id');
+                const task = adminPartyTasks.find(t => t.id == id);
+                if (!task) return;
+                try {
+                    const res = await fetch(`${API_URL}/gallery/admin/party-tasks/${id}/`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ is_active: !task.is_active })
+                    });
+                    if (res.ok) {
+                        loadAdminPartyTasks();
+                    }
+                } catch (e) {
+                    alert('Błąd przełączania aktywności zadania: ' + e.message);
+                }
+            });
+        });
+
+        container.querySelectorAll('.delete-task-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.getAttribute('data-id');
+                deletePartyTask(id);
+            });
+        });
+    }
+
+    function openPartyTaskModal(task = null) {
+        const modal = document.getElementById('admin-task-modal');
+        const titleEl = document.getElementById('admin-task-modal-title');
+        const idField = document.getElementById('admin-task-id');
+        const titleField = document.getElementById('admin-task-input-title');
+        const descField = document.getElementById('admin-task-input-desc');
+        const reqPhotoField = document.getElementById('admin-task-input-requires-photo');
+        const isActiveField = document.getElementById('admin-task-input-is-active');
+
+        if (!modal) return;
+
+        if (task) {
+            titleEl.textContent = 'Edytuj Zadanie Imprezowe';
+            idField.value = task.id;
+            titleField.value = task.title || '';
+            descField.value = task.description || '';
+            reqPhotoField.checked = task.requires_photo !== false;
+            isActiveField.checked = task.is_active !== false;
+        } else {
+            titleEl.textContent = 'Dodaj Zadanie Imprezowe';
+            idField.value = '';
+            titleField.value = '';
+            descField.value = '';
+            reqPhotoField.checked = true;
+            isActiveField.checked = true;
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    async function savePartyTask(e) {
+        if (e) e.preventDefault();
+        const id = document.getElementById('admin-task-id')?.value;
+        const titleVal = document.getElementById('admin-task-input-title')?.value.trim();
+        const descVal = document.getElementById('admin-task-input-desc')?.value.trim();
+        const reqPhoto = document.getElementById('admin-task-input-requires-photo')?.checked;
+        const isActive = document.getElementById('admin-task-input-is-active')?.checked;
+
+        if (!titleVal) {
+            alert('Tytuł zadania jest wymagany!');
+            return;
+        }
+
+        const payload = {
+            title: titleVal,
+            description: descVal,
+            requires_photo: reqPhoto,
+            is_active: isActive
+        };
+
+        const url = id ? `${API_URL}/gallery/admin/party-tasks/${id}/` : `${API_URL}/gallery/admin/party-tasks/`;
+        const method = id ? 'PATCH' : 'POST';
+
+        try {
+            const res = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                const modal = document.getElementById('admin-task-modal');
+                if (modal) modal.style.display = 'none';
+                loadAdminPartyTasks();
+            } else {
+                const err = await res.json();
+                alert(err.error || 'Wystąpił błąd podczas zapisywania zadania.');
+            }
+        } catch (e) {
+            alert('Błąd sieci: ' + e.message);
+        }
+    }
+
+    async function deletePartyTask(id) {
+        if (!confirm('Czy na pewno chcesz usunąć to zadanie z puli?')) return;
+        try {
+            const res = await fetch(`${API_URL}/gallery/admin/party-tasks/${id}/`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                loadAdminPartyTasks();
+            } else {
+                alert('Błąd podczas usuwania zadania.');
+            }
+        } catch (e) {
+            alert('Błąd sieci: ' + e.message);
+        }
+    }
+
+    // ── GUEST PICKER & TIMING FOR ASSIGNMENT ──────────────────────────────────
+    function renderAdminAssignGuestsPicker() {
+        const container = document.getElementById('admin-assign-guests-picker');
+        const searchInput = document.getElementById('admin-assign-guest-search');
+        if (!container) return;
+
+        const searchTerm = (searchInput?.value || '').toLowerCase().trim();
+        const guests = (typeof allGuestsData !== 'undefined' && Array.isArray(allGuestsData)) ? allGuestsData : [];
+
+        const filtered = guests.filter(g => {
+            if (!searchTerm) return true;
+            const name = `${g.first_name || ''} ${g.last_name || ''} ${g.login_code || ''}`.toLowerCase();
+            return name.includes(searchTerm);
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<p style="color: #888; font-size: 0.85rem; margin: 0;">Brak gości pasujących do wyszukiwania.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        filtered.forEach(g => {
+            const item = document.createElement('label');
+            item.style.cssText = 'display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; padding: 4px 6px; border-radius: 6px; user-select: none;';
+            item.innerHTML = `
+                <input type="checkbox" value="${g.id}" class="admin-assign-guest-cb" style="cursor: pointer;">
+                <strong>${g.first_name || ''} ${g.last_name || ''}</strong>
+                <span style="color: #888; font-size: 0.78rem;">(kod: ${g.login_code})</span>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    async function executePartyTaskAssignment() {
+        const targetSpecificRadio = document.getElementById('admin-assign-target-specific');
+        const countInput = document.getElementById('admin-assign-count');
+        const taskSelect = document.getElementById('admin-assign-specific-task');
+        const roleSelect = document.getElementById('admin-assign-role-filter');
+        const timeModeSelect = document.getElementById('admin-assign-time-mode');
+        const btn = document.getElementById('admin-execute-assign-btn');
+
+        const isSpecific = Boolean(targetSpecificRadio && targetSpecificRadio.checked);
+        const count = parseInt(countInput?.value, 10) || 1;
+        const taskId = taskSelect?.value ? parseInt(taskSelect.value, 10) : null;
+        const role = roleSelect?.value || null;
+        const timeMode = timeModeSelect?.value || 'now';
+
+        const scheduledAt = document.getElementById('admin-assign-scheduled-at')?.value || null;
+        const windowStart = document.getElementById('admin-assign-window-start')?.value || null;
+        const windowEnd = document.getElementById('admin-assign-window-end')?.value || null;
+        const intervalStart = document.getElementById('admin-assign-interval-start')?.value || null;
+        const intervalMinutes = parseInt(document.getElementById('admin-assign-interval-minutes')?.value, 10) || 15;
+
+        const payload = {
+            task_id: taskId,
+            time_mode: timeMode,
+            scheduled_at: timeMode === 'interval' ? intervalStart : scheduledAt,
+            window_start: windowStart,
+            window_end: windowEnd,
+            interval_minutes: intervalMinutes
+        };
+
+        if (isSpecific) {
+            const checkedBoxes = document.querySelectorAll('#admin-assign-guests-picker input[type="checkbox"]:checked');
+            const guestIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value, 10));
+            if (guestIds.length === 0) {
+                alert('Proszę zaznaczyć przynajmniej jednego gościa z listy.');
+                return;
+            }
+            payload.guest_ids = guestIds;
+        } else {
+            payload.count = count;
+            payload.role = role;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Przydzielanie zadań...';
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/gallery/admin/party-tasks/assign/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                alert(data.message || `Pomyślnie przydzielono zadania!`);
+                loadAdminPartyTaskAssignments();
+            } else {
+                const err = await res.json();
+                alert(err.error || 'Nie udało się przydzielić zadań.');
+            }
+        } catch (e) {
+            alert('Błąd sieci: ' + e.message);
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph-fill ph-paper-plane-tilt"></i> Przydziel zadania wybranym gościom';
+            }
+        }
+    }
+
+    async function deletePartyAssignment(id) {
+        if (!confirm('Czy na pewno chcesz usunąć ten przydział zadania?')) return;
+        try {
+            const res = await fetch(`${API_URL}/gallery/admin/party-tasks/assignments/${id}/`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                loadAdminPartyTaskAssignments();
+            } else {
+                alert('Nie udało się usunąć przydziału.');
+            }
+        } catch (e) {
+            alert('Błąd sieci: ' + e.message);
+        }
+    }
+
+    async function loadAdminPartyTaskAssignments() {
+        const listEl = document.getElementById('admin-assignments-list');
+        if (!listEl) return;
+
+        try {
+            const res = await fetch(`${API_URL}/gallery/admin/party-tasks/assignments/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                adminPartyAssignments = await res.json();
+                renderAdminPartyTaskAssignments();
+            } else {
+                listEl.innerHTML = '<p style="color: #e05555; font-size: 0.9rem;">Błąd pobierania historii zadań.</p>';
+            }
+        } catch (e) {
+            console.error('Error loading assignments:', e);
+            listEl.innerHTML = `<p style="color: #e05555; font-size: 0.9rem;">Błąd sieci: ${e.message}</p>`;
+        }
+    }
+
+    function renderAdminPartyTaskAssignments() {
+        const container = document.getElementById('admin-assignments-list');
+        if (!container) return;
+
+        if (adminPartyAssignments.length === 0) {
+            container.innerHTML = '<p style="color: #888; font-size: 0.9rem;">Brak przydzielonych zadań. Użyj formularza powyżej, aby przydzielić zadania gościom.</p>';
+            return;
+        }
+
+        const now = new Date();
+        container.innerHTML = '';
+        adminPartyAssignments.forEach(item => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.alignItems = 'center';
+            row.style.justifyContent = 'space-between';
+            row.style.gap = '12px';
+            row.style.padding = '10px 14px';
+            row.style.background = 'var(--color-surface, #fff)';
+            row.style.border = '1px solid var(--color-border, #e2e8f0)';
+            row.style.borderRadius = '10px';
+
+            let statusBadge = '';
+            if (item.status === 'completed') {
+                statusBadge = '<span style="background: rgba(16, 185, 129, 0.15); color: #059669; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.78rem;"><i class="ph-bold ph-check"></i> Wykonane</span>';
+            } else if (item.status === 'declined') {
+                statusBadge = '<span style="background: rgba(239, 68, 68, 0.15); color: #dc2626; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.78rem;"><i class="ph ph-x"></i> Odpadł</span>';
+            } else {
+                const schedDate = item.scheduled_at ? new Date(item.scheduled_at) : null;
+                if (schedDate && schedDate > now) {
+                    statusBadge = '<span style="background: rgba(99, 102, 241, 0.15); color: #6366f1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.78rem;"><i class="ph ph-calendar"></i> Zaplanowano</span>';
+                } else {
+                    statusBadge = '<span style="background: rgba(245, 158, 11, 0.15); color: #d97706; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.78rem;"><i class="ph ph-clock"></i> Aktywne</span>';
+                }
+            }
+
+            const guestName = item.guest_name || `Gość ${item.guest_login_code || ''}`;
+            const schedText = item.scheduled_at ? item.scheduled_at.slice(0, 16).replace('T', ' ') : '';
+            const photoPreview = item.photo_thumbnail 
+                ? `<a href="${item.photo_image || item.photo_thumbnail}" target="_blank" title="Zobacz zrobione zdjęcie" style="display: block; width: 42px; height: 42px; border-radius: 8px; overflow: hidden; border: 1.5px solid #dcd1c4; flex-shrink: 0;"><img src="${item.photo_thumbnail}" style="width: 100%; height: 100%; object-fit: cover;"></a>` 
+                : '';
+
+            row.innerHTML = `
+                <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                        <strong style="font-size: 0.9rem; color: var(--color-text);">${guestName}</strong>
+                        <span style="font-size: 0.75rem; color: #888;">(kod: ${item.guest_login_code || '---'})</span>
+                        ${statusBadge}
+                        ${schedText ? `<span style="font-size: 0.72rem; color: #94a3b8;"><i class="ph ph-clock"></i> ${schedText}</span>` : ''}
+                    </div>
+                    <div style="font-size: 0.84rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        🎯 <strong>${item.task_title}</strong>: ${item.task_description || ''}
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    ${photoPreview}
+                    <button class="delete-party-assignment-btn" data-id="${item.id}" title="Usuń przydział zadania" style="background: none; border: none; cursor: pointer; color: #ef4444; font-size: 1.1rem; padding: 4px; display: flex; align-items: center;"><i class="ph ph-trash"></i></button>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+
+        container.querySelectorAll('.delete-party-assignment-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.getAttribute('data-id');
+                deletePartyAssignment(id);
+            });
+        });
+    }
+
+    function initPartyTasksListeners() {
+        const addTaskBtn = document.getElementById('admin-add-task-btn');
+        if (addTaskBtn) {
+            addTaskBtn.addEventListener('click', () => openPartyTaskModal());
+        }
+
+        const taskModalClose = document.getElementById('admin-task-modal-close');
+        if (taskModalClose) {
+            taskModalClose.addEventListener('click', () => {
+                const modal = document.getElementById('admin-task-modal');
+                if (modal) modal.style.display = 'none';
+            });
+        }
+
+        const taskForm = document.getElementById('admin-task-form');
+        if (taskForm) {
+            taskForm.addEventListener('submit', (e) => savePartyTask(e));
+        }
+
+        const executeAssignBtn = document.getElementById('admin-execute-assign-btn');
+        if (executeAssignBtn) {
+            executeAssignBtn.addEventListener('click', () => executePartyTaskAssignment());
+        }
+
+        const refreshAssignBtn = document.getElementById('admin-refresh-assignments-btn');
+        if (refreshAssignBtn) {
+            refreshAssignBtn.addEventListener('click', () => loadAdminPartyTaskAssignments());
+        }
+
+        // Target mode toggle (random vs specific)
+        const targetRandomRadio = document.getElementById('admin-assign-target-random');
+        const targetSpecificRadio = document.getElementById('admin-assign-target-specific');
+        const randomOptions = document.getElementById('admin-assign-random-options');
+        const specificContainer = document.getElementById('admin-assign-specific-guests-container');
+        const guestSearchInput = document.getElementById('admin-assign-guest-search');
+
+        function updateTargetMode() {
+            if (targetSpecificRadio && targetSpecificRadio.checked) {
+                if (randomOptions) randomOptions.style.display = 'none';
+                if (specificContainer) specificContainer.style.display = 'block';
+                renderAdminAssignGuestsPicker();
+            } else {
+                if (randomOptions) randomOptions.style.display = 'grid';
+                if (specificContainer) specificContainer.style.display = 'none';
+            }
+        }
+        if (targetRandomRadio) targetRandomRadio.addEventListener('change', updateTargetMode);
+        if (targetSpecificRadio) targetSpecificRadio.addEventListener('change', updateTargetMode);
+        if (guestSearchInput) guestSearchInput.addEventListener('input', () => renderAdminAssignGuestsPicker());
+
+        // Time mode toggle
+        const timeModeSelect = document.getElementById('admin-assign-time-mode');
+        const specificFields = document.getElementById('admin-assign-time-specific-fields');
+        const windowFields = document.getElementById('admin-assign-time-window-fields');
+        const intervalFields = document.getElementById('admin-assign-time-interval-fields');
+
+        function updateTimeMode() {
+            const val = timeModeSelect?.value || 'now';
+            if (specificFields) specificFields.style.display = val === 'specific' ? 'block' : 'none';
+            if (windowFields) windowFields.style.display = val === 'random_window' ? 'grid' : 'none';
+            if (intervalFields) intervalFields.style.display = val === 'interval' ? 'grid' : 'none';
+        }
+        if (timeModeSelect) timeModeSelect.addEventListener('change', updateTimeMode);
     }
 });

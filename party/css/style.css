@@ -1101,6 +1101,79 @@ body.dark-theme .grid-item.loading-shimmer {
     background: #000;
 }
 
+/* Party Menu Styles (Issue #23) */
+.info-menu-card {
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.menu-rendered-content {
+    line-height: 1.65;
+    color: var(--color-text, #1e293b);
+}
+.menu-rendered-content .menu-heading-1 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    margin: 18px 0 10px 0;
+    color: var(--color-primary, #b8860b);
+    border-bottom: 1.5px solid var(--color-border, #e2e8f0);
+    padding-bottom: 6px;
+    letter-spacing: -0.01em;
+}
+.menu-rendered-content .menu-heading-1:first-child {
+    margin-top: 0;
+}
+.menu-rendered-content .menu-heading-2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 16px 0 8px 0;
+    color: var(--color-primary, #b8860b);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.menu-rendered-content .menu-heading-2:first-child {
+    margin-top: 0;
+}
+.menu-rendered-content .menu-heading-3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 12px 0 6px 0;
+    color: var(--color-text, #1e293b);
+}
+.menu-rendered-content .menu-list {
+    margin: 6px 0 14px 0;
+    padding-left: 22px;
+    list-style-type: disc;
+}
+.menu-rendered-content .menu-list-item {
+    margin-bottom: 6px;
+    font-size: 0.92rem;
+    color: var(--color-text, #334155);
+}
+.menu-rendered-content .menu-list-item strong {
+    color: var(--color-text, #0f172a);
+    font-weight: 700;
+}
+.menu-rendered-content .menu-text {
+    margin: 6px 0 10px 0;
+    font-size: 0.92rem;
+    color: var(--color-text, #334155);
+}
+.menu-rendered-content .menu-note {
+    background: rgba(201, 168, 76, 0.08);
+    border-left: 3px solid var(--color-gold, #c9a84c);
+    padding: 8px 12px;
+    margin: 12px 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.86rem;
+    color: var(--color-text, #475569);
+    font-style: italic;
+}
+.menu-rendered-content .menu-divider {
+    border: none;
+    border-top: 1px dashed var(--color-border, #e2e8f0);
+    margin: 18px 0;
+}
+
 /* Seating Plan (Plan Sali) */
 .venue-map-wrapper {
     padding: 0 20px 40px;

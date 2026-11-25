@@ -267,11 +267,38 @@
 
             <!-- Tab 2: Let's party -->
             <section id="tab-party" class="tab-content">
+                <!-- Party Task Widget (Issue #21) -->
+                <div id="party-task-widget" class="party-task-banner" style="display: none; margin-bottom: 16px; border-radius: 16px; background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); color: white; padding: 16px; box-shadow: 0 8px 24px rgba(49, 46, 129, 0.25); border: 1px solid rgba(255, 255, 255, 0.15); position: relative; overflow: hidden;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                        <div>
+                            <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; background: rgba(255, 215, 0, 0.2); color: #ffd700; padding: 3px 8px; border-radius: 6px; margin-bottom: 6px;">
+                                <i class="ph-fill ph-target"></i> Twoje zadanie imprezowe
+                            </span>
+                            <h3 id="party-task-title" style="margin: 0 0 4px 0; font-size: 1.05rem; font-weight: 700; color: #ffffff;">Tytuł zadania</h3>
+                            <p id="party-task-desc" style="margin: 0; font-size: 0.85rem; opacity: 0.85; line-height: 1.35;">Opis zadania...</p>
+                        </div>
+                        <span id="party-task-requires-photo-badge" style="background: rgba(255,255,255,0.2); font-size: 0.72rem; padding: 3px 7px; border-radius: 6px; white-space: nowrap;">
+                            📸 Wymaga zdjęcia
+                        </span>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 12px; align-items: center;">
+                        <button id="party-task-photo-btn" class="modal-btn" style="flex: 2; background: #ffd700; color: #1e1b4b; font-weight: 700; border: none; padding: 10px; border-radius: 10px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i class="ph-bold ph-camera"></i> <span>Zrób zdjęcie</span>
+                        </button>
+                        <button id="party-task-complete-btn" class="modal-btn" style="flex: 2; background: #10b981; color: white; font-weight: 700; border: none; padding: 10px; border-radius: 10px; font-size: 0.85rem; cursor: pointer; display: none; align-items: center; justify-content: center; gap: 6px;">
+                            <i class="ph-bold ph-check"></i> <span>Wykonane</span>
+                        </button>
+                        <button id="party-task-decline-btn" class="modal-btn" style="flex: 1; background: rgba(255,255,255,0.15); color: #e2e8f0; font-weight: 600; border: none; padding: 10px; border-radius: 10px; font-size: 0.85rem; cursor: pointer;">
+                            Odpadam
+                        </button>
+                    </div>
+                </div>
+
                 <div class="party-header">
                     <h2>Let's Party</h2>
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <button class="filter-btn" id="sort-btn" title="Zmień kierunek sortowania">
-                            <i class="ph ph-sort-ascending"></i>
+                            <i class="ph ph-sort-descending"></i>
                         </button>
                         <button class="filter-btn" id="filter-btn" title="Pokaż osoby z Twojego stolika">
                             <i class="ph ph-users-three"></i>
@@ -315,6 +342,19 @@
                 </div>
 
                 <div class="places-container" id="info-places-container"></div>
+
+                <!-- Menu Imprezy (Issue #23) -->
+                <div id="info-menu-section-wrapper" style="display: none; margin-top: 28px;">
+                    <div class="info-premium-header" style="margin-bottom: 14px;">
+                        <h2><i class="ph-fill ph-fork-knife"></i> Menu</h2>
+                    </div>
+                    <div class="info-menu-card" id="info-menu-card" style="background: var(--color-surface, #fff); border: 1.5px solid var(--color-border, #e2e8f0); border-radius: 18px; padding: 22px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); position: relative;">
+                        <div id="info-menu-admin-badge" style="display: none; position: absolute; top: 12px; right: 12px; font-size: 0.72rem; font-weight: 700; background: rgba(99, 102, 241, 0.15); color: #6366f1; padding: 3px 8px; border-radius: 6px;">
+                            <i class="ph ph-eye"></i> Podgląd organizatora
+                        </div>
+                        <div id="info-menu-rendered-content" class="menu-rendered-content"></div>
+                    </div>
+                </div>
 
 
 
@@ -360,6 +400,18 @@
                     </div>
 
                     <div class="profile-details-grid">
+                        <!-- Potwierdzenie Obecności Card (Issue #22) -->
+                        <div class="profile-info-card confirmation-card" id="user-confirmation-card" style="display: none; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1.5px solid #a7f3d0; cursor: pointer;">
+                            <div class="info-card-icon" style="background: #d1fae5; color: #059669;" id="user-confirmation-icon"><i class="ph-fill ph-check-circle"></i></div>
+                            <div class="info-card-content">
+                                <span class="info-card-label" style="color: #065f46; font-weight: 700;">Potwierdzenie obecności</span>
+                                <strong id="user-confirmation-status-text" class="info-card-value" style="color: #047857; font-size: 0.88rem;">Sprawdź status</strong>
+                            </div>
+                            <button type="button" id="user-confirmation-badge" style="font-size: 0.8rem; font-weight: 700; padding: 6px 12px; border-radius: 12px; background: #10b981; color: white; border: none; cursor: pointer;">
+                                Potwierdź obecność
+                            </button>
+                        </div>
+
                         <!-- Table Info Card -->
                         <div class="profile-info-card" id="user-table-card">
                             <div class="info-card-icon"><i class="ph-fill ph-chair"></i></div>
@@ -533,6 +585,15 @@
             </div>
             <img id="photo-viewer-image" src="" alt="Pełen ekran">
             <video id="photo-viewer-video" src="" style="display: none;" playsinline loop muted></video>
+
+            <!-- Party Task Info Banner on Photo Viewer (Issue #21) -->
+            <div id="photo-viewer-task-bar" style="display: none; position: absolute; bottom: calc(env(safe-area-inset-bottom, 24px) + 20px); left: 16px; right: 16px; background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: white; padding: 10px 14px; border-radius: 12px; z-index: 4005; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                    <span style="background: #ffd700; color: #000; font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Zadanie</span>
+                    <strong id="photo-viewer-task-title" style="font-size: 0.92rem; font-weight: 700; color: #fff;">Tytuł</strong>
+                </div>
+                <p id="photo-viewer-task-desc" style="margin: 0; font-size: 0.82rem; color: #cbd5e1; line-height: 1.3;">Opis</p>
+            </div>
 
             <div id="custom-video-controls"
                 style="display: none; position: absolute; bottom: env(safe-area-inset-bottom, 30px); left: 20px; right: 20px; height: 40px; align-items: center; z-index: 4010;">
@@ -849,6 +910,31 @@
                 <div style="display: flex; gap: 10px; width: 100%;">
                     <button id="profile-crop-cancel" class="modal-btn" style="background: #f0f0f0; color: #333; flex: 1; margin: 0;">Anuluj</button>
                     <button id="profile-crop-save" class="modal-btn" style="background: linear-gradient(135deg, #b8a89c, #8a7a6e); color: #fff; flex: 1; margin: 0;">Zapisz</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Potwierdzenie obecności (Issue #22) -->
+        <div id="confirmation-modal" class="direct-modal" style="display: none; z-index: 10000;">
+            <div class="direct-modal-content" style="max-width: 380px; height: auto !important; min-height: auto !important; align-self: center; border-radius: 24px !important; padding: 24px 20px; margin: 20px; text-align: center;">
+                <button id="confirmation-modal-close" class="direct-modal-close" style="top: 12px; right: 12px;" title="Zamknij"><i class="ph ph-x"></i></button>
+                <div style="width: 56px; height: 56px; margin: 0 auto 14px auto; background: #d1fae5; color: #059669; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+                    <i class="ph-fill ph-calendar-check"></i>
+                </div>
+                <h3 style="margin: 0 0 8px 0; font-size: 1.25rem; font-weight: 700; color: #1e293b;">Potwierdzenie obecności</h3>
+                <p id="confirmation-modal-desc" style="font-size: 0.9rem; color: #64748b; margin: 0 0 20px 0; line-height: 1.4;">
+                    Czy na pewno chcesz potwierdzić swoją obecność na weselu?
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                    <button id="confirmation-modal-confirm-btn" class="modal-btn" style="background: #059669; color: white; padding: 12px; font-weight: 700; border-radius: 12px; border: none; font-size: 0.95rem; cursor: pointer; margin: 0;">
+                        🎉 Potwierdzam obecność
+                    </button>
+                    <button id="confirmation-modal-decline-btn" class="modal-btn" style="background: #f1f5f9; color: #64748b; padding: 10px; font-weight: 600; border-radius: 12px; border: none; font-size: 0.88rem; cursor: pointer; margin: 0;">
+                        Niestety nie mogę przybyć
+                    </button>
+                    <button id="confirmation-modal-remind-later-btn" style="background: transparent; color: #94a3b8; padding: 8px; font-size: 0.82rem; border: none; cursor: pointer;">
+                        Przypomnij mi później
+                    </button>
                 </div>
             </div>
         </div>

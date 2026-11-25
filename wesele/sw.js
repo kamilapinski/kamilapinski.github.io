@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wesele-cache-v39';
+const CACHE_NAME = 'wesele-cache-v45';
 const urlsToCache = [
   './',
   './index.html',
@@ -20,6 +20,12 @@ self.addEventListener('install', event => {
 self.addEventListener('fetch', event => {
   // Let non-GET requests pass through without interception
   if (event.request.method !== 'GET') {
+    return;
+  }
+
+  // Never intercept SSE (Server-Sent Events) or streaming endpoints
+  const acceptHeader = event.request.headers.get('accept') || '';
+  if (acceptHeader.includes('text/event-stream') || event.request.url.includes('/gallery/events/')) {
     return;
   }
 

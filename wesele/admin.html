@@ -193,6 +193,7 @@
             
             <div class="admin-tabs-nav">
                 <button class="admin-tab-nav-btn active" data-tab="admin-tab-guests" title="Goście"><i class="ph-fill ph-users"></i> <span>Goście</span></button>
+                <button class="admin-tab-nav-btn" data-tab="admin-tab-tasks" title="Party Taski"><i class="ph-fill ph-target"></i> <span>Party Taski</span></button>
                 <button class="admin-tab-nav-btn" data-tab="admin-tab-seating" title="Sala"><i class="ph-fill ph-layout"></i> <span>Sala</span></button>
                 <button class="admin-tab-nav-btn" data-tab="admin-tab-timeline" title="Plan Wydarzenia"><i class="ph-fill ph-calendar"></i> <span>Harmonogram</span></button>
                 <button class="admin-tab-nav-btn" data-tab="admin-tab-info" title="Miejsca & Informacje"><i class="ph-fill ph-info"></i> <span>Miejsca</span></button>
@@ -215,6 +216,30 @@
                             <label for="admin-csv-file" class="admin-btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; border: 1.5px solid #dcd1c4;"><i class="ph ph-file-csv"></i> Importuj CSV</label>
                             <input type="file" id="admin-csv-file" accept=".csv" style="display: none;">
                             <button id="admin-export-pdf-btn" class="admin-btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; border: 1.5px solid #dcd1c4; background: var(--color-surface, #ffffff); color: var(--color-text, #111111);"><i class="ph-fill ph-file-pdf" style="color: #dc2626; font-size: 1.15rem;"></i> Pobierz kody (PDF)</button>
+                        </div>
+                    </div>
+
+                    <!-- Confirmation Stats Bar (Issue #22) -->
+                    <div id="admin-confirmation-stats" class="admin-confirmation-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px;">
+                        <div style="background: var(--color-surface, #fff); border: 1.5px solid var(--color-border, #e2e8f0); border-radius: 12px; padding: 12px; text-align: center;">
+                            <span style="font-size: 0.75rem; color: #64748b; font-weight: 600;">Wszyscy</span>
+                            <div id="stat-total-guests" style="font-size: 1.35rem; font-weight: 800; color: #1e293b; margin-top: 2px;">0</div>
+                        </div>
+                        <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 12px; text-align: center;">
+                            <span style="font-size: 0.75rem; color: #15803d; font-weight: 600;">Potwierdzeni</span>
+                            <div id="stat-confirmed-guests" style="font-size: 1.35rem; font-weight: 800; color: #166534; margin-top: 2px;">0</div>
+                        </div>
+                        <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 12px; text-align: center;">
+                            <span style="font-size: 0.75rem; color: #b45309; font-weight: 600;">Oczekujący</span>
+                            <div id="stat-pending-guests" style="font-size: 1.35rem; font-weight: 800; color: #92400e; margin-top: 2px;">0</div>
+                        </div>
+                        <div style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 12px; padding: 12px; text-align: center;">
+                            <span style="font-size: 0.75rem; color: #b91c1c; font-weight: 600;">Odrzuceni</span>
+                            <div id="stat-declined-guests" style="font-size: 1.35rem; font-weight: 800; color: #991b1b; margin-top: 2px;">0</div>
+                        </div>
+                        <div style="background: #f5f3ff; border: 1.5px solid #ddd6fe; border-radius: 12px; padding: 12px; text-align: center;">
+                            <span style="font-size: 0.75rem; color: #6d28d9; font-weight: 600;">Poza aplikacją</span>
+                            <div id="stat-offline-guests" style="font-size: 1.35rem; font-weight: 800; color: #5b21b6; margin-top: 2px;">0</div>
                         </div>
                     </div>
                     
@@ -242,6 +267,14 @@
                             <option value="plus_one">Osoby towarzyszące (TOW)</option>
                         </select>
 
+                        <select id="filter-confirmation" class="admin-filter-select" style="padding: 10px 14px; border: 1.5px solid var(--color-border); border-radius: 12px; font-size: 0.85rem; background: var(--color-surface); color: var(--color-text); font-family: var(--font-body); outline: none;">
+                            <option value="">Obecność: Wszystkie</option>
+                            <option value="confirmed">Potwierdzona (w aplikacji)</option>
+                            <option value="confirmed_offline">Potwierdzona (poza aplikacją)</option>
+                            <option value="pending">Oczekuje na potwierdzenie</option>
+                            <option value="declined">Odrzucona</option>
+                        </select>
+
                         <select id="filter-missing" class="admin-filter-select" style="padding: 10px 14px; border: 1.5px solid var(--color-border); border-radius: 12px; font-size: 0.85rem; background: var(--color-surface); color: var(--color-text); font-family: var(--font-body); outline: none;">
                             <option value="">Stan danych: Wszystkie</option>
                             <option value="missing_relationship">Brak relacji</option>
@@ -253,6 +286,138 @@
                     
                     <div id="admin-guest-list" class="admin-guest-list-container">
                         <!-- Guest rows generated dynamically by JS -->
+                    </div>
+                </div>
+
+                <!-- TAB: PARTY TASKI (Issue #21) -->
+                <div id="admin-tab-tasks" class="admin-tab-content">
+                    <div class="admin-section-header">
+                        <h3>Zadania Imprezowe (Party Taski)</h3>
+                        <div class="admin-guest-actions">
+                            <button id="admin-add-task-btn" class="admin-btn-primary"><i class="ph ph-plus-circle"></i> Dodaj Zadanie</button>
+                        </div>
+                    </div>
+
+                    <!-- Pula Zadań -->
+                    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                            <h4 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                                <i class="ph-fill ph-stack" style="color: var(--color-primary);"></i> Pula Zadań Weselnych
+                            </h4>
+                            <span id="admin-tasks-count" style="font-size: 0.85rem; font-weight: 600; color: #888;">0 zadań</span>
+                        </div>
+                        <div id="admin-tasks-pool-list" style="display: flex; flex-direction: column; gap: 10px;">
+                            <p style="color: #888; font-size: 0.9rem;">Ładowanie puli zadań...</p>
+                        </div>
+                    </div>
+
+                    <!-- Panel Losowania i Przydziału -->
+                    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+                        <h4 style="margin: 0 0 12px 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="ph-fill ph-shuffle" style="color: var(--color-gold);"></i> Losowanie i Przydział Zadań
+                        </h4>
+
+                        <!-- Wybór odbiorców: Losowo vs Konkretne osoby -->
+                        <div style="display: flex; gap: 16px; margin-bottom: 14px; background: rgba(0,0,0,0.02); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--color-border);">
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">
+                                <input type="radio" name="admin-assign-target-mode" id="admin-assign-target-random" value="random" checked> Losowo z puli gości
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">
+                                <input type="radio" name="admin-assign-target-mode" id="admin-assign-target-specific" value="specific"> Wybierz konkretne osoby z listy
+                            </label>
+                        </div>
+
+                        <!-- Opcje losowania -->
+                        <div id="admin-assign-random-options" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 16px;">
+                            <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                                <label style="font-size: 0.85rem; font-weight: 600;">Liczba osób do wylosowania</label>
+                                <input type="number" id="admin-assign-count" value="1" min="1" max="100" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; width: 100%; background: var(--color-surface); color: var(--color-text);">
+                            </div>
+                            <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                                <label style="font-size: 0.85rem; font-weight: 600;">Filtr roli gości</label>
+                                <select id="admin-assign-role-filter" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; width: 100%; background: var(--color-surface); color: var(--color-text);">
+                                    <option value="">Wszyscy goście</option>
+                                    <option value="gosc">Tylko goście</option>
+                                    <option value="swiadek">Świadkowie</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Wybór konkretnych osób -->
+                        <div id="admin-assign-specific-guests-container" style="display: none; margin-bottom: 16px;">
+                            <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 6px;">Zaznacz gości, którzy mają otrzymać zadanie:</label>
+                            <input type="text" id="admin-assign-guest-search" placeholder="Szukaj gościa po imieniu/nazwisku/kodzie..." style="width: 100%; padding: 8px 12px; border: 1.5px solid #dcd1c4; border-radius: 8px; margin-bottom: 8px; background: var(--color-surface); color: var(--color-text); font-size: 0.88rem;">
+                            <div id="admin-assign-guests-picker" style="max-height: 180px; overflow-y: auto; border: 1.5px solid var(--color-border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; background: var(--color-surface);">
+                                <p style="color: #888; font-size: 0.85rem; margin: 0;">Ładowanie listy gości...</p>
+                            </div>
+                        </div>
+
+                        <!-- Wybór zadania -->
+                        <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px;">
+                            <label style="font-size: 0.85rem; font-weight: 600;">Wybierz zadanie z puli</label>
+                            <select id="admin-assign-specific-task" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; width: 100%; background: var(--color-surface); color: var(--color-text);">
+                                <option value="">Losowe z aktywnych w puli</option>
+                            </select>
+                        </div>
+
+                        <!-- Ustawienia czasu wyświetlania (Harmonogram) -->
+                        <div style="background: rgba(0,0,0,0.02); border: 1px solid var(--color-border); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                            <label style="font-size: 0.88rem; font-weight: 700; display: block; margin-bottom: 8px; color: var(--color-primary);">
+                                <i class="ph-fill ph-clock"></i> Czas i harmonogram wyświetlenia zadań
+                            </label>
+                            <div class="admin-form-group" style="margin-bottom: 10px;">
+                                <select id="admin-assign-time-mode" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 8px; width: 100%; background: var(--color-surface); color: var(--color-text); font-size: 0.9rem;">
+                                    <option value="now">⚡ Natychmiast (teraz)</option>
+                                    <option value="specific">📅 O zaplanowanej dacie i godzinie</option>
+                                    <option value="random_window">🎲 Losowa godzina w przedziale (od - do)</option>
+                                    <option value="interval">⏱️ Z odstępami czasu między gośćmi (np. co 15 min)</option>
+                                </select>
+                            </div>
+
+                            <div id="admin-assign-time-specific-fields" style="display: none; margin-top: 8px;">
+                                <label style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 4px;">Data i godzina wyświetlenia:</label>
+                                <input type="datetime-local" id="admin-assign-scheduled-at" style="width: 100%; padding: 8px 10px; border: 1.5px solid #dcd1c4; border-radius: 8px; background: var(--color-surface); color: var(--color-text);">
+                            </div>
+
+                            <div id="admin-assign-time-window-fields" style="display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
+                                <div>
+                                    <label style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 4px;">Początek przedziału (od):</label>
+                                    <input type="datetime-local" id="admin-assign-window-start" style="width: 100%; padding: 8px 10px; border: 1.5px solid #dcd1c4; border-radius: 8px; background: var(--color-surface); color: var(--color-text);">
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 4px;">Koniec przedziału (do):</label>
+                                    <input type="datetime-local" id="admin-assign-window-end" style="width: 100%; padding: 8px 10px; border: 1.5px solid #dcd1c4; border-radius: 8px; background: var(--color-surface); color: var(--color-text);">
+                                </div>
+                            </div>
+
+                            <div id="admin-assign-time-interval-fields" style="display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
+                                <div>
+                                    <label style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 4px;">Czas startu pierwszego zadania:</label>
+                                    <input type="datetime-local" id="admin-assign-interval-start" style="width: 100%; padding: 8px 10px; border: 1.5px solid #dcd1c4; border-radius: 8px; background: var(--color-surface); color: var(--color-text);">
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 4px;">Odstęp między osobami (minuty):</label>
+                                    <input type="number" id="admin-assign-interval-minutes" value="15" min="1" max="360" style="width: 100%; padding: 8px 10px; border: 1.5px solid #dcd1c4; border-radius: 8px; background: var(--color-surface); color: var(--color-text);">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="admin-execute-assign-btn" class="admin-btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem;">
+                            <i class="ph-fill ph-paper-plane-tilt"></i> Przydziel zadania wybranym gościom
+                        </button>
+                    </div>
+
+                    <!-- Historia i status przydzielonych zadań -->
+                    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 14px; padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                            <h4 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+                                <i class="ph-fill ph-clock-counter-clockwise" style="color: #6366f1;"></i> Status Przydzielonych Zadań
+                            </h4>
+                            <button type="button" id="admin-refresh-assignments-btn" class="admin-btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px; cursor: pointer;"><i class="ph ph-arrows-clockwise"></i> Odśwież</button>
+                        </div>
+                        <div id="admin-assignments-list" style="display: flex; flex-direction: column; gap: 8px;">
+                            <p style="color: #888; font-size: 0.9rem;">Brak przydzielonych zadań.</p>
+                        </div>
                     </div>
                 </div>
 
@@ -315,6 +480,49 @@
                     <div id="admin-places-list" class="admin-list-container">
                         <!-- Places list -->
                     </div>
+
+                    <!-- Menu Imprezy (Issue #23) -->
+                    <div style="background: var(--color-surface); border: 1.5px solid var(--color-border); border-radius: 14px; padding: 20px; margin-top: 24px; margin-bottom: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                            <h4 style="margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; color: var(--color-primary);">
+                                <i class="ph-fill ph-fork-knife" style="color: var(--color-gold);"></i> Menu Imprezy (Markdown)
+                            </h4>
+                            <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="admin-menu-enabled-checkbox" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                <label for="admin-menu-enabled-checkbox" style="font-weight: 600; font-size: 0.9rem; cursor: pointer; user-select: none;">Włącz Menu w sekcji Info</label>
+                            </div>
+                        </div>
+                        <p style="font-size: 0.84rem; color: #64748b; margin: 0 0 16px 0; line-height: 1.4;">
+                            Wprowadź menu przygotowane na imprezę w formacie Markdown (np. nagłówki <code>##</code>, listy <code>-</code>, pogrubienia <code>**</code>). Menu wyświetli się gościom w sekcji <strong>Informacje</strong> od wybranej poniżej daty.
+                        </p>
+
+                        <div class="admin-form-group" style="margin-bottom: 16px;">
+                            <label for="admin-menu-visible-from-input" style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 4px;">
+                                <i class="ph ph-calendar"></i> Widoczne w sekcji Info od dnia i godziny:
+                            </label>
+                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                <input type="datetime-local" id="admin-menu-visible-from-input" style="padding: 9px 12px; border: 1.5px solid #dcd1c4; border-radius: 10px; font-size: 0.9rem; background: var(--color-surface); color: var(--color-text); min-width: 240px;">
+                                <span style="font-size: 0.8rem; color: #888;">(Pozostaw puste, aby było widoczne od razu)</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" id="admin-menu-tab-edit-btn" class="admin-btn-secondary" style="padding: 6px 12px; font-size: 0.82rem; border-radius: 8px; font-weight: 700; border: 1.5px solid var(--color-primary); color: var(--color-primary);"><i class="ph ph-pencil-simple"></i> Edytor Markdown</button>
+                                <button type="button" id="admin-menu-tab-preview-btn" class="admin-btn-secondary" style="padding: 6px 12px; font-size: 0.82rem; border-radius: 8px;"><i class="ph ph-eye"></i> Podgląd na żywo</button>
+                            </div>
+                            <button type="button" id="admin-menu-insert-template-btn" class="admin-btn-secondary" style="padding: 6px 12px; font-size: 0.82rem; border-radius: 8px; color: var(--color-gold);"><i class="ph ph-sparkle"></i> Wstaw szablon menu</button>
+                        </div>
+
+                        <div id="admin-menu-editor-pane">
+                            <textarea id="admin-menu-markdown-textarea" rows="12" placeholder="Wpisz treść menu w formacie Markdown..." style="width: 100%; padding: 12px; border: 1.5px solid #dcd1c4; border-radius: 10px; font-family: monospace; font-size: 0.88rem; line-height: 1.5; background: var(--color-surface); color: var(--color-text); box-sizing: border-box; resize: vertical;"></textarea>
+                        </div>
+
+                        <div id="admin-menu-preview-pane" style="display: none; min-height: 180px; max-height: 380px; overflow-y: auto; padding: 16px; border: 1.5px solid var(--color-border); border-radius: 10px; background: rgba(0,0,0,0.02);">
+                            <div id="admin-menu-preview-content" class="menu-rendered-content"></div>
+                        </div>
+                    </div>
+
                     <button id="admin-save-info-btn" class="admin-btn-primary-big">Zapisz Informacje</button>
                 </div>
 
@@ -704,6 +912,79 @@
                                     <input type="checkbox" id="admin-org-simple-codes-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
                                     <label for="admin-org-simple-codes-checkbox" style="font-weight: 600; cursor: pointer; user-select: none;">Proste kody logowania dla nowych gości (imię gościa, np. PAWEL, a przy duplikatach PAWEL2)</label>
                                 </div>
+                                <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                    <input type="checkbox" id="admin-org-confirmations-enabled-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
+                                    <label for="admin-org-confirmations-enabled-checkbox" style="font-weight: 600; cursor: pointer; user-select: none;">Włącz moduł potwierdzania obecności (sekcja "Ty" i modal gościa)</label>
+                                </div>
+                                <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-left: 24px;">
+                                    <input type="checkbox" id="admin-org-confirmations-popup-checkbox" checked style="width: 18px; height: 18px; cursor: pointer;">
+                                    <label for="admin-org-confirmations-popup-checkbox" style="font-size: 0.9rem; font-weight: 500; cursor: pointer; user-select: none;">Wyświetlaj wyskakujące okienko (popup) przy wejściu do aplikacji</label>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-left: 24px; margin-top: 4px;">
+                                    <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 4px;">
+                                        <label for="admin-org-conf-popup-start" style="font-size: 0.82rem; font-weight: 600;">Popup aktywny od:</label>
+                                        <input type="datetime-local" id="admin-org-conf-popup-start" style="padding: 8px; border: 1.5px solid #dcd1c4; border-radius: 8px; font-size: 0.85rem; background: var(--color-surface); color: var(--color-text);">
+                                    </div>
+                                    <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 4px;">
+                                        <label for="admin-org-conf-popup-end" style="font-size: 0.82rem; font-weight: 600;">Popup aktywny do:</label>
+                                        <input type="datetime-local" id="admin-org-conf-popup-end" style="padding: 8px; border: 1.5px solid #dcd1c4; border-radius: 8px; font-size: 0.85rem; background: var(--color-surface); color: var(--color-text);">
+                                    </div>
+                                </div>
+
+                                <!-- Harmonogram przypomnień o obecności (Issue #22) -->
+                                <div style="background: rgba(99, 102, 241, 0.05); border: 1.5px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 16px; margin-left: 24px; margin-top: 10px; margin-bottom: 8px;">
+                                    <h5 style="margin: 0 0 8px 0; font-size: 0.92rem; font-weight: 700; color: #4f46e5; display: flex; align-items: center; gap: 6px;">
+                                        <i class="ph-fill ph-bell-ringing"></i> Powiadomienia i Przypomnienia o Obecności
+                                    </h5>
+                                    <p style="margin: 0 0 12px 0; font-size: 0.83rem; color: #64748b; line-height: 1.4;">
+                                        Ustaw terminy powiadomień lub cykliczne przypomnienia dla osób, które jeszcze nie potwierdziły obecności.
+                                    </p>
+
+                                    <!-- Lista zaplanowanych terminów -->
+                                    <div style="margin-bottom: 12px;">
+                                        <label style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 6px;">Zaplanowane terminy przypomnień:</label>
+                                        <div id="admin-conf-reminders-list" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
+                                            <p style="color: #94a3b8; font-size: 0.82rem; margin: 0;">Brak dodanych terminów.</p>
+                                        </div>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="datetime-local" id="admin-conf-new-reminder-date" style="padding: 7px 10px; border: 1.5px solid #dcd1c4; border-radius: 8px; font-size: 0.85rem; background: var(--color-surface); color: var(--color-text);">
+                                            <button type="button" id="admin-conf-add-reminder-btn" class="admin-btn-secondary" style="padding: 7px 12px; font-size: 0.85rem; border-radius: 8px;"><i class="ph ph-plus"></i> Dodaj termin</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Opcja cyklicznych przypomnień -->
+                                    <div style="border-top: 1px dashed rgba(99, 102, 241, 0.2); padding-top: 10px; margin-bottom: 12px;">
+                                        <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                            <input type="checkbox" id="admin-conf-recurring-enabled" style="width: 17px; height: 17px; cursor: pointer;">
+                                            <label for="admin-conf-recurring-enabled" style="font-size: 0.86rem; font-weight: 600; cursor: pointer; user-select: none;">Wysyłaj cykliczne przypomnienia</label>
+                                        </div>
+                                        <div id="admin-conf-recurring-fields" style="display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px;">
+                                            <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.8rem; font-weight: 600;">Częstotliwość (co ile dni):</label>
+                                                <input type="number" id="admin-conf-recurring-days" value="7" min="1" max="90" style="padding: 7px; border: 1.5px solid #dcd1c4; border-radius: 8px; font-size: 0.85rem; background: var(--color-surface); color: var(--color-text);">
+                                            </div>
+                                            <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 4px;">
+                                                <label style="font-size: 0.8rem; font-weight: 600;">Cyklicznie do daty:</label>
+                                                <input type="datetime-local" id="admin-conf-recurring-until" style="padding: 7px; border: 1.5px solid #dcd1c4; border-radius: 8px; font-size: 0.85rem; background: var(--color-surface); color: var(--color-text);">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Natychmiastowe przypomnienie -->
+                                    <div style="border-top: 1px dashed rgba(99, 102, 241, 0.2); padding-top: 10px;">
+                                        <label style="font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 4px;">Wyślij powiadomienie teraz do osób oczekujących:</label>
+                                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                            <input type="text" id="admin-conf-instant-message" placeholder="Treść przypomnienia (np. Prosimy o potwierdzenie obecności)" value="Prosimy o potwierdzenie swojej obecności na weselu w aplikacji!" style="flex: 1; min-width: 200px; padding: 7px 10px; border: 1.5px solid #dcd1c4; border-radius: 8px; font-size: 0.85rem; background: var(--color-surface); color: var(--color-text);">
+                                            <button type="button" id="admin-conf-send-now-btn" class="admin-btn-primary" style="padding: 7px 14px; font-size: 0.85rem; border-radius: 8px; white-space: nowrap;"><i class="ph-fill ph-paper-plane-tilt"></i> Wyślij teraz</button>
+                                        </div>
+                                        <div id="admin-conf-send-result" style="margin-top: 6px; font-size: 0.82rem; font-weight: 600; display: none;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="admin-checkbox-group" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                    <input type="checkbox" id="admin-org-party-tasks-enabled-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
+                                    <label for="admin-org-party-tasks-enabled-checkbox" style="font-weight: 600; cursor: pointer; user-select: none;">Włącz Party Taski (zadania i wyzwania imprezowe ze zdjęciami)</label>
+                                </div>
                             </div>
                         </div>
 
@@ -920,6 +1201,16 @@
                 </div>
 
                 <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label for="admin-guest-confirmation-status" style="font-weight: 600;">Status obecności</label>
+                    <select id="admin-guest-confirmation-status" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px;">
+                        <option value="pending">Oczekuje na potwierdzenie</option>
+                        <option value="confirmed">Potwierdzona (w aplikacji)</option>
+                        <option value="confirmed_offline">Potwierdzona poza aplikacją</option>
+                        <option value="declined">Odrzucona (nie będzie)</option>
+                    </select>
+                </div>
+
+                <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px;">
                     <label for="admin-guest-parent" style="font-weight: 600;">Powiąż z istniejącą grupą (wspólny kod i QR)</label>
                     <select id="admin-guest-parent" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px;">
                         <option value="">-- Nowa grupa (nowy kod) --</option>
@@ -1013,6 +1304,41 @@
             </div>
         </div>
     </div>
+
+        <!-- Modal: Dodaj / Edytuj Party Task (Issue #21) -->
+        <div id="admin-task-modal" class="direct-modal" style="display: none; z-index: 10000;">
+            <div class="direct-modal-content" style="max-width: 480px; height: auto !important; min-height: auto !important; align-self: center; border-radius: 24px !important; padding: 24px; margin: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 id="admin-task-modal-title" style="margin: 0; font-size: 1.15rem;">Dodaj Zadanie Imprezowe</h3>
+                    <button type="button" id="admin-task-modal-close" class="direct-modal-close" style="top: 14px; right: 14px;" title="Zamknij"><i class="ph ph-x"></i></button>
+                </div>
+                <form id="admin-task-form" style="display: flex; flex-direction: column; gap: 14px;">
+                    <input type="hidden" id="admin-task-id">
+                    <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
+                        <label for="admin-task-input-title" style="font-weight: 600; font-size: 0.88rem;">Tytuł zadania *</label>
+                        <input type="text" id="admin-task-input-title" placeholder="np. Zrób selfie ze świadkiem" required style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; width: 100%; box-sizing: border-box;">
+                    </div>
+                    <div class="admin-form-group" style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
+                        <label for="admin-task-input-desc" style="font-weight: 600; font-size: 0.88rem;">Opis / Instrukcja zadania</label>
+                        <textarea id="admin-task-input-desc" placeholder="np. Świadek musi mieć śmieszną minę!" rows="3" style="padding: 10px; border: 1.5px solid #dcd1c4; border-radius: 10px; width: 100%; resize: vertical; box-sizing: border-box; font-family: inherit;"></textarea>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px; text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="admin-task-input-requires-photo" checked style="width: 18px; height: 18px;">
+                            <label for="admin-task-input-requires-photo" style="font-size: 0.88rem; font-weight: 600; cursor: pointer;">Wymaga zrobienia zdjęcia (Photo Task)</label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="admin-task-input-is-active" checked style="width: 18px; height: 18px;">
+                            <label for="admin-task-input-is-active" style="font-size: 0.88rem; font-weight: 600; cursor: pointer;">Aktywne (dostępne do losowania)</label>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                        <button type="button" id="admin-task-cancel-btn" class="admin-btn-secondary" style="padding: 10px 16px;">Anuluj</button>
+                        <button type="submit" id="admin-task-save-btn" class="admin-btn-primary" style="padding: 10px 18px;">Zapisz zadanie</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
     <!-- JS Scripts -->
     <script src="js/html2pdf.bundle.min.js"></script>

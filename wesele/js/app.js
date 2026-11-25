@@ -11,15 +11,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const isWeselePath = /(?:^|\/)wesele(?:\/|$)/i.test(window.location.pathname);
     const isPartyPath = /(?:^|\/)party(?:\/|$)/i.test(window.location.pathname);
     const pathTargetOrg = isWeselePath ? 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' : (isPartyPath ? '18181818-1818-4818-8818-181818181818' : null);
-    const explicitOrg = urlParams.get('org') || urlParams.get('org_id') || pathTargetOrg;
+    const hasOrgInUrl = !!(urlParams.get('org') || urlParams.get('org_id') || pathTargetOrg);
+    const explicitOrg = currentOrgId;
     try {
         const cachedUser = JSON.parse(localStorage.getItem('user'));
-        if (explicitOrg && cachedUser && cachedUser.organization_id && cachedUser.organization_id !== explicitOrg) {
+        if (hasOrgInUrl && cachedUser && cachedUser.organization_id && cachedUser.organization_id !== explicitOrg) {
             // User belongs to a different organization! Clear credentials to prevent cross-tenant data leak
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
             localStorage.removeItem('user');
-        } else if (!explicitOrg && cachedUser && cachedUser.organization_id) {
+        } else if (!hasOrgInUrl && cachedUser && cachedUser.organization_id) {
             currentOrgId = cachedUser.organization_id;
             localStorage.setItem('current_org_id', cachedUser.organization_id);
         }
@@ -212,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Global State & DOM Elements ---
     let backendPhotos = [];
     let currentFilter = { type: null, value: null, label: '' };
-    let sortOrder = 'asc'; // 'asc' or 'desc'
+    let sortOrder = 'desc'; // 'desc' (najnowsze) or 'asc' (najstarsze)
     const photoGridUnseen = document.getElementById('photo-grid-unseen');
     const photoGridSeen = document.getElementById('photo-grid-seen');
     const seenPhotosSeparator = document.getElementById('seen-photos-separator');
@@ -356,6 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateProfileUI();
                     loadWeddingConfig();
                     initPushNotifications();
+                    initGallerySSE();
 
                     // Remove code from URL while preserving org parameter
                     try {
@@ -505,6 +507,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function checkAuth() {
+        if (codeFromUrl) {
+            authenticate(codeFromUrl);
+            return;
+        }
         const token = localStorage.getItem('access_token');
         if (token) {
             loginOverlay.classList.remove('active');
@@ -525,6 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateProfileUI();
                     loadWeddingConfig();
                     initPushNotifications();
+                    initGallerySSE();
                 } else {
                     localStorage.removeItem('access_token');
                     localStorage.removeItem('user');
@@ -538,8 +545,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     loginOverlay.classList.add('active');
                 }
             }
-        } else if (codeFromUrl) {
-            authenticate(codeFromUrl);
         }
     }
 
@@ -1510,11 +1515,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'couple-photo-card';
 
-            const src = photo.image.startsWith('http') ? photo.image : `http://127.0.0.1:8000${photo.image}`;
+            const isVideo = photo.media_type === 'video';
+            const thumbSrc = (!isVideo && photo.thumbnail) ? photo.thumbnail : photo.image;
+            const fullSrc = photo.image.startsWith('http') ? photo.image : `http://127.0.0.1:8000${photo.image}`;
+            const displaySrc = thumbSrc.startsWith('http') ? thumbSrc : `http://127.0.0.1:8000${thumbSrc}`;
             
-            if (photo.media_type === 'video') {
+            if (isVideo) {
                 const vid = document.createElement('video');
-                vid.src = src;
+                vid.src = fullSrc;
                 vid.className = 'couple-grid-img';
                 vid.muted = true;
                 vid.playsInline = true;
@@ -1526,9 +1534,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.appendChild(playBadge);
             } else {
                 const img = document.createElement('img');
-                img.src = src;
+                img.src = displaySrc;
                 img.className = 'couple-grid-img';
+                img.loading = 'lazy';
+                img.decoding = 'async';
                 img.alt = 'Zdjęcie Pary Młodej';
+                img.onerror = () => {
+                    if (img.src !== fullSrc) img.src = fullSrc;
+                };
                 card.appendChild(img);
             }
 
@@ -1649,6 +1662,15 @@ document.addEventListener('DOMContentLoaded', () => {
             div.appendChild(favBadge);
         }
 
+        if (photo.task_title) {
+            const taskBadge = document.createElement('div');
+            taskBadge.className = 'grid-item-task-badge';
+            taskBadge.title = `Zadanie: ${photo.task_title}`;
+            taskBadge.innerHTML = '🎯';
+            taskBadge.style.cssText = 'position: absolute; top: 8px; right: 8px; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px); border-radius: 8px; padding: 2px 6px; font-size: 0.82rem; z-index: 5; pointer-events: none;';
+            div.appendChild(taskBadge);
+        }
+
         div.addEventListener('click', () => {
             const globalIndex = backendPhotos.findIndex(p => p.id === photo.id);
             openPhotoViewer(globalIndex > -1 ? globalIndex : index);
@@ -1669,10 +1691,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderPhotos(photosList, container) {
         if (!container) return;
+        if (container._sentinelObserver) {
+            container._sentinelObserver.disconnect();
+            container._sentinelObserver = null;
+        }
         container.innerHTML = '';
         if (!photosList || photosList.length === 0) return;
 
-        const CHUNK_SIZE = 30;
+        const CHUNK_SIZE = 24;
         let renderedCount = 0;
 
         function renderNextChunk() {
@@ -1696,10 +1722,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const sentinelObserver = new IntersectionObserver((entries, obs) => {
                     if (entries[0].isIntersecting) {
                         obs.disconnect();
+                        container._sentinelObserver = null;
                         if (sentinel.parentNode) sentinel.remove();
                         renderNextChunk();
                     }
                 }, { rootMargin: '600px 0px 600px 0px' });
+                container._sentinelObserver = sentinelObserver;
                 sentinelObserver.observe(sentinel);
             }
         }
@@ -2051,6 +2079,8 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     let currentDurationIndex = 0;
     let currentCameraContext = 'story';
+    let currentActivePartyTask = null;
+    let currentTaskAssignmentId = null;
 
     if (addStoryBtn) {
         addStoryBtn.addEventListener('click', () => openCamera('story'));
@@ -2268,6 +2298,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else if (currentCameraContext === 'gallery') {
                 formData.append('image', finalBlob, `photo_${Date.now()}.${ext}`);
+                if (currentTaskAssignmentId) {
+                    formData.append('task_assignment_id', currentTaskAssignmentId);
+                }
                 const _uploadStart = performance.now();
                 const response = await fetch(`${API_URL}/gallery/photos/`, {
                     method: 'POST',
@@ -2282,6 +2315,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             context: 'gallery',
                             size: finalBlob ? finalBlob.size : 0
                         });
+                    }
+                    if (currentTaskAssignmentId) {
+                        currentTaskAssignmentId = null;
+                        if (typeof showToast === 'function') {
+                            showToast('🎯 Zadanie wykonane! Zdjęcie dodano do galerii.');
+                        }
+                        loadMyPartyTask();
                     }
                     loadPhotos();
                 } else {
@@ -2964,6 +3004,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else if (currentCameraContext === 'gallery') {
                     formData.append('image', finalBlob, `photo_${Date.now()}.${ext}`);
+                    if (currentTaskAssignmentId) {
+                        formData.append('task_assignment_id', currentTaskAssignmentId);
+                    }
                     const _uploadStart = performance.now();
                     const response = await fetch(`${API_URL}/gallery/photos/`, {
                         method: 'POST',
@@ -2980,6 +3023,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             });
                         }
                         const newPhoto = await response.json();
+                        if (currentTaskAssignmentId) {
+                            currentTaskAssignmentId = null;
+                            if (typeof showToast === 'function') {
+                                showToast('🎯 Zadanie wykonane! Zdjęcie dodano do galerii.');
+                            }
+                            loadMyPartyTask();
+                        }
                         loadPhotos();
                         closeCamera();
                     } else {
@@ -3441,6 +3491,20 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 photoViewerAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(getInitials(currentPhoto.guest_name, currentPhoto.guest_last_name))}&background=EAE0D5&color=000`;
             }
+
+            // Party task info banner (Issue #21)
+            const photoViewerTaskBar = document.getElementById('photo-viewer-task-bar');
+            const photoViewerTaskTitle = document.getElementById('photo-viewer-task-title');
+            const photoViewerTaskDesc = document.getElementById('photo-viewer-task-desc');
+            if (photoViewerTaskBar) {
+                if (currentPhoto.task_title) {
+                    if (photoViewerTaskTitle) photoViewerTaskTitle.textContent = currentPhoto.task_title;
+                    if (photoViewerTaskDesc) photoViewerTaskDesc.textContent = currentPhoto.task_description || '';
+                    photoViewerTaskBar.style.display = 'block';
+                } else {
+                    photoViewerTaskBar.style.display = 'none';
+                }
+            }
             
             const currentUser = JSON.parse(localStorage.getItem('user'));
             const photoDeleteBtn = document.getElementById('photo-delete-btn');
@@ -3726,6 +3790,91 @@ document.addEventListener('DOMContentLoaded', () => {
         return outputArray;
     }
 
+    function initGallerySSE() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+
+        if (window.galleryEventSource) {
+            try {
+                window.galleryEventSource.close();
+            } catch(e) {}
+            window.galleryEventSource = null;
+        }
+
+        let orgId = '';
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const u = JSON.parse(userStr);
+                if (u.organization_id) orgId = u.organization_id;
+            } catch (e) {}
+        }
+        if (!orgId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            orgId = urlParams.get('org') || '';
+        }
+
+        const sseUrl = `${API_URL}/gallery/events/?token=${encodeURIComponent(token)}${orgId ? `&org=${encodeURIComponent(orgId)}` : ''}`;
+        
+        try {
+            const eventSource = new EventSource(sseUrl);
+
+            eventSource.onopen = () => {
+                console.log('[SSE] Połączono ze strumieniem galerii');
+            };
+
+            eventSource.addEventListener('connected', () => {
+                console.log('[SSE] Połączenie aktywne');
+            });
+
+            eventSource.addEventListener('new_photo', (e) => {
+                console.log('[SSE] Otrzymano nowe zdjęcie/wideo:', e.data);
+                if (typeof showToast === 'function') {
+                    showToast('📸 Nowe zdjęcie w galerii!');
+                }
+                loadPhotos();
+            });
+
+            eventSource.addEventListener('new_story', (e) => {
+                console.log('[SSE] Otrzymano nową relację (story):', e.data);
+                if (typeof showToast === 'function') {
+                    showToast('✨ Nowa relacja!');
+                }
+                if (typeof loadStories === 'function') {
+                    loadStories();
+                }
+            });
+
+            eventSource.addEventListener('delete_photo', (e) => {
+                console.log('[SSE] Zdjęcie zostało usunięte. Aktualizacja galerii...');
+                loadPhotos();
+            });
+
+            eventSource.addEventListener('delete_story', (e) => {
+                console.log('[SSE] Relacja została usunięta. Aktualizacja...');
+                if (typeof loadStories === 'function') {
+                    loadStories();
+                }
+            });
+
+            eventSource.addEventListener('new_party_task', (e) => {
+                console.log('[SSE] Otrzymano nowe zadanie weselne:', e.data);
+                if (typeof showToast === 'function') {
+                    showToast('🎯 Otrzymałeś nowe zadanie imprezowe!');
+                }
+                loadMyPartyTask();
+            });
+
+            eventSource.onerror = (err) => {
+                console.warn('[SSE] Połączenie przerwane, automatyczne ponowienie...');
+            };
+
+            window.galleryEventSource = eventSource;
+        } catch (e) {
+            console.warn('[SSE] Nie udało się zainicjalizować EventSource:', e);
+        }
+    }
+
     async function initPushNotifications() {
         const token = localStorage.getItem('access_token');
         if (!token) return;
@@ -3937,6 +4086,92 @@ document.addEventListener('DOMContentLoaded', () => {
                     adminPanelCard.style.display = 'flex';
                 } else {
                     adminPanelCard.style.display = 'none';
+                }
+            }
+
+            // Section "Potwierdzenie obecności" (Issue #22)
+            const userConfCard = document.getElementById('user-confirmation-card');
+            const userConfStatusText = document.getElementById('user-confirmation-status-text');
+            const userConfBadge = document.getElementById('user-confirmation-badge');
+            const userConfIcon = document.getElementById('user-confirmation-icon');
+
+            if (userConfCard) {
+                if (cfg.confirmations_enabled === false) {
+                    userConfCard.style.display = 'none';
+                } else {
+                    userConfCard.style.display = 'flex';
+                    const cStatus = user.confirmation_status || 'pending';
+
+                    if (cStatus === 'confirmed') {
+                        userConfCard.style.background = 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)';
+                        userConfCard.style.borderColor = '#a7f3d0';
+                        if (userConfIcon) {
+                            userConfIcon.style.background = '#d1fae5';
+                            userConfIcon.style.color = '#059669';
+                            userConfIcon.innerHTML = '<i class="ph-fill ph-check-circle"></i>';
+                        }
+                        if (userConfStatusText) {
+                            userConfStatusText.textContent = 'Obecność została potwierdzona';
+                            userConfStatusText.style.color = '#047857';
+                        }
+                        if (userConfBadge) {
+                            userConfBadge.textContent = 'Potwierdzona ✓';
+                            userConfBadge.style.background = '#10b981';
+                            userConfBadge.style.color = '#ffffff';
+                        }
+                    } else if (cStatus === 'confirmed_offline') {
+                        userConfCard.style.background = 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)';
+                        userConfCard.style.borderColor = '#c4b5fd';
+                        if (userConfIcon) {
+                            userConfIcon.style.background = '#ede9fe';
+                            userConfIcon.style.color = '#7c3aed';
+                            userConfIcon.innerHTML = '<i class="ph-fill ph-check-circle"></i>';
+                        }
+                        if (userConfStatusText) {
+                            userConfStatusText.textContent = 'Potwierdzono poza aplikacją';
+                            userConfStatusText.style.color = '#6d28d9';
+                        }
+                        if (userConfBadge) {
+                            userConfBadge.textContent = 'Potwierdzona ✓';
+                            userConfBadge.style.background = '#8b5cf6';
+                            userConfBadge.style.color = '#ffffff';
+                        }
+                    } else if (cStatus === 'declined') {
+                        userConfCard.style.background = 'linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%)';
+                        userConfCard.style.borderColor = '#fecaca';
+                        if (userConfIcon) {
+                            userConfIcon.style.background = '#fee2e2';
+                            userConfIcon.style.color = '#dc2626';
+                            userConfIcon.innerHTML = '<i class="ph-fill ph-x-circle"></i>';
+                        }
+                        if (userConfStatusText) {
+                            userConfStatusText.textContent = 'Niestety nie możesz przybyć';
+                            userConfStatusText.style.color = '#b91c1c';
+                        }
+                        if (userConfBadge) {
+                            userConfBadge.textContent = 'Odrzucona';
+                            userConfBadge.style.background = '#ef4444';
+                            userConfBadge.style.color = '#ffffff';
+                        }
+                    } else {
+                        // pending
+                        userConfCard.style.background = 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)';
+                        userConfCard.style.borderColor = '#fde68a';
+                        if (userConfIcon) {
+                            userConfIcon.style.background = '#fef3c7';
+                            userConfIcon.style.color = '#d97706';
+                            userConfIcon.innerHTML = '<i class="ph-fill ph-calendar-plus"></i>';
+                        }
+                        if (userConfStatusText) {
+                            userConfStatusText.textContent = 'Czekamy na Twoje potwierdzenie';
+                            userConfStatusText.style.color = '#b45309';
+                        }
+                        if (userConfBadge) {
+                            userConfBadge.textContent = 'Potwierdź obecność';
+                            userConfBadge.style.background = '#d97706';
+                            userConfBadge.style.color = '#ffffff';
+                        }
+                    }
                 }
             }
 
@@ -6281,6 +6516,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (config.header_mode_settings) {
                     applyHeaderModeSettings(config.header_mode_settings);
                 }
+
+                // Confirmations & Party Tasks update
+                if (typeof updateProfileUI === 'function') updateProfileUI();
+                if (typeof loadMyPartyTask === 'function') loadMyPartyTask();
+                if (typeof checkAttendanceEntrancePopup === 'function') checkAttendanceEntrancePopup();
+                if (typeof renderPartyMenu === 'function') renderPartyMenu(config);
             }
         } catch(e) {
             console.error("Błąd ładowania konfiguracji:", e);
@@ -6379,6 +6620,141 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             container.parentNode.appendChild(wrapper);
+        }
+    }
+
+    // ── MARKDOWN TO HTML RENDERER & PARTY MENU (Issue #23) ───────────────────
+    function renderMarkdownToHtml(md) {
+        if (!md || typeof md !== 'string') return '';
+
+        let text = md
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+        const lines = text.split('\n');
+        let html = '';
+        let inList = false;
+
+        const parseInline = (str) => {
+            if (!str) return '';
+            return str
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/__(.*?)__/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/_(.*?)_/g, '<em>$1</em>')
+                .replace(/`([^`]+)`/g, '<code style="background: rgba(0,0,0,0.06); padding: 2px 5px; border-radius: 4px; font-size: 0.85em;">$1</code>');
+        };
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
+
+            if (!line) {
+                if (inList) {
+                    html += '</ul>\n';
+                    inList = false;
+                }
+                continue;
+            }
+
+            if (line.startsWith('### ')) {
+                if (inList) { html += '</ul>\n'; inList = false; }
+                html += `<h4 class="menu-heading-3">${parseInline(line.slice(4))}</h4>\n`;
+                continue;
+            }
+            if (line.startsWith('## ')) {
+                if (inList) { html += '</ul>\n'; inList = false; }
+                html += `<h3 class="menu-heading-2">${parseInline(line.slice(3))}</h3>\n`;
+                continue;
+            }
+            if (line.startsWith('# ')) {
+                if (inList) { html += '</ul>\n'; inList = false; }
+                html += `<h2 class="menu-heading-1">${parseInline(line.slice(2))}</h2>\n`;
+                continue;
+            }
+
+            if (line.startsWith('&gt; ')) {
+                if (inList) { html += '</ul>\n'; inList = false; }
+                html += `<blockquote class="menu-note">${parseInline(line.slice(5))}</blockquote>\n`;
+                continue;
+            }
+
+            if (/^(\-{3,}|\*{3,}|_{3,})$/.test(line)) {
+                if (inList) { html += '</ul>\n'; inList = false; }
+                html += `<hr class="menu-divider">\n`;
+                continue;
+            }
+
+            if (/^[-*]\s+/.test(line)) {
+                if (!inList) {
+                    html += '<ul class="menu-list">\n';
+                    inList = true;
+                }
+                const itemText = line.replace(/^[-*]\s+/, '');
+                html += `  <li class="menu-list-item">${parseInline(itemText)}</li>\n`;
+                continue;
+            }
+
+            if (inList) {
+                html += '</ul>\n';
+                inList = false;
+            }
+            html += `<p class="menu-text">${parseInline(line)}</p>\n`;
+        }
+
+        if (inList) {
+            html += '</ul>\n';
+        }
+
+        return html;
+    }
+
+    function renderPartyMenu(config = null) {
+        const wrapper = document.getElementById('info-menu-section-wrapper');
+        const contentEl = document.getElementById('info-menu-rendered-content');
+        const adminBadge = document.getElementById('info-menu-admin-badge');
+        if (!wrapper || !contentEl) return;
+
+        const cfg = config || window.__WEDDING_CONFIG || weddingConfig || {};
+        const isEnabled = cfg.menu_enabled !== false;
+        const markdown = cfg.menu_markdown ? cfg.menu_markdown.trim() : '';
+
+        if (!isEnabled || !markdown) {
+            wrapper.style.display = 'none';
+            return;
+        }
+
+        let user = null;
+        try { user = JSON.parse(localStorage.getItem('user')); } catch (e) {}
+        const isHost = user && (user.role === 'para_mloda' || user.is_staff);
+
+        const now = new Date();
+        let isDateReached = true;
+        let visibleFromDate = null;
+
+        if (cfg.menu_visible_from) {
+            visibleFromDate = new Date(cfg.menu_visible_from);
+            if (!isNaN(visibleFromDate.getTime())) {
+                isDateReached = (now >= visibleFromDate);
+            }
+        }
+
+        if (isDateReached) {
+            contentEl.innerHTML = renderMarkdownToHtml(markdown);
+            wrapper.style.display = 'block';
+            if (adminBadge) adminBadge.style.display = 'none';
+        } else if (isHost) {
+            contentEl.innerHTML = renderMarkdownToHtml(markdown);
+            wrapper.style.display = 'block';
+            if (adminBadge) {
+                const dateFormatted = visibleFromDate ? visibleFromDate.toLocaleString('pl-PL', { dateStyle: 'short', timeStyle: 'short' }) : '';
+                adminBadge.innerHTML = `<i class="ph ph-eye"></i> Podgląd Pary Młodej (dla gości od: ${dateFormatted})`;
+                adminBadge.style.display = 'inline-flex';
+            }
+        } else {
+            wrapper.style.display = 'none';
         }
     }
 
@@ -6507,6 +6883,298 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user.role === 'swiadek' && witnessPermissions.can_delete_videos) return true;
         return false;
     };
+
+    // ── GUEST PARTY TASKS LOGIC (Issue #21) ───────────────────────────────────
+    async function loadMyPartyTask() {
+        const widget = document.getElementById('party-task-widget');
+        if (!widget) return;
+
+        const cfg = window.__WEDDING_CONFIG || weddingConfig || {};
+        if (cfg.party_tasks_enabled === false) {
+            widget.style.display = 'none';
+            return;
+        }
+
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            widget.style.display = 'none';
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/gallery/party-tasks/my/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.assignment) {
+                    currentActivePartyTask = data.assignment;
+                    const titleEl = document.getElementById('party-task-title');
+                    const descEl = document.getElementById('party-task-desc');
+                    const reqPhotoBadge = document.getElementById('party-task-requires-photo-badge');
+                    const photoBtn = document.getElementById('party-task-photo-btn');
+                    const completeBtn = document.getElementById('party-task-complete-btn');
+
+                    if (titleEl) titleEl.textContent = currentActivePartyTask.task_title;
+                    if (descEl) descEl.textContent = currentActivePartyTask.task_description || '';
+
+                    if (currentActivePartyTask.requires_photo) {
+                        if (reqPhotoBadge) reqPhotoBadge.style.display = 'inline-block';
+                        if (photoBtn) photoBtn.style.display = 'flex';
+                        if (completeBtn) completeBtn.style.display = 'none';
+                    } else {
+                        if (reqPhotoBadge) reqPhotoBadge.style.display = 'none';
+                        if (photoBtn) photoBtn.style.display = 'none';
+                        if (completeBtn) completeBtn.style.display = 'flex';
+                    }
+
+                    widget.style.display = 'block';
+                } else {
+                    currentActivePartyTask = null;
+                    widget.style.display = 'none';
+                }
+            } else {
+                widget.style.display = 'none';
+            }
+        } catch (e) {
+            console.error('Error fetching party task:', e);
+            widget.style.display = 'none';
+        }
+    }
+
+    function initPartyTasksGuestListeners() {
+        const photoBtn = document.getElementById('party-task-photo-btn');
+        if (photoBtn) {
+            photoBtn.addEventListener('click', () => {
+                if (!currentActivePartyTask) return;
+                currentTaskAssignmentId = currentActivePartyTask.id;
+                openCameraDirect('gallery', 'image');
+            });
+        }
+
+        const completeBtn = document.getElementById('party-task-complete-btn');
+        if (completeBtn) {
+            completeBtn.addEventListener('click', async () => {
+                if (!currentActivePartyTask) return;
+                completeBtn.disabled = true;
+                completeBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Zapisywanie...';
+                const token = localStorage.getItem('access_token');
+                try {
+                    const res = await fetch(`${API_URL}/gallery/party-tasks/assignment/${currentActivePartyTask.id}/action/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ action: 'completed' })
+                    });
+                    if (res.ok) {
+                        if (typeof showToast === 'function') {
+                            showToast('🎉 Gratulacje! Zadanie zostało oznaczone jako wykonane.');
+                        }
+                        loadMyPartyTask();
+                    } else {
+                        const err = await res.json();
+                        alert(err.error || 'Wystąpił błąd.');
+                    }
+                } catch (e) {
+                    alert('Błąd sieci: ' + e.message);
+                } finally {
+                    completeBtn.disabled = false;
+                    completeBtn.innerHTML = '<i class="ph-bold ph-check"></i> <span>Wykonane</span>';
+                }
+            });
+        }
+
+        const declineBtn = document.getElementById('party-task-decline-btn');
+        if (declineBtn) {
+            declineBtn.addEventListener('click', async () => {
+                if (!currentActivePartyTask) return;
+                if (!confirm('Czy na pewno chcesz zrezygnować z tego wyzwania?')) return;
+                declineBtn.disabled = true;
+                const token = localStorage.getItem('access_token');
+                try {
+                    const res = await fetch(`${API_URL}/gallery/party-tasks/assignment/${currentActivePartyTask.id}/action/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ action: 'declined' })
+                    });
+                    if (res.ok) {
+                        if (typeof showToast === 'function') {
+                            showToast('Zadanie zostało odrzucone.');
+                        }
+                        loadMyPartyTask();
+                    }
+                } catch (e) {
+                    alert('Błąd sieci: ' + e.message);
+                } finally {
+                    declineBtn.disabled = false;
+                }
+            });
+        }
+    }
+
+    // ── GUEST ATTENDANCE CONFIRMATION LOGIC (Issue #22) ────────────────────────
+    function openConfirmationModal() {
+        const modal = document.getElementById('confirmation-modal');
+        if (!modal) return;
+
+        const descEl = document.getElementById('confirmation-modal-desc');
+        let user = null;
+        try { user = JSON.parse(localStorage.getItem('user')); } catch (e) {}
+
+        if (descEl && user) {
+            const cStatus = user.confirmation_status || 'pending';
+            if (cStatus === 'confirmed') {
+                descEl.textContent = 'Twoja obecność jest już potwierdzona! Czy chcesz zmienić swój wybór?';
+            } else if (cStatus === 'confirmed_offline') {
+                descEl.textContent = 'Twoja obecność została odnotowana poza aplikacją. Czy chcesz zmienić swój wybór?';
+            } else if (cStatus === 'declined') {
+                descEl.textContent = 'Wcześniej zgłoszono brak obecności. Czy chcesz zmienić decyzję i potwierdzić obecność?';
+            } else {
+                descEl.textContent = 'Czy na pewno chcesz potwierdzić obecność?';
+            }
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    function initConfirmationModalListeners() {
+        const userConfCard = document.getElementById('user-confirmation-card');
+        if (userConfCard) {
+            userConfCard.addEventListener('click', () => openConfirmationModal());
+        }
+
+        const modal = document.getElementById('confirmation-modal');
+        const closeBtn = document.getElementById('confirmation-modal-close');
+        const remindLaterBtn = document.getElementById('confirmation-modal-remind-later-btn');
+        const confirmBtn = document.getElementById('confirmation-modal-confirm-btn');
+        const declineBtn = document.getElementById('confirmation-modal-decline-btn');
+
+        const closeModal = () => {
+            if (modal) modal.style.display = 'none';
+            sessionStorage.setItem('dismissed_conf_popup', '1');
+        };
+
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (remindLaterBtn) remindLaterBtn.addEventListener('click', closeModal);
+
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', async () => {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Potwierdzanie...';
+                const token = localStorage.getItem('access_token');
+                try {
+                    const res = await fetch(`${API_URL}/me/confirm-attendance/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ status: 'confirmed' })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        let user = null;
+                        try { user = JSON.parse(localStorage.getItem('user')); } catch (e) {}
+                        if (user) {
+                            user.confirmation_status = 'confirmed';
+                            user.confirmed_at = data.guest?.confirmed_at || new Date().toISOString();
+                            localStorage.setItem('user', JSON.stringify(user));
+                        }
+                        updateProfileUI();
+                        if (modal) modal.style.display = 'none';
+                        if (typeof showToast === 'function') {
+                            showToast('🎉 Cudownie! Dziękujemy za potwierdzenie obecności!');
+                        }
+                    } else {
+                        const err = await res.json();
+                        alert(err.error || 'Wystąpił błąd podczas potwierdzania obecności.');
+                    }
+                } catch (e) {
+                    alert('Błąd sieci: ' + e.message);
+                } finally {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '🎉 Potwierdzam obecność';
+                }
+            });
+        }
+
+        if (declineBtn) {
+            declineBtn.addEventListener('click', async () => {
+                declineBtn.disabled = true;
+                declineBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Zapisywanie...';
+                const token = localStorage.getItem('access_token');
+                try {
+                    const res = await fetch(`${API_URL}/me/confirm-attendance/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ status: 'declined' })
+                    });
+                    if (res.ok) {
+                        let user = null;
+                        try { user = JSON.parse(localStorage.getItem('user')); } catch (e) {}
+                        if (user) {
+                            user.confirmation_status = 'declined';
+                            localStorage.setItem('user', JSON.stringify(user));
+                        }
+                        updateProfileUI();
+                        if (modal) modal.style.display = 'none';
+                        if (typeof showToast === 'function') {
+                            showToast('Zapisano informację o braku obecności.');
+                        }
+                    } else {
+                        const err = await res.json();
+                        alert(err.error || 'Wystąpił błąd.');
+                    }
+                } catch (e) {
+                    alert('Błąd sieci: ' + e.message);
+                } finally {
+                    declineBtn.disabled = false;
+                    declineBtn.innerHTML = 'Niestety nie mogę przybyć';
+                }
+            });
+        }
+    }
+
+    function checkAttendanceEntrancePopup() {
+        const cfg = window.__WEDDING_CONFIG || weddingConfig || {};
+        if (cfg.confirmations_enabled === false) return;
+        if (cfg.confirmations_popup_enabled === false) return;
+        if (sessionStorage.getItem('dismissed_conf_popup')) return;
+
+        let user = null;
+        try { user = JSON.parse(localStorage.getItem('user')); } catch (e) {}
+        if (!user) return;
+
+        // Only pop up if guest has not yet confirmed or declined
+        const cStatus = user.confirmation_status || 'pending';
+        if (cStatus !== 'pending') return;
+
+        // Check date window
+        const now = new Date();
+        if (cfg.confirmations_popup_start_date) {
+            const start = new Date(cfg.confirmations_popup_start_date);
+            if (now < start) return;
+        }
+        if (cfg.confirmations_popup_end_date) {
+            const end = new Date(cfg.confirmations_popup_end_date);
+            if (now > end) return;
+        }
+
+        setTimeout(() => {
+            openConfirmationModal();
+        }, 1200);
+    }
+
+    initPartyTasksGuestListeners();
+    initConfirmationModalListeners();
 
     // Load configurations on initialization
     loadWeddingConfig();
